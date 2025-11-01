@@ -215,9 +215,9 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
-      <div className="w-full max-w-xl bg-card rounded-2xl p-8 sm:p-12 shadow-xl border">
-        <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-md sm:max-w-xl bg-card rounded-2xl p-6 sm:p-8 lg:p-12 shadow-xl border">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 sm:mb-8">
           {mode === "signin" ? "Welcome Back" : "Create Account"}
         </h1>
 
@@ -228,9 +228,9 @@ const Auth = () => {
           </TabsList>
 
           <TabsContent value="signin">
-            <form onSubmit={handleSignIn} className="space-y-6">
+            <form onSubmit={handleSignIn} className="space-y-4 sm:space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="signin-email" className="text-base">
+                <Label htmlFor="signin-email" className="text-sm sm:text-base">
                   Email
                 </Label>
                 <Input
@@ -239,12 +239,13 @@ const Auth = () => {
                   value={signInEmail}
                   onChange={(e) => setSignInEmail(e.target.value)}
                   required
-                  className="h-12 text-base"
+                  className="h-11 sm:h-12 text-base"
+                  placeholder="you@example.com"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signin-password" className="text-base">
+                <Label htmlFor="signin-password" className="text-sm sm:text-base">
                   Password
                 </Label>
                 <div className="relative">
@@ -254,12 +255,14 @@ const Auth = () => {
                     value={signInPassword}
                     onChange={(e) => setSignInPassword(e.target.value)}
                     required
-                    className="h-12 text-base pr-12"
+                    className="h-11 sm:h-12 text-base pr-12"
+                    placeholder="Enter your password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground touch-manipulation p-1"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -273,13 +276,13 @@ const Auth = () => {
                 </label>
               </div>
 
-              <Button type="submit" className="w-full h-12 text-base" disabled={loading}>
+              <Button type="submit" className="w-full h-11 sm:h-12 text-base touch-manipulation" disabled={loading}>
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
 
               <Link
                 to="/token-sign-in"
-                className="text-primary font-medium text-sm hover:underline flex items-center justify-center gap-1"
+                className="text-primary font-medium text-sm hover:underline flex items-center justify-center gap-1 py-2 touch-manipulation"
               >
                 Use token instead <ChevronRight className="w-4 h-4" />
               </Link>
@@ -287,9 +290,9 @@ const Auth = () => {
           </TabsContent>
 
           <TabsContent value="signup">
-            <form onSubmit={handleSignUp} className="space-y-6">
+            <form onSubmit={handleSignUp} className="space-y-4 sm:space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="signup-name" className="text-base">
+                <Label htmlFor="signup-name" className="text-sm sm:text-base">
                   Full Name
                 </Label>
                 <Input
@@ -298,12 +301,13 @@ const Auth = () => {
                   value={signUpFullName}
                   onChange={(e) => setSignUpFullName(e.target.value)}
                   required
-                  className="h-12 text-base"
+                  className="h-11 sm:h-12 text-base"
+                  placeholder="John Doe"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signup-email" className="text-base">
+                <Label htmlFor="signup-email" className="text-sm sm:text-base">
                   Email
                 </Label>
                 <Input
@@ -312,12 +316,13 @@ const Auth = () => {
                   value={signUpEmail}
                   onChange={(e) => setSignUpEmail(e.target.value)}
                   required
-                  className="h-12 text-base"
+                  className="h-11 sm:h-12 text-base"
+                  placeholder="you@example.com"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signup-password" className="text-base">
+                <Label htmlFor="signup-password" className="text-sm sm:text-base">
                   Password
                 </Label>
                 <Input
@@ -327,12 +332,13 @@ const Auth = () => {
                   onChange={(e) => setSignUpPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="h-12 text-base"
+                  className="h-11 sm:h-12 text-base"
+                  placeholder="Minimum 6 characters"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm-password" className="text-base">
+                <Label htmlFor="confirm-password" className="text-sm sm:text-base">
                   Confirm Password
                 </Label>
                 <Input
@@ -342,12 +348,13 @@ const Auth = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="h-12 text-base"
+                  className="h-11 sm:h-12 text-base"
+                  placeholder="Re-enter password"
                 />
               </div>
 
-              <div className="bg-muted p-4 rounded-lg space-y-2">
-                <p className="text-sm font-medium">Security Requirements:</p>
+              <div className="bg-muted p-3 sm:p-4 rounded-lg space-y-2">
+                <p className="text-xs sm:text-sm font-medium">Security Requirements:</p>
                 <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
                   <li>Email verification required</li>
                   <li>QR code authentication required</li>
@@ -355,7 +362,7 @@ const Auth = () => {
                 </ul>
               </div>
 
-              <Button type="submit" className="w-full h-12 text-base" disabled={loading}>
+              <Button type="submit" className="w-full h-11 sm:h-12 text-base touch-manipulation" disabled={loading}>
                 {loading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
