@@ -126,7 +126,7 @@ export default function AdminEmailSystem() {
   `.trim();
 
   return (
-    <div className="min-h-full w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 space-y-6">
+    <div className="min-h-full w-full p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white">Email System</h1>
         <p className="text-slate-300">Send professional emails to your users</p>

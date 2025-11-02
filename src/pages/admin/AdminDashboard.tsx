@@ -91,9 +91,9 @@ const AdminDashboard = () => {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen w-full flex bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="min-h-screen w-full flex">
         <AdminSidebar />
-        <main className="flex-1 flex flex-col min-w-0">
+        <main className="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
           <header className="bg-slate-800/95 backdrop-blur-sm shadow-md border-b border-slate-700 flex-shrink-0">
             <div className="flex items-center justify-between px-6 py-4">
               <div className="flex items-center gap-4">
@@ -114,9 +114,9 @@ const AdminDashboard = () => {
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto p-6">
+          <div className="flex-1 overflow-auto">
             {isAdminHome ? (
-              <div className="max-w-7xl mx-auto space-y-8">
+              <div className="max-w-7xl mx-auto p-6 space-y-8">
                 <div>
                   <h2 className="text-3xl font-bold text-white mb-2">
                     Welcome back, Administrator

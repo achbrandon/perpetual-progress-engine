@@ -63,7 +63,7 @@ export default function AdminWalletSettings() {
   };
 
   return (
-    <div className="min-h-full w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 space-y-6">
+    <div className="min-h-full w-full p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white">Wallet Management</h1>
         <p className="text-slate-300">Manage crypto deposit addresses for all users</p>

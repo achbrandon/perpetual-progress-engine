@@ -233,7 +233,7 @@ export default function AdminSupportPage() {
   }
 
   return (
-    <div className="min-h-full w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+    <div className="min-h-full w-full p-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-2">
