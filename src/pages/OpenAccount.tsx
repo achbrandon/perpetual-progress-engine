@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
 
 const OpenAccount = () => {
   const [step, setStep] = useState(1);
@@ -137,7 +138,7 @@ const OpenAccount = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.acceptTerms) {
       alert("Please accept the Terms and Conditions to proceed.");
@@ -147,7 +148,31 @@ const OpenAccount = () => {
       alert("Passwords do not match. Please check and try again.");
       return;
     }
-    setShowSuccessDialog(true);
+
+    try {
+      // Save application to database
+      const { error } = await supabase.from("account_applications").insert({
+        full_name: formData.fullName,
+        date_of_birth: formData.dateOfBirth,
+        email: formData.email,
+        phone: formData.phoneNumber,
+        address: formData.residentialAddress,
+        account_type: formData.accountType,
+        ssn: formData.ssn,
+        status: 'pending',
+      });
+
+      if (error) {
+        console.error("Error submitting application:", error);
+        alert("There was an error submitting your application. Please try again.");
+        return;
+      }
+
+      setShowSuccessDialog(true);
+    } catch (error) {
+      console.error("Error:", error);
+      alert("There was an error submitting your application. Please try again.");
+    }
   };
 
   return (
