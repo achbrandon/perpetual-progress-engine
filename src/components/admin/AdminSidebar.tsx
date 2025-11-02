@@ -8,7 +8,8 @@ import {
   Wallet,
   FileText,
   UserCog,
-  Activity
+  Activity,
+  Sliders
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
@@ -68,6 +69,11 @@ const menuItems = [
     title: "Wallet Settings",
     url: "/admin/wallets",
     icon: Wallet,
+  },
+  {
+    title: "Admin Settings",
+    url: "/admin/settings",
+    icon: Sliders,
   },
   {
     title: "User Activity",

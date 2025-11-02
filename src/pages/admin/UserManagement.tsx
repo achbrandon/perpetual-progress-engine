@@ -204,12 +204,16 @@ export default function AdminUserManagement() {
                           <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                             <SelectValue placeholder="Select account" />
                           </SelectTrigger>
-                          <SelectContent className="bg-slate-800 border-slate-700">
-                            {accounts.map((account) => (
-                              <SelectItem key={account.id} value={account.id} className="text-white">
-                                {account.account_name} - {account.account_type} (${account.balance})
-                              </SelectItem>
-                            ))}
+                          <SelectContent className="bg-slate-900 border-slate-700 z-50">
+                            {accounts.length === 0 ? (
+                              <div className="p-4 text-slate-400 text-sm">No accounts found</div>
+                            ) : (
+                              accounts.map((account) => (
+                                <SelectItem key={account.id} value={account.id} className="text-white hover:bg-slate-800 focus:bg-slate-800">
+                                  {account.account_name} - {account.account_type} (${parseFloat(account.balance).toFixed(2)})
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
