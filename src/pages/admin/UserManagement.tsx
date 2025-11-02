@@ -385,6 +385,131 @@ export default function AdminUserManagement() {
         </DialogContent>
       </Dialog>
 
+      {/* View Documents Dialog */}
+      <Dialog open={viewDocumentsDialogOpen} onOpenChange={setViewDocumentsDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white">Verification Documents - {viewDocumentsUser?.full_name}</DialogTitle>
+          </DialogHeader>
+          {viewDocumentsUser && (() => {
+            const application = getUserApplication(viewDocumentsUser.id);
+            if (!application) {
+              return <p className="text-slate-400">No application found for this user.</p>;
+            }
+            return (
+              <div className="space-y-6">
+                {/* Personal Information */}
+                <div className="bg-slate-800/50 rounded-lg p-4 space-y-2">
+                  <h3 className="text-lg font-semibold text-white mb-3">Personal Information</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-slate-400">Full Name:</span>
+                      <p className="text-white">{application.full_name}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Date of Birth:</span>
+                      <p className="text-white">{application.date_of_birth || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Email:</span>
+                      <p className="text-white">{application.email}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Phone:</span>
+                      <p className="text-white">{application.phone || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Address:</span>
+                      <p className="text-white">{application.address || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">SSN:</span>
+                      <p className="text-white font-mono">{application.ssn || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Account Type:</span>
+                      <p className="text-white capitalize">{application.account_type}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Status:</span>
+                      <Badge className={
+                        application.status === 'approved' ? 'bg-green-600' :
+                        application.status === 'rejected' ? 'bg-red-600' :
+                        'bg-yellow-600'
+                      }>
+                        {application.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Verification Documents */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">Uploaded Documents</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {application.id_front_url && (
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">ID Front</Label>
+                        <div className="border border-slate-700 rounded-lg overflow-hidden">
+                          <img 
+                            src={application.id_front_url} 
+                            alt="ID Front" 
+                            className="w-full h-48 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => window.open(application.id_front_url, '_blank')}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {application.id_back_url && (
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">ID Back</Label>
+                        <div className="border border-slate-700 rounded-lg overflow-hidden">
+                          <img 
+                            src={application.id_back_url} 
+                            alt="ID Back" 
+                            className="w-full h-48 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => window.open(application.id_back_url, '_blank')}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {application.selfie_url && (
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">Selfie</Label>
+                        <div className="border border-slate-700 rounded-lg overflow-hidden">
+                          <img 
+                            src={application.selfie_url} 
+                            alt="Selfie" 
+                            className="w-full h-48 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => window.open(application.selfie_url, '_blank')}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {application.address_proof_url && (
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">Address Proof</Label>
+                        <div className="border border-slate-700 rounded-lg overflow-hidden">
+                          <img 
+                            src={application.address_proof_url} 
+                            alt="Address Proof" 
+                            className="w-full h-48 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => window.open(application.address_proof_url, '_blank')}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {!application.id_front_url && !application.id_back_url && !application.selfie_url && !application.address_proof_url && (
+                    <p className="text-slate-400 text-center py-8">No documents uploaded yet</p>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
