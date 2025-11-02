@@ -150,8 +150,17 @@ const OpenAccount = () => {
     }
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        alert("You must be logged in to submit an application.");
+        return;
+      }
+
       // Save application to database
       const { error } = await supabase.from("account_applications").insert({
+        user_id: user.id,
         full_name: formData.fullName,
         date_of_birth: formData.dateOfBirth,
         email: formData.email,
