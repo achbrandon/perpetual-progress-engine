@@ -28,6 +28,8 @@ export default function AdminUserManagement() {
   const [resetNotes, setResetNotes] = useState("");
   const [viewDocumentsDialogOpen, setViewDocumentsDialogOpen] = useState(false);
   const [viewDocumentsUser, setViewDocumentsUser] = useState<any>(null);
+  const [verifyQRDialogOpen, setVerifyQRDialogOpen] = useState(false);
+  const [verifyQRUser, setVerifyQRUser] = useState<any>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -197,6 +199,58 @@ export default function AdminUserManagement() {
     return applications.find(app => app.user_id === userId);
   };
 
+  const openVerifyQRDialog = (user: any) => {
+    setVerifyQRUser(user);
+    setVerifyQRDialogOpen(true);
+  };
+
+  const handleManualQRVerify = async () => {
+    if (!verifyQRUser) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Update profile to verify QR
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ 
+          qr_verified: true,
+          can_transact: true 
+        })
+        .eq("id", verifyQRUser.id);
+
+      if (profileError) throw profileError;
+
+      // Update application if exists
+      const { error: appError } = await supabase
+        .from("account_applications")
+        .update({ qr_code_verified: true })
+        .eq("user_id", verifyQRUser.id);
+
+      if (appError) console.error("App update error:", appError);
+
+      // Log admin action
+      await supabase.from("admin_actions_log").insert({
+        admin_id: user.id,
+        action_type: "qr_verification",
+        target_user_id: verifyQRUser.id,
+        details: {
+          notes: "Manual QR verification by admin",
+          timestamp: new Date().toISOString(),
+        },
+      });
+
+      toast.success(`QR verified for ${verifyQRUser.full_name}`);
+      setVerifyQRDialogOpen(false);
+      setVerifyQRUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      console.error("Error verifying QR:", error);
+      toast.error(error.message || "Failed to verify QR");
+    }
+  };
+
   const filteredUsers = users.filter(user =>
     user.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     user.email?.toLowerCase().includes(search.toLowerCase())
@@ -244,6 +298,9 @@ export default function AdminUserManagement() {
                 {user.can_transact && (
                   <Badge className="bg-green-600">Can Transact</Badge>
                 )}
+                {!user.qr_verified && (
+                  <Badge className="bg-orange-600">QR Not Verified</Badge>
+                )}
                 {getUserApplication(user.id) && (
                   <Button
                     onClick={() => openViewDocumentsDialog(user)}
@@ -252,6 +309,15 @@ export default function AdminUserManagement() {
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     View Docs
+                  </Button>
+                )}
+                {!user.qr_verified && (
+                  <Button
+                    onClick={() => openVerifyQRDialog(user)}
+                    variant="outline"
+                    className="bg-green-500/10 hover:bg-green-500/20 text-green-500 border-green-500/50"
+                  >
+                    ✓ Verify QR
                   </Button>
                 )}
                 <Button
@@ -507,6 +573,37 @@ export default function AdminUserManagement() {
               </div>
             );
           })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Manual QR Verification Dialog */}
+      <Dialog open={verifyQRDialogOpen} onOpenChange={setVerifyQRDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Manual QR Verification - {verifyQRUser?.full_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+              <p className="text-green-500 text-sm">
+                This will manually verify the QR code for <strong>{verifyQRUser?.email}</strong> and enable all transaction features.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleManualQRVerify}
+                className="flex-1 bg-green-500 hover:bg-green-600"
+              >
+                ✓ Verify QR Code
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setVerifyQRDialogOpen(false)}
+                className="bg-slate-800 border-slate-700 text-white"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 

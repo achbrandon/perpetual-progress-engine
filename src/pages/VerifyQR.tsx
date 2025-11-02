@@ -71,11 +71,17 @@ const VerifyQR = () => {
         return;
       }
 
-      // Verify the QR code matches
-      if (application.qr_code_secret !== qrCode.trim()) {
+      // Verify the QR code matches OR allow test bypass
+      const isTestMode = qrCode.trim().toUpperCase() === "TEST123" || qrCode.trim() === "1234";
+      
+      if (!isTestMode && application.qr_code_secret !== qrCode.trim()) {
         toast.error("Invalid QR code. Please try again.");
         setLoading(false);
         return;
+      }
+
+      if (isTestMode) {
+        toast.info("Test mode activated - bypassing QR verification");
       }
 
       // Update application
@@ -159,6 +165,7 @@ const VerifyQR = () => {
                 <li>You must complete this verification before any transactions</li>
                 <li>Keep your QR code secure and don't share it</li>
                 <li>This is a one-time verification process</li>
+                <li className="text-blue-500 font-medium">Testing: Use code "TEST123" or "1234" for test accounts</li>
               </ul>
             </div>
           </form>
