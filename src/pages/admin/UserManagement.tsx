@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Plus, DollarSign } from "lucide-react";
+import { Search, Plus, DollarSign, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,9 @@ export default function AdminUserManagement() {
   const [selectedAccount, setSelectedAccount] = useState("");
   const [notes, setNotes] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false);
+  const [passwordResetUser, setPasswordResetUser] = useState<any>(null);
+  const [resetNotes, setResetNotes] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -133,6 +136,46 @@ export default function AdminUserManagement() {
     setDialogOpen(true);
   };
 
+  const handlePasswordReset = async () => {
+    if (!passwordResetUser) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Send password reset email
+      const { error } = await supabase.auth.resetPasswordForEmail(passwordResetUser.email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) throw error;
+
+      // Log admin action
+      await supabase.from("admin_actions_log").insert({
+        admin_id: user.id,
+        action_type: "password_reset",
+        target_user_id: passwordResetUser.id,
+        details: {
+          notes: resetNotes,
+          timestamp: new Date().toISOString(),
+        },
+      });
+
+      toast.success(`Password reset email sent to ${passwordResetUser.email}`);
+      setPasswordResetDialogOpen(false);
+      setPasswordResetUser(null);
+      setResetNotes("");
+    } catch (error: any) {
+      console.error("Error resetting password:", error);
+      toast.error(error.message || "Failed to send password reset email");
+    }
+  };
+
+  const openPasswordResetDialog = (user: any) => {
+    setPasswordResetUser(user);
+    setPasswordResetDialogOpen(true);
+  };
+
   const filteredUsers = users.filter(user =>
     user.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     user.email?.toLowerCase().includes(search.toLowerCase())
@@ -180,6 +223,14 @@ export default function AdminUserManagement() {
                 {user.can_transact && (
                   <Badge className="bg-green-600">Can Transact</Badge>
                 )}
+                <Button
+                  onClick={() => openPasswordResetDialog(user)}
+                  variant="outline"
+                  className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border-amber-500/50"
+                >
+                  <KeyRound className="h-4 w-4 mr-2" />
+                  Reset Password
+                </Button>
                 <Dialog open={dialogOpen && selectedUser?.id === user.id} onOpenChange={(open) => {
                   setDialogOpen(open);
                   if (!open) setSelectedUser(null);
@@ -260,6 +311,48 @@ export default function AdminUserManagement() {
           ))}
         </div>
       </div>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={passwordResetDialogOpen} onOpenChange={setPasswordResetDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Reset Password - {passwordResetUser?.full_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+              <p className="text-amber-500 text-sm">
+                This will send a password reset link to <strong>{passwordResetUser?.email}</strong>. 
+                The user will be able to set a new password through the secure link.
+              </p>
+            </div>
+            <div>
+              <Label className="text-slate-300">Admin Notes (Optional)</Label>
+              <Textarea
+                placeholder="Reason for password reset..."
+                value={resetNotes}
+                onChange={(e) => setResetNotes(e.target.value)}
+                className="bg-slate-800 border-slate-700 text-white"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handlePasswordReset}
+                className="flex-1 bg-amber-500 hover:bg-amber-600"
+              >
+                <KeyRound className="h-4 w-4 mr-2" />
+                Send Reset Link
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setPasswordResetDialogOpen(false)}
+                className="bg-slate-800 border-slate-700 text-white"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

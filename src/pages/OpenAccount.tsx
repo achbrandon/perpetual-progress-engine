@@ -212,6 +212,20 @@ const OpenAccount = () => {
         addressProofUrl = await uploadFile(formData.addressProof, `${user.id}/address-proof-${Date.now()}.${formData.addressProof.name.split('.').pop()}`);
       }
 
+      // Update profile with security info
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          pin: formData.pin,
+          security_question: formData.securityQuestion,
+          security_answer: formData.securityAnswer,
+        })
+        .eq("id", user.id);
+
+      if (profileError) {
+        console.error("Error updating profile:", profileError);
+      }
+
       // Save application to database
       const { error } = await supabase.from("account_applications").insert({
         user_id: user.id,

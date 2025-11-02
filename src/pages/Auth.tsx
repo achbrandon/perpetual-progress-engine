@@ -19,6 +19,7 @@ const Auth = () => {
   // Sign In form
   const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
+  const [signInPin, setSignInPin] = useState("");
 
   // Sign Up form
   const [signUpEmail, setSignUpEmail] = useState("");
@@ -99,7 +100,6 @@ const Auth = () => {
     }
   };
 
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -117,6 +117,28 @@ const Auth = () => {
       }
 
       if (data.user) {
+        // Verify PIN
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("pin")
+          .eq("id", data.user.id)
+          .single();
+
+        if (profileError || !profile) {
+          toast.error("Failed to verify account details");
+          await supabase.auth.signOut();
+          setLoading(false);
+          return;
+        }
+
+        // Check PIN if it exists
+        if (profile.pin && profile.pin !== signInPin) {
+          toast.error("Incorrect PIN");
+          await supabase.auth.signOut();
+          setLoading(false);
+          return;
+        }
+
         toast.success("Signed in successfully!");
         // The auth state listener will handle the redirect
       }
@@ -144,6 +166,19 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Check if email already exists
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", signUpEmail)
+        .single();
+
+      if (existingProfile) {
+        toast.error("This email is already registered. Please sign in or use a different email.");
+        setLoading(false);
+        return;
+      }
+
       // Generate QR secret
       const qrSecret = crypto.randomUUID();
 
@@ -274,6 +309,22 @@ const Auth = () => {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="signin-pin" className="text-sm sm:text-base">
+                  PIN
+                </Label>
+                <Input
+                  id="signin-pin"
+                  type="password"
+                  value={signInPin}
+                  onChange={(e) => setSignInPin(e.target.value)}
+                  required
+                  maxLength={6}
+                  className="h-11 sm:h-12 text-base"
+                  placeholder="Enter your 6-digit PIN"
+                />
+              </div>
+
               <div className="flex items-center space-x-2">
                 <Checkbox id="remember" />
                 <label htmlFor="remember" className="text-sm cursor-pointer">
@@ -285,12 +336,20 @@ const Auth = () => {
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
 
-              <Link
-                to="/token-sign-in"
-                className="text-primary font-medium text-sm hover:underline flex items-center justify-center gap-1 py-2 touch-manipulation"
-              >
-                Use token instead <ChevronRight className="w-4 h-4" />
-              </Link>
+              <div className="flex flex-col gap-2 text-center">
+                <Link
+                  to="/forgot-password"
+                  className="text-primary font-medium text-sm hover:underline"
+                >
+                  Forgot Password?
+                </Link>
+                <Link
+                  to="/token-sign-in"
+                  className="text-primary font-medium text-sm hover:underline flex items-center justify-center gap-1"
+                >
+                  Use token instead <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
             </form>
           </TabsContent>
 

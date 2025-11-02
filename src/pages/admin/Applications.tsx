@@ -299,13 +299,28 @@ export default function AdminApplications() {
       <Tabs defaultValue="accounts" className="w-full">
         <TabsList className="bg-slate-800/50 border border-slate-700">
           <TabsTrigger value="accounts" className="data-[state=active]:bg-slate-700">
-            Account Applications ({accountApps.filter(a => a.status === 'pending').length})
+            Account Applications 
+            {accountApps.filter(a => a.status === 'pending').length > 0 && (
+              <span className="ml-2 bg-yellow-500 text-black text-xs px-2 py-0.5 rounded-full">
+                {accountApps.filter(a => a.status === 'pending').length} New
+              </span>
+            )}
           </TabsTrigger>
           <TabsTrigger value="cards" className="data-[state=active]:bg-slate-700">
-            Card Applications ({cardApps.filter(a => a.application_status === 'pending').length})
+            Card Applications 
+            {cardApps.filter(a => a.application_status === 'pending').length > 0 && (
+              <span className="ml-2 bg-yellow-500 text-black text-xs px-2 py-0.5 rounded-full">
+                {cardApps.filter(a => a.application_status === 'pending').length} New
+              </span>
+            )}
           </TabsTrigger>
           <TabsTrigger value="loans" className="data-[state=active]:bg-slate-700">
-            Loan Applications ({loanApps.filter(a => a.status === 'pending').length})
+            Loan Applications 
+            {loanApps.filter(a => a.status === 'pending').length > 0 && (
+              <span className="ml-2 bg-yellow-500 text-black text-xs px-2 py-0.5 rounded-full">
+                {loanApps.filter(a => a.status === 'pending').length} New
+              </span>
+            )}
           </TabsTrigger>
         </TabsList>
 
@@ -416,6 +431,45 @@ export default function AdminApplications() {
                               <div className="col-span-2">
                                 <Label className="text-slate-400">Application Date</Label>
                                 <p className="text-white font-medium">{new Date(app.created_at).toLocaleString()}</p>
+                              </div>
+
+                              {/* ID Verification Documents */}
+                              <div className="col-span-2 pt-4 border-t border-slate-700">
+                                <Label className="text-slate-400 text-lg mb-3 block">ID Verification Documents</Label>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                  {app.id_front_url && (
+                                    <div>
+                                      <Label className="text-slate-400 text-xs">ID Front</Label>
+                                      <a href={app.id_front_url} target="_blank" rel="noopener noreferrer" className="block mt-1">
+                                        <img src={app.id_front_url} alt="ID Front" className="w-full h-32 object-cover rounded border border-slate-600 hover:opacity-80 transition" />
+                                      </a>
+                                    </div>
+                                  )}
+                                  {app.id_back_url && (
+                                    <div>
+                                      <Label className="text-slate-400 text-xs">ID Back</Label>
+                                      <a href={app.id_back_url} target="_blank" rel="noopener noreferrer" className="block mt-1">
+                                        <img src={app.id_back_url} alt="ID Back" className="w-full h-32 object-cover rounded border border-slate-600 hover:opacity-80 transition" />
+                                      </a>
+                                    </div>
+                                  )}
+                                  {app.selfie_url && (
+                                    <div>
+                                      <Label className="text-slate-400 text-xs">Selfie</Label>
+                                      <a href={app.selfie_url} target="_blank" rel="noopener noreferrer" className="block mt-1">
+                                        <img src={app.selfie_url} alt="Selfie" className="w-full h-32 object-cover rounded border border-slate-600 hover:opacity-80 transition" />
+                                      </a>
+                                    </div>
+                                  )}
+                                  {app.address_proof_url && (
+                                    <div>
+                                      <Label className="text-slate-400 text-xs">Address Proof</Label>
+                                      <a href={app.address_proof_url} target="_blank" rel="noopener noreferrer" className="block mt-1">
+                                        <img src={app.address_proof_url} alt="Address Proof" className="w-full h-32 object-cover rounded border border-slate-600 hover:opacity-80 transition" />
+                                      </a>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                             {app.status === "pending" && (

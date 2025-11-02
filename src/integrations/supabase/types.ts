@@ -217,6 +217,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_actions_log: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       admin_notifications: {
         Row: {
           created_at: string | null
@@ -921,6 +948,42 @@ export type Database = {
         }
         Relationships: []
       }
+      password_reset_requests: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          reset_token: string
+          security_answer: string
+          security_question: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          reset_token: string
+          security_answer: string
+          security_question: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          reset_token?: string
+          security_answer?: string
+          security_question?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -932,7 +995,10 @@ export type Database = {
           id: string
           phone: string | null
           phone_number: string | null
+          pin: string | null
           qr_verified: boolean | null
+          security_answer: string | null
+          security_question: string | null
           updated_at: string | null
         }
         Insert: {
@@ -945,7 +1011,10 @@ export type Database = {
           id: string
           phone?: string | null
           phone_number?: string | null
+          pin?: string | null
           qr_verified?: boolean | null
+          security_answer?: string | null
+          security_question?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -958,7 +1027,10 @@ export type Database = {
           id?: string
           phone?: string | null
           phone_number?: string | null
+          pin?: string | null
           qr_verified?: boolean | null
+          security_answer?: string | null
+          security_question?: string | null
           updated_at?: string | null
         }
         Relationships: []

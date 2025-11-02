@@ -16,6 +16,7 @@ import Locations from "./pages/Locations";
 import Crypto from "./pages/Crypto";
 import OpenAccount from "./pages/OpenAccount";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
 import TokenSignIn from "./pages/TokenSignIn";
 import VerifyQR from "./pages/VerifyQR";
 import Dashboard from "./pages/Dashboard";
@@ -82,6 +83,7 @@ function AppRoutes() {
       <Route path="/crypto" element={<Crypto />} />
       <Route path="/open-account" element={<OpenAccount />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/token-signin" element={<TokenSignIn />} />
       <Route path="/business" element={<Business />} />
       <Route path="/travel" element={<Travel />} />
