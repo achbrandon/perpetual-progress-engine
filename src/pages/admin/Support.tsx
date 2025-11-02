@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Send, Circle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MessageSquare, Send, Circle, Bell, Users } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminSupportPage() {
@@ -14,22 +15,42 @@ export default function AdminSupportPage() {
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [agents, setAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchTickets();
+    fetchAgents();
 
     // Subscribe to realtime updates
     const ticketsChannel = supabase
       .channel('admin-support-tickets')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_tickets' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_tickets' }, (payload) => {
         fetchTickets();
+        if (payload.eventType === 'INSERT') {
+          toast.info("New support ticket received!", { icon: <Bell className="h-4 w-4" /> });
+        }
+      })
+      .subscribe();
+
+    const messagesChannel = supabase
+      .channel('admin-support-messages')
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'support_messages' 
+      }, (payload) => {
+        if (!payload.new.is_staff) {
+          toast.success("New message from customer", { icon: <Bell className="h-4 w-4" /> });
+        }
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(ticketsChannel);
+      supabase.removeChannel(messagesChannel);
     };
   }, []);
 
@@ -57,10 +78,31 @@ export default function AdminSupportPage() {
 
       if (error) throw error;
       setTickets(data || []);
+      
+      // Count unread (user online with no agent assigned)
+      const unread = (data as any)?.filter((t: any) => t.user_online && !t.assigned_agent_id).length || 0;
+      setUnreadCount(unread);
     } catch (error) {
       console.error("Error fetching tickets:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAgents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select(`
+          user_id,
+          profiles(full_name, email)
+        `)
+        .eq("role", "admin");
+
+      if (error) throw error;
+      setAgents(data || []);
+    } catch (error) {
+      console.error("Error fetching agents:", error);
     }
   };
 
@@ -152,9 +194,38 @@ export default function AdminSupportPage() {
     }
   };
 
-  const getUnreadCount = (ticketId: string) => {
-    // Would need to query unread messages
-    return 0;
+  const assignAgent = async (ticketId: string, agentId: string) => {
+    try {
+      const { error } = await supabase
+        .from("support_tickets")
+        .update({ 
+          assigned_agent_id: agentId || null,
+          agent_online: true
+        })
+        .eq("id", ticketId);
+
+      if (error) throw error;
+      toast.success("Agent assigned successfully");
+      fetchTickets();
+    } catch (error) {
+      toast.error("Failed to assign agent");
+    }
+  };
+
+  const closeTicket = async (ticketId: string) => {
+    try {
+      const { error } = await supabase
+        .from("support_tickets")
+        .update({ status: "closed" })
+        .eq("id", ticketId);
+
+      if (error) throw error;
+      toast.success("Ticket closed");
+      fetchTickets();
+      setSelectedTicket(null);
+    } catch (error) {
+      toast.error("Failed to close ticket");
+    }
   };
 
   if (loading) {
@@ -163,9 +234,20 @@ export default function AdminSupportPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white">Support Center</h1>
-        <p className="text-slate-300">Manage customer support tickets and chat in real-time</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+            <MessageSquare className="h-8 w-8" />
+            Support Center
+          </h1>
+          <p className="text-slate-300">Manage customer support tickets and chat in real-time</p>
+        </div>
+        {unreadCount > 0 && (
+          <Badge variant="destructive" className="gap-2">
+            <Bell className="h-4 w-4" />
+            {unreadCount} Active Customer{unreadCount > 1 ? 's' : ''}
+          </Badge>
+        )}
       </div>
 
       <div className="grid grid-cols-12 gap-6 h-[calc(100vh-200px)]">
@@ -261,7 +343,36 @@ export default function AdminSupportPage() {
                       </p>
                     </div>
                   </div>
-                  <Badge variant="secondary">{selectedTicket.ticket_type}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={(selectedTicket as any).assigned_agent_id || ""}
+                      onValueChange={(value) => assignAgent(selectedTicket.id, value)}
+                    >
+                      <SelectTrigger className="w-[180px] bg-slate-900/50 border-slate-600 text-white">
+                        <SelectValue placeholder="Assign agent" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-700">
+                        <SelectItem value="" className="text-white">Unassigned</SelectItem>
+                        {agents.map((agent) => (
+                          <SelectItem key={agent.user_id} value={agent.user_id} className="text-white">
+                            <div className="flex items-center gap-2">
+                              <Users className="h-3 w-3" />
+                              {agent.profiles?.full_name || agent.profiles?.email}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Badge variant="secondary">{selectedTicket.ticket_type}</Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => closeTicket(selectedTicket.id)}
+                      className="bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/50"
+                    >
+                      Close Ticket
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
 
