@@ -54,24 +54,15 @@ export default function AdminApplications() {
       const [accountRes, cardRes, loanRes] = await Promise.all([
         supabase
           .from("account_applications")
-          .select(`
-            *,
-            profiles!account_applications_user_id_fkey(full_name, email, phone_number)
-          `)
+          .select("*")
           .order("created_at", { ascending: false }),
         supabase
           .from("card_applications")
-          .select(`
-            *,
-            profiles!card_applications_user_id_fkey(full_name, email, phone_number)
-          `)
+          .select("*")
           .order("created_at", { ascending: false }),
         supabase
           .from("loan_applications")
-          .select(`
-            *,
-            profiles!loan_applications_user_id_fkey(full_name, email, phone_number)
-          `)
+          .select("*")
           .order("created_at", { ascending: false }),
       ]);
 
@@ -163,8 +154,8 @@ export default function AdminApplications() {
       // Send approval email
       await supabase.functions.invoke("send-application-decision", {
         body: {
-          applicantName: app.profiles?.full_name || "Customer",
-          applicantEmail: app.profiles?.email || "",
+          applicantName: app.full_name || "Customer",
+          applicantEmail: app.email || "",
           applicationType: "card",
           decision: "approved",
           cardType: app.card_type,
@@ -194,8 +185,8 @@ export default function AdminApplications() {
       // Send rejection email
       await supabase.functions.invoke("send-application-decision", {
         body: {
-          applicantName: app.profiles?.full_name || "Customer",
-          applicantEmail: app.profiles?.email || "",
+          applicantName: app.full_name || "Customer",
+          applicantEmail: app.email || "",
           applicationType: "card",
           decision: "rejected",
           cardType: app.card_type,
@@ -225,8 +216,8 @@ export default function AdminApplications() {
       // Send approval email
       await supabase.functions.invoke("send-application-decision", {
         body: {
-          applicantName: app.profiles?.full_name || "Customer",
-          applicantEmail: app.profiles?.email || "",
+          applicantName: app.full_name || "Customer",
+          applicantEmail: app.email || "",
           applicationType: "loan",
           decision: "approved",
           loanAmount: app.loan_amount,
@@ -256,8 +247,8 @@ export default function AdminApplications() {
       // Send rejection email
       await supabase.functions.invoke("send-application-decision", {
         body: {
-          applicantName: app.profiles?.full_name || "Customer",
-          applicantEmail: app.profiles?.email || "",
+          applicantName: app.full_name || "Customer",
+          applicantEmail: app.email || "",
           applicationType: "loan",
           decision: "rejected",
           loanAmount: app.loan_amount,
@@ -330,10 +321,10 @@ export default function AdminApplications() {
                 {accountApps.map((app) => (
                   <TableRow key={app.id} className="border-slate-700 hover:bg-slate-700/30">
                     <TableCell className="font-medium text-white">
-                      {app.profiles?.full_name || app.full_name || "N/A"}
+                      {app.full_name || "N/A"}
                     </TableCell>
-                    <TableCell className="text-slate-300">{app.profiles?.email || app.email}</TableCell>
-                    <TableCell className="text-slate-300">{app.profiles?.phone_number || app.phone || "N/A"}</TableCell>
+                    <TableCell className="text-slate-300">{app.email || "N/A"}</TableCell>
+                    <TableCell className="text-slate-300">{app.phone || "N/A"}</TableCell>
                     <TableCell className="text-slate-300">{app.account_type}</TableCell>
                     <TableCell>{getStatusBadge(app.status)}</TableCell>
                     <TableCell className="text-slate-300">
