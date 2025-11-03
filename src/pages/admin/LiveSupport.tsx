@@ -57,16 +57,8 @@ export default function LiveSupport() {
         }
         
         if (selectedChat && payload.new.ticket_id === selectedChat.id) {
-          setMessages(prev => {
-            if (prev.some(msg => msg.id === payload.new.id)) {
-              return prev;
-            }
-            // Insert message in correct chronological order
-            const newMessages = [...prev, payload.new];
-            return newMessages.sort((a, b) => 
-              new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-            );
-          });
+          // Reload all messages to ensure proper ordering
+          loadMessages(selectedChat.id);
           
           // Mark customer messages as read immediately
           if (!payload.new.is_staff) {
