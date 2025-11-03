@@ -60,6 +60,7 @@ import AdminUserActivity from "./pages/admin/UserActivity";
 import AdminUserManagement from "./pages/admin/UserManagement";
 import AdminLiveMonitoring from "./pages/admin/LiveMonitoring";
 import AdminSettings from "./pages/admin/AdminSettings";
+import ResendEmails from "./pages/ResendEmails";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,7 @@ function AppRoutes() {
       <Route path="/schedule-meeting" element={<ScheduleMeeting />} />
       <Route path="/mortgage-calculator" element={<MortgageCalculator />} />
       <Route path="/verify-qr" element={<VerifyQR />} />
+      <Route path="/resend-emails" element={<ResendEmails />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/dashboard/accounts" element={<Accounts />} />
       <Route path="/dashboard/transfers" element={<DashboardTransfers />} />

@@ -2,3 +2,6 @@ project_id = "vaxhehwnfkhdmprundau"
 
 [functions.create-account-application]
 verify_jwt = false
+
+[functions.resend-all-verifications]
+verify_jwt = false
