@@ -328,10 +328,8 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
 
         console.log('Bot response:', data, 'Error:', botError);
 
-        if (botError) {
-          console.error('Bot error:', botError);
-          toast.error("AI assistant is unavailable. An agent will respond soon.");
-        } else if (data?.suggestsLiveAgent) {
+        // Even if there's an error, the bot returns a fallback message
+        if (data?.suggestsLiveAgent) {
           // Update ticket to connecting mode
           await supabase
             .from('support_tickets')

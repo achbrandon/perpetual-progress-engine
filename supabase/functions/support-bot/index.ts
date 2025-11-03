@@ -26,11 +26,16 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get ticket info and messages for context
-    const { data: ticket } = await supabase
+    const { data: ticket, error: ticketError } = await supabase
       .from('support_tickets')
       .select('*, profiles(full_name)')
       .eq('id', ticketId)
       .single();
+
+    if (ticketError || !ticket) {
+      console.error('Error fetching ticket:', ticketError);
+      throw new Error('Ticket not found');
+    }
 
     const { data: messages } = await supabase
       .from('support_messages')
@@ -96,7 +101,7 @@ Customer name: ${ticket?.profiles?.full_name || 'Customer'}`;
     const botReply = data.choices[0].message.content;
 
     // Save bot message to database
-    await supabase
+    const { error: insertError } = await supabase
       .from('support_messages')
       .insert({
         ticket_id: ticketId,
@@ -105,6 +110,11 @@ Customer name: ${ticket?.profiles?.full_name || 'Customer'}`;
         is_staff: true,
         is_read: false
       });
+
+    if (insertError) {
+      console.error('Error inserting bot message:', insertError);
+      throw insertError;
+    }
 
     // Check if user wants live agent connection
     const userWantsAgent = message.toLowerCase().includes('yes') || 
