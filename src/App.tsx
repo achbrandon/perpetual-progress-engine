@@ -61,6 +61,7 @@ import AdminUserManagement from "./pages/admin/UserManagement";
 import AdminLiveMonitoring from "./pages/admin/LiveMonitoring";
 import AdminSettings from "./pages/admin/AdminSettings";
 import ResendEmails from "./pages/ResendEmails";
+import CreateTestAccount from "./pages/CreateTestAccount";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,7 @@ function AppRoutes() {
       <Route path="/mortgage-calculator" element={<MortgageCalculator />} />
       <Route path="/verify-qr" element={<VerifyQR />} />
       <Route path="/resend-emails" element={<ResendEmails />} />
+      <Route path="/create-test-account" element={<CreateTestAccount />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/dashboard/accounts" element={<Accounts />} />
       <Route path="/dashboard/transfers" element={<DashboardTransfers />} />

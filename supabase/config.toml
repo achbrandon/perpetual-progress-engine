@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.resend-all-verifications]
 verify_jwt = false
+
+[functions.create-test-account]
+verify_jwt = false
