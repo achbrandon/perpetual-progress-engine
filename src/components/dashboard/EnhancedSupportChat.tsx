@@ -61,7 +61,7 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
 
   const subscribeToTicketChanges = () => {
     const channel = supabase
-      .channel('ticket-status')
+      .channel(`ticket-status-${ticketId}`)
       .on(
         'postgres_changes',
         {
@@ -71,6 +71,11 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
           filter: `id=eq.${ticketId}`
         },
         async (payload) => {
+          console.log('USER SIDE: Ticket update received:', {
+            agent_online: payload.new.agent_online,
+            agent_typing: payload.new.agent_typing
+          });
+          
           setAgentOnline(payload.new.agent_online || false);
           setAgentTyping(payload.new.agent_typing || false);
           setTicket(payload.new);
@@ -86,7 +91,9 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Ticket subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -145,7 +152,7 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
 
   const subscribeToMessages = () => {
     const channel = supabase
-      .channel('support-messages')
+      .channel(`support-messages-${ticketId}`)
       .on(
         'postgres_changes',
         {
@@ -155,10 +162,15 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
           filter: `ticket_id=eq.${ticketId}`
         },
         (payload) => {
+          console.log('USER SIDE: New message received:', payload.new.id);
           setMessages(prev => {
-            // Strict duplicate check by ID
+            // Check for duplicate by ID
             const isDuplicate = prev.some(msg => msg.id === payload.new.id);
-            if (isDuplicate) return prev;
+            if (isDuplicate) {
+              console.log('Duplicate message prevented:', payload.new.id);
+              return prev;
+            }
+            console.log('Adding new message to state');
             return [...prev, payload.new];
           });
         }
@@ -258,7 +270,16 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
 
       if (error) throw error;
       console.log('Loaded messages:', data?.length || 0);
-      setMessages(data || []);
+      
+      // Only set messages if we have data, and deduplicate by ID
+      const uniqueMessages = (data || []).reduce((acc: any[], msg: any) => {
+        if (!acc.some(m => m.id === msg.id)) {
+          acc.push(msg);
+        }
+        return acc;
+      }, []);
+      
+      setMessages(uniqueMessages);
     } catch (error: any) {
       console.error("Error loading messages:", error);
     }
