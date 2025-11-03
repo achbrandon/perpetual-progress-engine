@@ -156,22 +156,38 @@ const OpenAccount = () => {
 
   const uploadFile = async (file: File, path: string): Promise<string | null> => {
     try {
+      console.log('Uploading file:', path, 'Size:', file.size, 'Type:', file.type);
+      
+      // Verify file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('File size exceeds 10MB limit');
+      }
+
       const { data, error } = await supabase.storage
         .from('account-documents')
         .upload(path, file, { upsert: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Upload error:', error);
+        throw error;
+      }
+
+      console.log('File uploaded successfully:', data);
 
       // Get signed URL for private bucket (expires in 1 year)
       const { data: signedData, error: signedError } = await supabase.storage
         .from('account-documents')
         .createSignedUrl(path, 31536000); // 1 year in seconds
 
-      if (signedError) throw signedError;
+      if (signedError) {
+        console.error('Signed URL error:', signedError);
+        throw signedError;
+      }
 
       return signedData.signedUrl;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading file:', error);
+      alert(`Failed to upload ${path.split('/').pop()}: ${error.message || 'Unknown error'}`);
       return null;
     }
   };
@@ -218,6 +234,20 @@ const OpenAccount = () => {
       }
 
       const user = signUpData.user;
+      console.log('User created:', user.id);
+
+      // Wait for session to be fully established
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Verify session is active
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('No active session after signup');
+        alert("Session error. Please try signing in with your credentials.");
+        return;
+      }
+
+      console.log('Session established, proceeding with uploads');
 
       // Step 2: Upload documents to storage
       let idFrontUrl = null;
@@ -226,16 +256,36 @@ const OpenAccount = () => {
       let addressProofUrl = null;
 
       if (formData.idFront) {
+        console.log('Uploading ID front...');
         idFrontUrl = await uploadFile(formData.idFront, `${user.id}/id-front-${Date.now()}.${formData.idFront.name.split('.').pop()}`);
+        if (!idFrontUrl) {
+          alert('Failed to upload ID front document. Please try again.');
+          return;
+        }
       }
       if (formData.idBack) {
+        console.log('Uploading ID back...');
         idBackUrl = await uploadFile(formData.idBack, `${user.id}/id-back-${Date.now()}.${formData.idBack.name.split('.').pop()}`);
+        if (!idBackUrl) {
+          alert('Failed to upload ID back document. Please try again.');
+          return;
+        }
       }
       if (formData.selfie) {
+        console.log('Uploading selfie...');
         selfieUrl = await uploadFile(formData.selfie, `${user.id}/selfie-${Date.now()}.${formData.selfie.name.split('.').pop()}`);
+        if (!idBackUrl) {
+          alert('Failed to upload selfie. Please try again.');
+          return;
+        }
       }
       if (formData.addressProof) {
+        console.log('Uploading address proof...');
         addressProofUrl = await uploadFile(formData.addressProof, `${user.id}/address-proof-${Date.now()}.${formData.addressProof.name.split('.').pop()}`);
+        if (!addressProofUrl) {
+          alert('Failed to upload address proof document. Please try again.');
+          return;
+        }
       }
 
       // Step 3: Update profile with security info
