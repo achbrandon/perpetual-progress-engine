@@ -1076,6 +1076,39 @@ export type Database = {
           },
         ]
       }
+      support_agents: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          is_available: boolean | null
+          is_online: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_available?: boolean | null
+          is_online?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_available?: boolean | null
+          is_online?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       support_messages: {
         Row: {
           created_at: string | null
@@ -1122,6 +1155,7 @@ export type Database = {
       }
       support_ratings: {
         Row: {
+          agent_id: string | null
           created_at: string
           feedback: string | null
           id: string
@@ -1130,6 +1164,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agent_id?: string | null
           created_at?: string
           feedback?: string | null
           id?: string
@@ -1138,6 +1173,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agent_id?: string | null
           created_at?: string
           feedback?: string | null
           id?: string
@@ -1146,6 +1182,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "support_ratings_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "support_agents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "support_ratings_ticket_id_fkey"
             columns: ["ticket_id"]
@@ -1158,6 +1201,9 @@ export type Database = {
       support_tickets: {
         Row: {
           agent_online: boolean | null
+          agent_typing: boolean | null
+          agent_typing_at: string | null
+          assigned_agent_id: string | null
           chat_mode: string | null
           created_at: string | null
           description: string
@@ -1170,9 +1216,14 @@ export type Database = {
           updated_at: string | null
           user_id: string
           user_online: boolean | null
+          user_typing: boolean | null
+          user_typing_at: string | null
         }
         Insert: {
           agent_online?: boolean | null
+          agent_typing?: boolean | null
+          agent_typing_at?: string | null
+          assigned_agent_id?: string | null
           chat_mode?: string | null
           created_at?: string | null
           description: string
@@ -1185,9 +1236,14 @@ export type Database = {
           updated_at?: string | null
           user_id: string
           user_online?: boolean | null
+          user_typing?: boolean | null
+          user_typing_at?: string | null
         }
         Update: {
           agent_online?: boolean | null
+          agent_typing?: boolean | null
+          agent_typing_at?: string | null
+          assigned_agent_id?: string | null
           chat_mode?: string | null
           created_at?: string | null
           description?: string
@@ -1200,8 +1256,17 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           user_online?: boolean | null
+          user_typing?: boolean | null
+          user_typing_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "support_tickets_assigned_agent_id_fkey"
+            columns: ["assigned_agent_id"]
+            isOneToOne: false
+            referencedRelation: "support_agents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "support_tickets_transaction_id_fkey"
             columns: ["transaction_id"]
@@ -1446,6 +1511,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clear_old_typing_indicators: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
