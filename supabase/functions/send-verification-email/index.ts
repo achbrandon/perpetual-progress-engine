@@ -39,8 +39,9 @@ const handler = async (req: Request): Promise<Response> => {
     const resend = new Resend(resendApiKey);
     const { email, fullName, verificationToken, qrSecret }: VerificationRequest = await req.json();
 
-    // Generate QR code as base64
-    const qrCodeDataUrl = await QRCode.toDataURL(qrSecret, {
+    // Generate QR code as SVG (works in Deno without canvas)
+    const qrCodeSvg = await QRCode.toString(qrSecret, {
+      type: 'svg',
       width: 300,
       margin: 2,
       color: {
@@ -138,7 +139,9 @@ const handler = async (req: Request): Promise<Response> => {
                         <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                           <tr>
                             <td align="center" style="padding: 24px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
-                              <img src="${qrCodeDataUrl}" alt="Two-Factor Authentication QR Code" style="max-width: 280px; width: 100%; height: auto; display: block; border-radius: 8px;" />
+                              <div style="display: inline-block; max-width: 280px; width: 100%;">
+                                ${qrCodeSvg}
+                              </div>
                               
                               <div style="margin-top: 20px; padding: 16px; background-color: #f7fafc; border-radius: 6px;">
                                 <p style="margin: 0 0 8px; color: #718096; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
