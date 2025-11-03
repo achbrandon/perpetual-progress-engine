@@ -31,17 +31,7 @@ export default function LiveSupport() {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      
-      // Ensure messages are properly sorted and remove duplicates
-      const uniqueMessages = (data || []).filter((msg, index, self) => 
-        index === self.findIndex(m => m.id === msg.id)
-      );
-      
-      const sortedMessages = uniqueMessages.sort((a, b) => 
-        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      );
-      
-      setMessages(sortedMessages);
+      setMessages(data || []);
 
       // Mark as read
       await supabase
@@ -148,27 +138,21 @@ export default function LiveSupport() {
           agent_typing_at: new Date().toISOString()
         })
         .eq('id', selectedChat.id)
-        .then(({ error }) => {
-          if (error) console.error('Error updating agent typing:', error);
-        });
+        .then();
 
       typingTimeoutRef.current = setTimeout(() => {
         supabase
           .from('support_tickets')
           .update({ agent_typing: false })
           .eq('id', selectedChat.id)
-          .then(({ error }) => {
-            if (error) console.error('Error clearing agent typing:', error);
-          });
-      }, 5000);
+          .then();
+      }, 3000);
     } else if (selectedChat && !newMessage) {
       supabase
         .from('support_tickets')
         .update({ agent_typing: false })
         .eq('id', selectedChat.id)
-        .then(({ error }) => {
-          if (error) console.error('Error clearing agent typing:', error);
-        });
+        .then();
     }
 
     return () => {
