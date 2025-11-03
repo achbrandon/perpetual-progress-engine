@@ -999,25 +999,17 @@ const OpenAccount = () => {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">3.</span>
-                <span className="font-semibold">Upload your documents (ID, selfie, address proof) from your dashboard</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">4.</span>
-                <span>Complete QR code authentication</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">5.</span>
                 <span>Our admin team will review your complete application (1-2 business days)</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">6.</span>
+                <span className="text-primary mt-0.5">4.</span>
                 <span>Once approved, full account access will be granted and your debit card will be mailed</span>
               </li>
             </ul>
             
             <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg mt-4">
               <p className="text-xs text-blue-900">
-                <strong>Note:</strong> Your application is saved but documents must be uploaded after you verify your email and sign in. The verification link expires in 24 hours.
+                <strong>Note:</strong> Your documents have been uploaded. Please verify your email to complete your registration. The verification link expires in 24 hours.
               </p>
             </div>
           </div>
