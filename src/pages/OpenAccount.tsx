@@ -213,6 +213,14 @@ const OpenAccount = () => {
     setIsSubmitting(true);
 
     try {
+      // CRITICAL: Sign out any existing session first to prevent conflicts
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (existingSession) {
+        console.log('Found existing session, signing out first...');
+        await supabase.auth.signOut();
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
       // Generate QR secret
       const qrSecret = crypto.randomUUID();
 
@@ -250,6 +258,36 @@ const OpenAccount = () => {
 
       const user = signUpData.user;
       console.log('User created successfully:', user.id);
+
+      // CRITICAL: Wait for Supabase to establish the new session
+      // The client needs to switch from any old session to the new user's session
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Verify we have an active session for the NEW user
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error after signup:', sessionError);
+      }
+
+      if (!session) {
+        console.error('No session found after signup - files cannot be uploaded');
+        alert("Account created but session not established. Please sign in at /auth with your email and password to complete your application.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (session.user.id !== user.id) {
+        console.error('Session user mismatch!', {
+          signUpUserId: user.id,
+          sessionUserId: session.user.id
+        });
+        alert("Account created but there's a session conflict. Please sign out completely, refresh the page, then sign in at /auth with your new credentials.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log('Session verified for user:', session.user.id);
 
       // Wait a moment for session to stabilize
       await new Promise(resolve => setTimeout(resolve, 1500));
