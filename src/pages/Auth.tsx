@@ -97,7 +97,7 @@ const Auth = () => {
 
       if (error) {
         // Check if email not verified
-        if (error.message.includes("email not confirmed") || error.message.includes("Email not confirmed")) {
+        if (error.message.includes("email not confirmed") || error.message.includes("Email not confirmed") || error.message.includes("Email not verified")) {
           toast.error(
             "⚠️ Please verify your email address first. Check your inbox for the verification link.",
             { duration: 8000 }
