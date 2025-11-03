@@ -37,17 +37,19 @@ const handler = async (req: Request): Promise<Response> => {
     
     console.log('User created:', userData.user.id);
 
-    // Create profile
+    // Wait a bit for the trigger to create the profile
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Update profile with test data
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert({
-        id: userData.user.id,
-        full_name: "Test User",
-        email: testEmail,
+      .update({
         email_verified: true,
-        security_pin: testPin,
-        qr_secret: "test-secret"
-      });
+        qr_verified: true,
+        can_transact: true,
+        pin: testPin
+      })
+      .eq('id', userData.user.id);
 
     if (profileError) throw profileError;
     
@@ -59,9 +61,11 @@ const handler = async (req: Request): Promise<Response> => {
       .insert({
         user_id: userData.user.id,
         account_type: 'checking',
+        account_name: 'Test Checking Account',
         account_number: '1000' + Math.floor(Math.random() * 1000000),
         routing_number: '021000021',
         balance: 50000.00,
+        available_balance: 50000.00,
         status: 'active'
       });
 
@@ -73,9 +77,11 @@ const handler = async (req: Request): Promise<Response> => {
       .insert({
         user_id: userData.user.id,
         account_type: 'savings',
+        account_name: 'Test Savings Account',
         account_number: '2000' + Math.floor(Math.random() * 1000000),
         routing_number: '021000021',
         balance: 100000.00,
+        available_balance: 100000.00,
         status: 'active'
       });
 
