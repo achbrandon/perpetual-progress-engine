@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MapPin, Clock, Phone, Navigation } from "lucide-react";
-import Map from "@/components/Map";
 
 interface Location {
   id: number;
@@ -98,16 +97,7 @@ const Locations = () => {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Map */}
-          <div className="lg:sticky lg:top-4 h-[600px]">
-            <Card className="h-full overflow-hidden">
-              <CardContent className="p-0 h-full">
-                <Map locations={filteredLocations} />
-              </CardContent>
-            </Card>
-          </div>
-
+        <div className="max-w-4xl mx-auto">
           {/* Location List */}
           <div className="space-y-4">
             <h2 className="text-2xl font-bold mb-4">
