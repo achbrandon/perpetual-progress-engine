@@ -17,6 +17,7 @@ const OpenAccount = () => {
   const [step, setStep] = useState(1);
   const totalSteps = 8;
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -194,6 +195,12 @@ const OpenAccount = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) {
+      console.log('Already submitting, ignoring duplicate submission');
+      return;
+    }
+
     if (!formData.acceptTerms) {
       alert("Please accept the Terms and Conditions to proceed.");
       return;
@@ -203,15 +210,31 @@ const OpenAccount = () => {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      // Sign out any existing session first
-      await supabase.auth.signOut();
-      console.log('Cleared any existing sessions');
+      // Check if there's an existing session and warn user
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (existingSession) {
+        console.log('Existing session detected, signing out first');
+        const { error: signOutError } = await supabase.auth.signOut();
+        if (signOutError) {
+          console.error('SignOut error:', signOutError);
+        }
+        // Wait for signOut to complete and storage to clear
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Force reload to clear any cached sessions
+        alert("Please reload the page and try again to ensure a clean session.");
+        setIsSubmitting(false);
+        return;
+      }
 
       // Generate QR secret
       const qrSecret = crypto.randomUUID();
 
       // Step 1: Create the user account
+      console.log('Creating account for:', formData.email);
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -224,40 +247,52 @@ const OpenAccount = () => {
       });
 
       if (signUpError) {
-        if (signUpError.message.includes("already registered") || signUpError.message.includes("already exists")) {
+        console.error('SignUp error:', signUpError);
+        if (signUpError.message.includes("already registered") || signUpError.message.includes("already exists") || signUpError.message.includes("User already registered")) {
           alert("This email is already registered. Please use a different email or sign in to your existing account.");
+        } else if (signUpError.message.includes("rate limit")) {
+          alert("Too many attempts. Please wait a minute and try again.");
         } else {
           alert(`Error creating account: ${signUpError.message}`);
         }
+        setIsSubmitting(false);
         return;
       }
 
       if (!signUpData.user) {
         alert("Failed to create account. Please try again.");
+        setIsSubmitting(false);
         return;
       }
 
       const user = signUpData.user;
-      console.log('User created:', user.id);
+      console.log('User created successfully:', user.id);
 
-      // Wait for session to be fully established
+      // Wait for session to be established
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Verify session is active and matches the new user
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.error('No active session after signup');
-        alert("Session error. Please reload the page and try again.");
+      // Force refresh the session to ensure we have the right one
+      const { data: { session: newSession }, error: sessionError } = await supabase.auth.refreshSession();
+      
+      if (sessionError || !newSession) {
+        console.error('Session refresh error:', sessionError);
+        alert("Session error. Your account was created but please sign in manually at /auth to complete setup.");
+        setIsSubmitting(false);
         return;
       }
 
-      if (session.user.id !== user.id) {
-        console.error('Session user mismatch', { sessionUserId: session.user.id, newUserId: user.id });
-        alert("Session mismatch. Please reload the page and try again.");
+      console.log('Session refreshed for user:', newSession.user.id);
+
+      // Verify the session matches the new user
+      if (newSession.user.id !== user.id) {
+        console.error('Session mismatch!', { 
+          newUserId: user.id, 
+          sessionUserId: newSession.user.id 
+        });
+        alert("Session mismatch detected. Your account was created. Please reload the page and sign in at /auth.");
+        setIsSubmitting(false);
         return;
       }
-
-      console.log('Session established for user:', session.user.id);
 
       // Step 2: Upload documents to storage
       let idFrontUrl = null;
@@ -356,10 +391,13 @@ const OpenAccount = () => {
       // Sign out user until they verify email
       await supabase.auth.signOut();
 
+      console.log('Application submitted successfully');
       setShowSuccessDialog(true);
-    } catch (error) {
-      console.error("Error:", error);
-      alert("There was an error submitting your application. Please try again.");
+    } catch (error: any) {
+      console.error("Unexpected error:", error);
+      alert(`An unexpected error occurred: ${error.message || 'Please try again'}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1058,9 +1096,9 @@ const OpenAccount = () => {
               <Button 
                 type="submit" 
                 className="ml-auto"
-                disabled={!formData.acceptTerms}
+                disabled={!formData.acceptTerms || isSubmitting}
               >
-                Submit Application
+                {isSubmitting ? 'Submitting...' : 'Submit Application'}
               </Button>
             )}
           </div>
