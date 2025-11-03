@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,35 @@ export default function LiveSupport() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const loadMessages = useCallback(async (ticketId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("support_messages")
+        .select("*")
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      
+      // Ensure messages are properly sorted
+      const sortedMessages = (data || []).sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+      
+      setMessages(sortedMessages);
+
+      // Mark as read
+      await supabase
+        .from("support_messages")
+        .update({ is_read: true })
+        .eq("ticket_id", ticketId)
+        .eq("is_staff", false)
+        .eq("is_read", false);
+    } catch (error) {
+      console.error("Error loading messages:", error);
+    }
+  }, []);
 
   useEffect(() => {
     // Initialize notification sound
@@ -48,6 +77,8 @@ export default function LiveSupport() {
         schema: 'public', 
         table: 'support_messages' 
       }, (payload) => {
+        console.log('New message received:', payload.new);
+        
         if (!payload.new.is_staff) {
           // Play notification sound for customer messages
           audioRef.current?.play().catch(e => console.log('Audio play failed:', e));
@@ -56,8 +87,9 @@ export default function LiveSupport() {
           });
         }
         
+        // Always reload messages for the selected chat to maintain order
         if (selectedChat && payload.new.ticket_id === selectedChat.id) {
-          // Reload all messages to ensure proper ordering
+          console.log('Reloading messages for ticket:', selectedChat.id);
           loadMessages(selectedChat.id);
           
           // Mark customer messages as read immediately
@@ -96,7 +128,7 @@ export default function LiveSupport() {
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(ticketUpdatesChannel);
     };
-  }, [selectedChat]);
+  }, [selectedChat, loadMessages]);
 
   // Handle agent typing indicator
   useEffect(() => {
@@ -190,29 +222,6 @@ export default function LiveSupport() {
       toast.error("Failed to load conversations");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadMessages = async (ticketId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("support_messages")
-        .select("*")
-        .eq("ticket_id", ticketId)
-        .order("created_at", { ascending: true });
-
-      if (error) throw error;
-      setMessages(data || []);
-
-      // Mark as read
-      await supabase
-        .from("support_messages")
-        .update({ is_read: true })
-        .eq("ticket_id", ticketId)
-        .eq("is_staff", false)
-        .eq("is_read", false);
-    } catch (error) {
-      console.error("Error loading messages:", error);
     }
   };
 
