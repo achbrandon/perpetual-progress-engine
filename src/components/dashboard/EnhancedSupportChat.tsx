@@ -69,6 +69,10 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
           filter: `id=eq.${ticketId}`
         },
         async (payload) => {
+          console.log('User side received ticket update:', {
+            agent_typing: payload.new.agent_typing,
+            agent_online: payload.new.agent_online
+          });
           setAgentOnline(payload.new.agent_online || false);
           setAgentTyping(payload.new.agent_typing || false);
           setTicket(payload.new);
@@ -116,7 +120,11 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
         })
         .eq('id', ticketId)
         .then(({ error }) => {
-          if (error) console.error('Error setting user typing:', error);
+          if (error) {
+            console.error('Error setting user typing:', error);
+          } else {
+            console.log('User typing indicator set to TRUE');
+          }
         });
 
       // Clear typing indicator after 3 seconds of no typing

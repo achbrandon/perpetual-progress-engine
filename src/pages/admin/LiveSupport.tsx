@@ -111,6 +111,10 @@ export default function LiveSupport() {
         },
         (payload) => {
           if (selectedChat && payload.new.id === selectedChat.id) {
+            console.log('Admin side received ticket update:', {
+              user_typing: payload.new.user_typing,
+              ticket_id: payload.new.id
+            });
             setUserTyping(payload.new.user_typing);
           }
         }
@@ -143,7 +147,11 @@ export default function LiveSupport() {
         })
         .eq('id', selectedChat.id)
         .then(({ error }) => {
-          if (error) console.error('Error setting agent typing:', error);
+          if (error) {
+            console.error('Error setting agent typing:', error);
+          } else {
+            console.log('Agent typing indicator set to TRUE');
+          }
         });
 
       // Clear typing indicator after 3 seconds of no typing
