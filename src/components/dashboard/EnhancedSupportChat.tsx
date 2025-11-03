@@ -155,17 +155,11 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
           filter: `ticket_id=eq.${ticketId}`
         },
         (payload) => {
-          console.log('USER SIDE: New message received via realtime:', payload.new);
           setMessages(prev => {
-            // Prevent duplicate messages
-            if (prev.some(msg => msg.id === payload.new.id)) {
-              console.log('Duplicate message, skipping');
-              return prev;
-            }
-            // Add the new message immediately
-            const newMessages = [...prev, payload.new];
-            console.log('Updated messages array:', newMessages.length);
-            return newMessages;
+            // Strict duplicate check by ID
+            const isDuplicate = prev.some(msg => msg.id === payload.new.id);
+            if (isDuplicate) return prev;
+            return [...prev, payload.new];
           });
         }
       )
@@ -319,28 +313,16 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
     setNewMessage("");
     setLoading(true);
 
-    // Optimistically add message to UI immediately
-    const optimisticMessage = {
-      id: `temp-${Date.now()}`,
-      ticket_id: ticketId,
-      sender_id: userId,
-      message: messageText,
-      is_staff: false,
-      created_at: new Date().toISOString(),
-      file_url: null,
-      file_name: null,
-      is_read: false
-    };
-    setMessages(prev => [...prev, optimisticMessage]);
-
     try {
-      // Insert the user's message to database
-      await supabase.from("support_messages").insert({
+      // Insert the user's message to database (real-time will handle UI update)
+      const { error: insertError } = await supabase.from("support_messages").insert({
         ticket_id: ticketId,
         sender_id: userId,
         message: messageText,
         is_staff: false
       });
+
+      if (insertError) throw insertError;
 
       // Clear typing indicator
       await supabase
@@ -358,9 +340,6 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
         });
 
         console.log('Bot response:', data, 'Error:', botError);
-
-        // Reload messages to get the bot's reply
-        await loadMessages(ticketId);
 
         // Even if there's an error, the bot returns a fallback message
         if (data?.suggestsLiveAgent) {
