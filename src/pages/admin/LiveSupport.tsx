@@ -53,22 +53,102 @@ export default function LiveSupport() {
         
         if (selectedChat && payload.new.ticket_id === selectedChat.id) {
           setMessages(prev => {
-            // Prevent duplicate messages
             if (prev.some(msg => msg.id === payload.new.id)) {
               return prev;
             }
             return [...prev, payload.new];
           });
+          
+          // Mark customer messages as read immediately
+          if (!payload.new.is_staff) {
+            supabase
+              .from('support_messages')
+              .update({ is_read: true })
+              .eq('id', payload.new.id)
+              .then();
+          }
         }
         loadActiveChats();
       })
       .subscribe();
 
+    // Subscribe to ticket updates for typing indicators
+    const ticketUpdatesChannel = supabase
+      .channel('ticket_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'support_tickets'
+        },
+        (payload) => {
+          if (selectedChat && payload.new.id === selectedChat.id) {
+            setUserTyping(payload.new.user_typing);
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(ticketsChannel);
       supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(ticketUpdatesChannel);
     };
   }, [selectedChat]);
+
+  // Handle agent typing indicator
+  useEffect(() => {
+    if (inputMessage && selectedChat) {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      supabase
+        .from('support_tickets')
+        .update({ 
+          agent_typing: true,
+          agent_typing_at: new Date().toISOString()
+        })
+        .eq('id', selectedChat.id)
+        .then();
+
+      typingTimeoutRef.current = setTimeout(() => {
+        supabase
+          .from('support_tickets')
+          .update({ agent_typing: false })
+          .eq('id', selectedChat.id)
+          .then();
+      }, 3000);
+    } else if (selectedChat && !inputMessage) {
+      supabase
+        .from('support_tickets')
+        .update({ agent_typing: false })
+        .eq('id', selectedChat.id)
+        .then();
+    }
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [inputMessage, selectedChat]);
+
+  const loadAgents = async () => {
+    const { data, error } = await supabase
+      .from('support_agents')
+      .select('*')
+      .eq('is_available', true)
+      .order('name');
+
+    if (error) {
+      console.error('Error loading agents:', error);
+      return;
+    }
+
+    setAgents(data || []);
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
