@@ -121,7 +121,7 @@ export default function AdminTransactions() {
         <TabsList className="bg-slate-800/50">
           <TabsTrigger value="crypto">
             <TrendingUp className="h-4 w-4 mr-2" />
-            Crypto Deposits ({transactions.filter(t => t.category === "Crypto").length})
+            Crypto Transactions ({transactions.filter(t => t.category === "Crypto").length})
           </TabsTrigger>
           <TabsTrigger value="transfers">
             <CreditCard className="h-4 w-4 mr-2" />
@@ -135,7 +135,7 @@ export default function AdminTransactions() {
         <TabsContent value="crypto" className="space-y-4 mt-6">
           {transactions.filter(t => t.category === "Crypto").length === 0 ? (
             <div className="bg-slate-800/50 border border-slate-700 rounded-lg py-12 text-center text-slate-400">
-              No pending crypto deposits
+              No pending crypto transactions
             </div>
           ) : (
             transactions.filter(t => t.category === "Crypto").map((transaction) => (
@@ -143,7 +143,7 @@ export default function AdminTransactions() {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-white flex items-center gap-2 text-lg font-semibold">
                     <Clock className="h-5 w-5 text-yellow-400" />
-                    Crypto Deposit Pending
+                    {transaction.transaction_type === 'credit' ? 'Crypto Deposit' : 'Crypto Withdrawal'} Pending
                   </h3>
                   <Badge variant="secondary">
                     {new Date(transaction.created_at).toLocaleString()}
@@ -165,8 +165,8 @@ export default function AdminTransactions() {
                       <p className="text-white">{transaction.accounts?.account_name}</p>
                     </div>
                     <div>
-                      <p className="text-slate-400">Description</p>
-                      <p className="text-white">{transaction.description}</p>
+                      <p className="text-slate-400">Type</p>
+                      <p className="text-white capitalize">{transaction.transaction_type === 'credit' ? 'Deposit' : 'Withdrawal'}</p>
                     </div>
                     {transaction.crypto_currency && (
                       <div>
@@ -176,8 +176,10 @@ export default function AdminTransactions() {
                     )}
                     {transaction.destination_wallet_address && (
                       <div className="col-span-2">
-                        <p className="text-slate-400">Destination Wallet</p>
-                        <p className="text-white text-xs font-mono break-all">{transaction.destination_wallet_address}</p>
+                        <p className="text-slate-400 mb-2">Destination Wallet Address</p>
+                        <p className="text-white text-xs font-mono break-all bg-slate-900/50 p-3 rounded border border-slate-600">
+                          {transaction.destination_wallet_address}
+                        </p>
                       </div>
                     )}
                     {transaction.proof_of_payment_url && (
@@ -189,10 +191,14 @@ export default function AdminTransactions() {
                           rel="noopener noreferrer"
                           className="text-blue-400 hover:text-blue-300 flex items-center gap-2 text-sm"
                         >
-                          View Proof <ExternalLink className="h-3 w-3" />
+                          View Screenshot/Receipt <ExternalLink className="h-3 w-3" />
                         </a>
                       </div>
                     )}
+                    <div className="col-span-2">
+                      <p className="text-slate-400">Description</p>
+                      <p className="text-white">{transaction.description}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2 pt-4">
                     <Button
@@ -200,7 +206,7 @@ export default function AdminTransactions() {
                       className="flex-1 bg-green-600 hover:bg-green-700"
                     >
                       <Check className="h-4 w-4 mr-2" />
-                      Approve Deposit
+                      Approve {transaction.transaction_type === 'credit' ? 'Deposit' : 'Withdrawal'}
                     </Button>
                     <Button
                       onClick={() => handleRejectTransaction(transaction)}

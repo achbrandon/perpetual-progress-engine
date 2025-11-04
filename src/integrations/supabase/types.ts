@@ -1520,6 +1520,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_available_balance: {
+        Args: { account_id_param: string }
+        Returns: number
+      }
       clear_old_typing_indicators: { Args: never; Returns: undefined }
       has_role: {
         Args: {
