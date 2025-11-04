@@ -22,6 +22,7 @@ export type Database = {
           city: string | null
           created_at: string | null
           date_of_birth: string | null
+          drivers_license_url: string | null
           email: string
           email_verified: boolean | null
           full_name: string
@@ -47,6 +48,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          drivers_license_url?: string | null
           email: string
           email_verified?: boolean | null
           full_name: string
@@ -72,6 +74,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          drivers_license_url?: string | null
           email?: string
           email_verified?: boolean | null
           full_name?: string

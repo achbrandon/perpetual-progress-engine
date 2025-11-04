@@ -106,6 +106,9 @@ export default function DocumentsView() {
     if (app.selfie_url) {
       urls.selfie = await getSignedUrl(app.selfie_url);
     }
+    if (app.drivers_license_url) {
+      urls.driversLicense = await getSignedUrl(app.drivers_license_url);
+    }
     if (app.address_proof_url) {
       urls.addressProof = await getSignedUrl(app.address_proof_url);
     }
@@ -304,7 +307,7 @@ export default function DocumentsView() {
                           <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-white">Verification Documents</h3>
                             
-                            {!documentUrls.idFront && !documentUrls.idBack && !documentUrls.selfie && !documentUrls.addressProof ? (
+                            {!documentUrls.idFront && !documentUrls.idBack && !documentUrls.selfie && !documentUrls.driversLicense && !documentUrls.addressProof ? (
                               <div className="text-center py-12 text-slate-400">
                                 <FileText className="h-16 w-16 mx-auto mb-4 opacity-50" />
                                 <p>No documents uploaded yet</p>
@@ -382,6 +385,32 @@ export default function DocumentsView() {
                                         size="sm"
                                         className="w-full text-primary"
                                         onClick={() => window.open(documentUrls.selfie, '_blank')}
+                                      >
+                                        <Download className="h-4 w-4 mr-2" />
+                                        Open Full Size
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {documentUrls.driversLicense && (
+                                  <div className="space-y-2">
+                                    <Label className="text-slate-300 flex items-center gap-2">
+                                      <FileText className="h-4 w-4" />
+                                      Driver's License
+                                    </Label>
+                                    <div className="border-2 border-slate-700 rounded-lg overflow-hidden bg-slate-800">
+                                      <img 
+                                        src={documentUrls.driversLicense} 
+                                        alt="Driver's License" 
+                                        className="w-full h-64 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+                                        onClick={() => window.open(documentUrls.driversLicense, '_blank')}
+                                      />
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full text-primary"
+                                        onClick={() => window.open(documentUrls.driversLicense, '_blank')}
                                       >
                                         <Download className="h-4 w-4 mr-2" />
                                         Open Full Size
