@@ -25,6 +25,13 @@ export default function RequestAccount() {
         return;
       }
 
+      // Create account request
+      await supabase.from("account_requests").insert({
+        user_id: user.id,
+        account_type: accountType,
+        status: 'pending'
+      });
+
       // Create admin notification
       await supabase.from("admin_notifications").insert({
         notification_type: "account_request",
@@ -32,7 +39,7 @@ export default function RequestAccount() {
         user_id: user.id
       });
 
-      toast.success("Pending request");
+      toast.success("Pending request - Your account will be automatically created within 30 minutes");
       setTimeout(() => navigate("/dashboard/accounts"), 2000);
     } catch (error: any) {
       console.error("Error submitting request:", error);

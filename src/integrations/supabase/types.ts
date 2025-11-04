@@ -136,6 +136,36 @@ export type Database = {
           },
         ]
       }
+      account_requests: {
+        Row: {
+          account_type: string
+          auto_approved: boolean | null
+          created_at: string | null
+          id: string
+          processed_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          account_type: string
+          auto_approved?: boolean | null
+          created_at?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          account_type?: string
+          auto_approved?: boolean | null
+          created_at?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       accounts: {
         Row: {
           account_name: string
