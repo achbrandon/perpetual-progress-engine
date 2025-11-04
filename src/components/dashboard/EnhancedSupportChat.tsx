@@ -190,10 +190,7 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
     messagesChannelRef.current = channel;
 
     return () => {
-      if (messagesChannelRef.current) {
-        supabase.removeChannel(messagesChannelRef.current);
-        messagesChannelRef.current = null;
-      }
+      supabase.removeChannel(channel);
     };
   };
 
