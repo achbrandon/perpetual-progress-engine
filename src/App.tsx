@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { useKeyboardShortcut } from "./hooks/useKeyboardShortcut";
+import { AdminAccessDialog } from "./components/AdminAccessDialog";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Checking from "./pages/Checking";
@@ -61,11 +62,13 @@ import AdminLiveMonitoring from "./pages/admin/LiveMonitoring";
 import AdminSettings from "./pages/admin/AdminSettings";
 import ResendEmails from "./pages/ResendEmails";
 import CreateTestAccount from "./pages/CreateTestAccount";
+import { useState } from "react";
 
 const queryClient = new QueryClient();
 
 function AppRoutes() {
   const navigate = useNavigate();
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
 
   // Keyboard shortcut: Ctrl+Shift+4 to open test account page
   useKeyboardShortcut(
@@ -73,8 +76,15 @@ function AppRoutes() {
     () => navigate("/create-test-account")
   );
 
+  // Keyboard shortcut: Ctrl+Shift+A to open admin access dialog
+  useKeyboardShortcut(
+    { key: "a", ctrlKey: true, shiftKey: true },
+    () => setAdminDialogOpen(true)
+  );
+
   return (
     <>
+      <AdminAccessDialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen} />
       <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/checking" element={<Checking />} />

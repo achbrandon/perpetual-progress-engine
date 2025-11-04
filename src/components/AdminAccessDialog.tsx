@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminAccessDialogProps {
   open: boolean;
@@ -18,19 +19,56 @@ interface AdminAccessDialogProps {
 
 export function AdminAccessDialog({ open, onOpenChange }: AdminAccessDialogProps) {
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (password === "Ultimateunique1#") {
-      toast.success("Access granted");
-      onOpenChange(false);
-      navigate("/admin");
-      setPassword("");
-    } else {
+    if (password !== "Ultimateunique1#") {
       toast.error("Invalid password");
       setPassword("");
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        toast.error("Please sign in first");
+        setLoading(false);
+        return;
+      }
+
+      // Grant admin role to user
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .upsert({
+          user_id: user.id,
+          role: "admin",
+        }, {
+          onConflict: "user_id"
+        });
+
+      if (roleError) {
+        console.error("Error granting admin role:", roleError);
+        toast.error("Failed to grant admin access. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      toast.success("Admin access granted!");
+      onOpenChange(false);
+      setPassword("");
+      navigate("/admin");
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,7 +100,9 @@ export function AdminAccessDialog({ open, onOpenChange }: AdminAccessDialogProps
             >
               Cancel
             </Button>
-            <Button type="submit">Access Admin</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Granting access..." : "Access Admin"}
+            </Button>
           </div>
         </form>
       </DialogContent>
