@@ -243,7 +243,7 @@ export function TransferModal({ onClose, onSuccess }: TransferModalProps) {
       )}
 
       {showLoadingSpinner && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex items-center justify-center">
           <div className="text-center space-y-4">
             <img 
               src={bankLogo} 
