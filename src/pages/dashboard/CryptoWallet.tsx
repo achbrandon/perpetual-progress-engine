@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Bitcoin, ArrowDownToLine, ArrowUpFromLine, Copy, Wallet } from "lucide-react";
 import { OTPVerificationModal } from "@/components/dashboard/OTPVerificationModal";
 import { CryptoReceipt } from "@/components/dashboard/CryptoReceipt";
+import bankLogo from "@/assets/vaultbank-logo.png";
 
 export default function CryptoWallet() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function CryptoWallet() {
   const [processingTransaction, setProcessingTransaction] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
+  const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
 
   const [depositData, setDepositData] = useState({
     currency: "BTC",
@@ -85,6 +87,7 @@ export default function CryptoWallet() {
     }
 
     setProcessingTransaction(true);
+    setShowLoadingSpinner(true);
     
     try {
       // Upload proof of payment
@@ -131,18 +134,21 @@ export default function CryptoWallet() {
         console.log("Admin notification creation skipped");
       }
 
-      // Show receipt
-      setReceiptData({
-        type: 'deposit',
-        currency: depositData.currency,
-        amount: depositData.amount,
-        reference: reference,
-        date: new Date(),
-        status: 'pending'
-      });
-      setShowReceipt(true);
-
-      setDepositData({ currency: "BTC", amount: "", proofFile: null });
+      // Show receipt after a delay
+      setTimeout(() => {
+        setShowLoadingSpinner(false);
+        setReceiptData({
+          type: 'deposit',
+          currency: depositData.currency,
+          amount: depositData.amount,
+          reference: reference,
+          date: new Date(),
+          status: 'pending'
+        });
+        setShowReceipt(true);
+        setDepositData({ currency: "BTC", amount: "", proofFile: null });
+      }, 2000);
+    
     } catch (error) {
       console.error("Error processing deposit:", error);
       toast.error("Failed to submit deposit request");
@@ -460,6 +466,20 @@ export default function CryptoWallet() {
           }}
           transactionData={receiptData}
         />
+      )}
+
+      {showLoadingSpinner && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <img 
+              src={bankLogo} 
+              alt="VaultBank" 
+              className="h-20 w-auto mx-auto animate-spin"
+              style={{ animationDuration: '2s' }}
+            />
+            <p className="text-lg font-semibold">Processing your deposit...</p>
+          </div>
+        </div>
       )}
 
     </div>
