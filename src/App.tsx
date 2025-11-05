@@ -63,6 +63,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import ResendEmails from "./pages/ResendEmails";
 import CreateTestAccount from "./pages/CreateTestAccount";
 import CreateAdminAccount from "./pages/CreateAdminAccount";
+import CheckAdmin from "./pages/CheckAdmin";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import { useState } from "react";
 
@@ -111,6 +112,7 @@ function AppRoutes() {
       <Route path="/resend-emails" element={<ResendEmails />} />
           <Route path="/create-test-account" element={<CreateTestAccount />} />
           <Route path="/create-admin-account" element={<CreateAdminAccount />} />
+          <Route path="/check-admin" element={<CheckAdmin />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/dashboard/accounts" element={<Accounts />} />
       <Route path="/dashboard/transfers" element={<DashboardTransfers />} />
