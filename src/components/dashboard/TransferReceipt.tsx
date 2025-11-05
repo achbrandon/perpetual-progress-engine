@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CheckCircle2, Download, X } from "lucide-react";
+import { CheckCircle2, Download, X, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface TransferReceiptProps {
@@ -34,8 +34,17 @@ export function TransferReceipt({ open, onClose, transferData }: TransferReceipt
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
-            <CheckCircle2 className="h-6 w-6 text-green-500" />
-            Transfer Successful
+            {transferData.type === 'internal' ? (
+              <>
+                <CheckCircle2 className="h-6 w-6 text-green-500" />
+                Transfer Successful
+              </>
+            ) : (
+              <>
+                <AlertCircle className="h-6 w-6 text-yellow-500" />
+                Transfer Submitted
+              </>
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -44,6 +53,19 @@ export function TransferReceipt({ open, onClose, transferData }: TransferReceipt
             <h2 className="text-3xl font-bold text-primary mb-2">VaultBank</h2>
             <p className="text-muted-foreground">Transaction Receipt</p>
           </div>
+
+          {(transferData.type === 'domestic' || transferData.type === 'international') && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 rounded-lg p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
+                <h3 className="font-bold text-yellow-800 dark:text-yellow-500">Transaction Pending Verification</h3>
+              </div>
+              <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                Your {transferData.type} transfer has been submitted and is awaiting admin approval. 
+                You will be notified once the transaction is processed.
+              </p>
+            </div>
+          )}
 
           <div className="space-y-4">
             <div className="flex justify-between items-center py-2 border-b">
