@@ -69,8 +69,8 @@ export default function AdminEmailSystem() {
         .insert({
           sent_to: recipients,
           subject,
-          sent_by: user.id
-        });
+          status: 'sent'
+        } as any);
 
       if (error) throw error;
 

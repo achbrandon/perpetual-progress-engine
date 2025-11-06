@@ -121,14 +121,11 @@ export default function AdminUserManagement() {
         .insert({
           user_id: selectedUser.id,
           account_id: selectedAccount,
-          transaction_type: "deposit",
+          type: "deposit",
           amount: parseFloat(depositAmount),
           description: "Deposit",
           status: "completed",
-          transaction_date: new Date(depositDate).toISOString(),
-          category: "Deposit",
-          merchant: "Bank Deposit"
-        });
+        } as any);
 
       if (transactionError) throw transactionError;
 
@@ -167,13 +164,10 @@ export default function AdminUserManagement() {
       // Log admin action
       await supabase.from("admin_actions_log").insert({
         admin_id: user.id,
-        action_type: "password_reset",
+        action: "password_reset",
         target_user_id: passwordResetUser.id,
-        details: {
-          notes: resetNotes,
-          timestamp: new Date().toISOString(),
-        },
-      });
+        details: resetNotes
+      } as any);
 
       toast.success(`Password reset email sent to ${passwordResetUser.email}`);
       setPasswordResetDialogOpen(false);
@@ -233,13 +227,10 @@ export default function AdminUserManagement() {
       // Log admin action
       await supabase.from("admin_actions_log").insert({
         admin_id: user.id,
-        action_type: "qr_verification",
+        action: "qr_verification",
         target_user_id: verifyQRUser.id,
-        details: {
-          notes: "Manual QR verification by admin",
-          timestamp: new Date().toISOString(),
-        },
-      });
+        details: "Manual QR verification by admin"
+      } as any);
 
       toast.success(`QR verified for ${verifyQRUser.full_name}`);
       setVerifyQRDialogOpen(false);

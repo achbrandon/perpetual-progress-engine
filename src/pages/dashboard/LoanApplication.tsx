@@ -75,11 +75,8 @@ export default function LoanApplication() {
 
       const { error } = await supabase.from("loan_applications").insert({
         user_id: user.id,
-        loan_amount: parseFloat(loanData.amount),
-        loan_purpose: loanData.purpose,
-        interest_rate: calculatedData.interestRate,
-        loan_term_months: parseInt(loanData.term),
-        monthly_payment: calculatedData.monthlyPayment,
+        loan_type: loanData.purpose,
+        amount: parseFloat(loanData.amount),
         total_interest: calculatedData.totalInterest,
         status: "pending"
       });
@@ -105,12 +102,11 @@ export default function LoanApplication() {
         await supabase.from("transactions").insert({
           user_id: user.id,
           account_id: accounts[0].id,
-          transaction_type: "credit",
+          type: "credit",
           amount: parseFloat(loanData.amount),
           description: `Loan Application - ${loanData.purpose.substring(0, 50)}`,
-          category: "Loan",
           status: "pending"
-        });
+        } as any);
       }
 
       toast.success("Loan application submitted successfully!");

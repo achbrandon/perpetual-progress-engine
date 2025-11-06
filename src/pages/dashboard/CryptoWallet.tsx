@@ -112,10 +112,9 @@ export default function CryptoWallet() {
         await supabase.from("transactions").insert({
           user_id: user.id,
           account_id: accounts[0].id,
-          transaction_type: "credit",
+          type: "credit",
           amount: parseFloat(depositData.amount),
           description: `Crypto Deposit - ${depositData.currency}`,
-          category: "Crypto",
           status: "pending",
           crypto_currency: depositData.currency,
           proof_of_payment_url: publicUrl,
@@ -185,10 +184,9 @@ export default function CryptoWallet() {
         await supabase.from("transactions").insert({
           user_id: user.id,
           account_id: accounts[0].id,
-          transaction_type: "debit",
+          type: "debit",
           amount: pendingTransaction.amount,
           description: `Crypto Withdrawal - ${pendingTransaction.currency}`,
-          category: "Crypto",
           status: "pending",
           crypto_currency: pendingTransaction.currency,
           destination_wallet_address: pendingTransaction.destinationAddress,

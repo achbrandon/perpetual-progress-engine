@@ -101,17 +101,12 @@ export default function BillPay() {
       } else {
         const { error } = await supabase.from("bill_payments").insert({
           user_id: user.id,
-          account_id: formData.accountId,
           payee_name: formData.payeeName,
-          payee_account: formData.payeeAccount,
-          payee_address: formData.payeeAddress || null,
+          account_number: formData.payeeAccount,
           amount: parseFloat(formData.amount),
           payment_date: formData.paymentDate,
-          is_recurring: formData.isRecurring,
-          recurring_frequency: formData.recurringFrequency || null,
-          notes: formData.notes || null,
           status: "scheduled"
-        });
+        } as any);
 
         if (error) throw error;
       }
