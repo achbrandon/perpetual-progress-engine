@@ -1,12 +1,14 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Shield, Clock, Mail } from "lucide-react";
+import { CheckCircle2, Shield, Clock, Mail, AlertCircle } from "lucide-react";
 import logo from "@/assets/vaultbank-logo.png";
 
 const VerificationSuccess = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isPending = searchParams.get("status") === "pending";
 
   useEffect(() => {
     // Auto redirect to login after 10 seconds
@@ -37,59 +39,108 @@ const VerificationSuccess = () => {
           <div className="text-center space-y-2">
             <div className="flex justify-center mb-4">
               <div className="relative">
-                <div className="absolute inset-0 bg-green-500/20 blur-xl rounded-full"></div>
-                <div className="relative bg-green-500/10 p-4 rounded-2xl border border-green-500/30">
-                  <CheckCircle2 className="h-16 w-16 text-green-500" />
+                <div className={`absolute inset-0 ${isPending ? 'bg-orange-500/20' : 'bg-green-500/20'} blur-xl rounded-full`}></div>
+                <div className={`relative ${isPending ? 'bg-orange-500/10 border-orange-500/30' : 'bg-green-500/10 border-green-500/30'} p-4 rounded-2xl border`}>
+                  {isPending ? (
+                    <Clock className="h-16 w-16 text-orange-500" />
+                  ) : (
+                    <CheckCircle2 className="h-16 w-16 text-green-500" />
+                  )}
                 </div>
               </div>
             </div>
             
             <CardTitle className="text-3xl font-bold bg-gradient-to-r from-green-500 via-primary to-accent bg-clip-text text-transparent">
-              Account Successfully Verified!
+              {isPending ? "Account Pending Approval" : "Account Successfully Verified!"}
             </CardTitle>
             <CardDescription className="text-base text-muted-foreground">
-              Your email verification is complete
+              {isPending ? "Your verification is complete. Waiting for admin approval." : "Your email verification is complete"}
             </CardDescription>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-6">
           {/* Success Message */}
-          <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-6 space-y-4">
+          <div className={`${isPending ? 'bg-orange-500/5 border-orange-500/20' : 'bg-green-500/5 border-green-500/20'} border rounded-xl p-6 space-y-4`}>
             <p className="text-lg font-semibold text-foreground flex items-center gap-3">
-              <CheckCircle2 className="h-6 w-6 text-green-500" />
-              What Happens Next?
+              {isPending ? (
+                <>
+                  <AlertCircle className="h-6 w-6 text-orange-500" />
+                  Account Under Review
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-6 w-6 text-green-500" />
+                  What Happens Next?
+                </>
+              )}
             </p>
             <div className="space-y-4 ml-9">
-              <div className="flex items-start gap-3">
-                <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">Security Review Process</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Your documents and account information will be reviewed by our security team for verification purposes. This is a standard procedure to ensure the safety of all our customers.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">Review Timeline</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    The review process typically takes 24-48 hours. We'll process your application as quickly as possible.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <Mail className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">Email Notification</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    You will receive an email from us shortly about the status of your account. Please check your inbox regularly for updates.
-                  </p>
-                </div>
-              </div>
+              {isPending ? (
+                <>
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Waiting for Approval</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Your security verification is complete! Your account is now waiting for admin approval. You will be notified via email once your account is approved.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Review Process</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Our admin team will review your application and documents. This typically takes 24-48 hours.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Email Notification</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        You will receive an email notification once your account is approved. Check your inbox regularly for updates.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-start gap-3">
+                    <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Security Review Process</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Your documents and account information will be reviewed by our security team for verification purposes. This is a standard procedure to ensure the safety of all our customers.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Review Timeline</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        The review process typically takes 24-48 hours. We'll process your application as quickly as possible.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Email Notification</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        You will receive an email from us shortly about the status of your account. Please check your inbox regularly for updates.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

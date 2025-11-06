@@ -39,7 +39,6 @@ const handler = async (req: Request): Promise<Response> => {
     const { email, fullName, verificationToken, qrSecret, redirectUrl }: VerificationRequest & { redirectUrl?: string } = await req.json();
 
     console.log("📧 Preparing email for:", email);
-    console.log("🔗 Redirect URL:", redirectUrl);
 
     // Generate QR code as SVG (works in Deno without canvas)
     const qrCodeSvg = await QRCode.toString(qrSecret, {
@@ -51,13 +50,8 @@ const handler = async (req: Request): Promise<Response> => {
         light: '#FFFFFF'
       }
     });
-
-    // Create verification URL that goes directly to your domain
-    // This prevents the Lovable redirect issue and reduces spam warnings
-    const baseUrl = redirectUrl || 'https://df0a83ce-19b9-4d6d-823e-e7da0a6b3eac.lovableproject.com';
-    const verificationUrl = `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify?token=${verificationToken}&type=signup&redirect_to=${encodeURIComponent(baseUrl + '/verify-qr')}`;
     
-    console.log("✅ Verification URL created:", verificationUrl);
+    console.log("✅ QR code generated successfully");
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -96,48 +90,33 @@ const handler = async (req: Request): Promise<Response> => {
                   <!-- Main Content -->
                   <tr>
                     <td style="padding: 48px 48px 32px;">
-                      <h2 style="margin: 0 0 24px; color: #1a1a1a; font-size: 28px; font-weight: 700; line-height: 1.3;">
+                       <h2 style="margin: 0 0 24px; color: #1a1a1a; font-size: 28px; font-weight: 700; line-height: 1.3;">
                         Welcome to VaultBank, ${fullName}! 👋
-                      </h2>
-                      
-                       <p style="margin: 0 0 24px; color: #4a5568; font-size: 16px; line-height: 1.7;">
-                        Thank you for opening an account with VaultBank. To complete your secure account registration, we need you to verify your email address and set up two-factor authentication.
-                       </p>
+                       </h2>
                        
-                       <!-- Action Required Box -->
-                       <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 24px; margin: 32px 0; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);">
-                         <p style="margin: 0 0 12px; color: #ffffff; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                           ⚡ Verification Required
-                         </p>
-                         <p style="margin: 0; color: rgba(255, 255, 255, 0.95); font-size: 16px; font-weight: 500; line-height: 1.6;">
-                           This is a security verification email. Please verify your email address to activate your account and complete the identity verification process.
-                         </p>
-                       </div>
+                        <p style="margin: 0 0 24px; color: #4a5568; font-size: 16px; line-height: 1.7;">
+                        Thank you for opening an account with VaultBank. Your account has been successfully created and is now under review by our team.
+                        </p>
+                        
+                        <!-- Action Required Box -->
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 24px; margin: 32px 0; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);">
+                          <p style="margin: 0 0 12px; color: #ffffff; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                            🔐 Security Setup Required
+                          </p>
+                          <p style="margin: 0; color: rgba(255, 255, 255, 0.95); font-size: 16px; font-weight: 500; line-height: 1.6;">
+                            To secure your account, please save the QR code below and use it to complete your verification when you sign in.
+                          </p>
+                        </div>
 
-                      <!-- Verify Button -->
-                      <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin: 32px 0;">
-                        <tr>
-                          <td align="center">
-                            <a href="${verificationUrl}" style="display: inline-block; padding: 18px 48px; background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 17px; font-weight: 600; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
-                              ✉️ Verify Email Address
-                            </a>
-                          </td>
-                        </tr>
-                      </table>
-
-                      <p style="margin: 24px 0; padding: 16px; background-color: #f7fafc; border-left: 4px solid #4299e1; border-radius: 6px; color: #2d3748; font-size: 14px; line-height: 1.6;">
-                        <strong>💡 Tip:</strong> Click the button above or copy the link if it doesn't work. The verification link will expire in 24 hours for security purposes.
-                      </p>
-
-                       <!-- Two-Factor Authentication Section -->
-                       <div style="margin: 40px 0; padding: 32px; background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 12px; border: 2px solid #e2e8f0;">
-                         <h3 style="margin: 0 0 16px; color: #1a1a1a; font-size: 20px; font-weight: 700;">
-                           🔐 Account Security Setup
-                         </h3>
-                         
-                         <p style="margin: 0 0 24px; color: #4a5568; font-size: 15px; line-height: 1.7;">
-                           As part of our secure account opening process, we use two-factor authentication to protect your financial information. This QR code will be used to verify your identity and secure your account access. Please scan it with an authenticator app (Google Authenticator, Authy, Microsoft Authenticator, etc.):
-                         </p>
+                        <!-- Two-Factor Authentication Section -->
+                        <div style="margin: 40px 0; padding: 32px; background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 12px; border: 2px solid #e2e8f0;">
+                          <h3 style="margin: 0 0 16px; color: #1a1a1a; font-size: 20px; font-weight: 700;">
+                            🔐 Your Security Code
+                          </h3>
+                          
+                          <p style="margin: 0 0 24px; color: #4a5568; font-size: 15px; line-height: 1.7;">
+                            Save this security code. You will need it to complete your account verification after signing in to VaultBank:
+                          </p>
                         
                         <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                           <tr>
@@ -159,56 +138,56 @@ const handler = async (req: Request): Promise<Response> => {
                         </table>
                       </div>
 
-                       <!-- Security Notice -->
-                       <div style="margin: 32px 0; padding: 20px; background-color: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px;">
-                         <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.7;">
-                           <strong>⚠️ Security Information:</strong> This verification process is part of our standard banking security procedures. You must complete email verification and set up two-factor authentication before accessing your account. Your identity documents and information are encrypted and stored securely for regulatory compliance. We will never ask you to share your authentication codes with anyone.
-                         </p>
+                        <!-- Security Notice -->
+                        <div style="margin: 32px 0; padding: 20px; background-color: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px;">
+                          <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.7;">
+                            <strong>⚠️ Security Information:</strong> Keep this security code safe and secure. Your account is currently under review by our team. Once approved, you will use this code to complete your account verification. Never share this code with anyone.
+                          </p>
+                        </div>
+
+                       <!-- Next Steps -->
+                       <div style="margin: 32px 0;">
+                         <h3 style="margin: 0 0 16px; color: #1a1a1a; font-size: 18px; font-weight: 700;">
+                           📋 Next Steps:
+                         </h3>
+                         <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                           <tr>
+                             <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                               <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
+                                 <strong style="color: #667eea; font-weight: 700;">1.</strong> Save your security code from this email
+                               </p>
+                             </td>
+                           </tr>
+                           <tr>
+                             <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                               <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
+                                 <strong style="color: #667eea; font-weight: 700;">2.</strong> Wait for account approval (usually within 24-48 hours)
+                               </p>
+                             </td>
+                           </tr>
+                           <tr>
+                             <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                               <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
+                                 <strong style="color: #667eea; font-weight: 700;">3.</strong> Sign in to your account at vaultbankonline.com
+                               </p>
+                             </td>
+                           </tr>
+                           <tr>
+                             <td style="padding: 12px 0;">
+                               <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
+                                 <strong style="color: #667eea; font-weight: 700;">4.</strong> Enter your security code to complete verification
+                               </p>
+                             </td>
+                           </tr>
+                         </table>
                        </div>
 
-                      <!-- Next Steps -->
-                      <div style="margin: 32px 0;">
-                        <h3 style="margin: 0 0 16px; color: #1a1a1a; font-size: 18px; font-weight: 700;">
-                          📋 Next Steps:
-                        </h3>
-                        <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
-                          <tr>
-                            <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                              <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
-                                <strong style="color: #667eea; font-weight: 700;">1.</strong> Click the verification button above to confirm your email
-                              </p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                              <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
-                                <strong style="color: #667eea; font-weight: 700;">2.</strong> Save your QR code in a secure authenticator app
-                              </p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                              <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
-                                <strong style="color: #667eea; font-weight: 700;">3.</strong> Sign in to your account at vaultbankonline.com
-                              </p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style="padding: 12px 0;">
-                              <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
-                                <strong style="color: #667eea; font-weight: 700;">4.</strong> Complete QR verification on first login
-                              </p>
-                            </td>
-                          </tr>
-                        </table>
-                      </div>
-
-                       <!-- Support -->
-                       <div style="margin: 32px 0 0; padding-top: 24px; border-top: 2px solid #e2e8f0;">
-                         <p style="margin: 0; color: #718096; font-size: 13px; line-height: 1.7;">
-                           <strong>Need Help?</strong> If you didn't request this account opening or need assistance with the verification process, please contact our support team at support@vaultbankonline.com. This is a legitimate account verification email from VaultBank's secure system.
-                         </p>
-                       </div>
+                        <!-- Support -->
+                        <div style="margin: 32px 0 0; padding-top: 24px; border-top: 2px solid #e2e8f0;">
+                          <p style="margin: 0; color: #718096; font-size: 13px; line-height: 1.7;">
+                            <strong>Need Help?</strong> If you didn't request this account or need assistance, please contact our support team at support@vaultbankonline.com. This is a legitimate account confirmation email from VaultBank.
+                          </p>
+                        </div>
                     </td>
                   </tr>
                   
@@ -263,7 +242,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         personalizations: [{
           to: [{ email }],
-          subject: "VaultBank Account Verification - Secure Your Account"
+          subject: "VaultBank - Your Security Code Inside"
         }],
         from: {
           email: "info@vaulteonline.com",
