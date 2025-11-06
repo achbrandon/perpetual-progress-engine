@@ -74,10 +74,23 @@ export default function AdminEmailSystem() {
 
       if (error) throw error;
 
-      // In a real implementation, you would call an edge function here
-      // to send the actual emails using Resend
-      
-      toast.success(`Email queued for ${recipients.length} recipient(s)`);
+      // Send emails via edge function
+      const { data: emailResult, error: emailError } = await supabase.functions.invoke("send-admin-email", {
+        body: {
+          recipientIds: recipients,
+          subject,
+          htmlContent,
+        },
+      });
+
+      if (emailError) throw emailError;
+
+      if (emailResult?.success) {
+        toast.success(`Email sent to ${emailResult.successCount} recipient(s)`);
+        if (emailResult.failureCount > 0) {
+          toast.warning(`${emailResult.failureCount} emails failed to send`);
+        }
+      }
       
       // Reset form
       setSubject("");
