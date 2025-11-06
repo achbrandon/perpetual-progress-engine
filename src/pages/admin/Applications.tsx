@@ -56,45 +56,61 @@ export default function AdminApplications() {
 
   const fetchApplications = async () => {
     try {
-      const [accountRes, requestsRes, cardRes, loanRes] = await Promise.all([
+      const [accountRes, requestsRes, cardRes, loanRes, profilesRes] = await Promise.all([
         supabase
           .from("account_applications")
           .select("*")
           .order("created_at", { ascending: false}),
         supabase
           .from("account_requests")
-          .select(`
-            *,
-            profiles(full_name, email)
-          `)
+          .select("*")
           .order("created_at", { ascending: false }),
         supabase
           .from("card_applications")
-          .select(`
-            *,
-            profiles(full_name, email, phone_number)
-          `)
+          .select("*")
           .order("created_at", { ascending: false }),
         supabase
           .from("loan_applications")
-          .select(`
-            *,
-            profiles(full_name, email, phone_number)
-          `)
+          .select("*")
           .order("created_at", { ascending: false }),
+        supabase
+          .from("profiles")
+          .select("id, full_name, email")
       ]);
+
+      // Create a map of profiles for easy lookup
+      const profilesMap = new Map();
+      profilesRes.data?.forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
+
+      // Attach profile data to each application
+      const requestsWithProfiles = requestsRes.data?.map(req => ({
+        ...req,
+        profiles: profilesMap.get(req.user_id) || {}
+      })) || [];
+
+      const cardsWithProfiles = cardRes.data?.map(card => ({
+        ...card,
+        profiles: profilesMap.get(card.user_id) || {}
+      })) || [];
+
+      const loansWithProfiles = loanRes.data?.map(loan => ({
+        ...loan,
+        profiles: profilesMap.get(loan.user_id) || {}
+      })) || [];
 
       console.log('📊 Fetched applications:', {
         accounts: accountRes.data?.length || 0,
-        requests: requestsRes.data?.length || 0,
-        cards: cardRes.data?.length || 0,
-        loans: loanRes.data?.length || 0
+        requests: requestsWithProfiles.length,
+        cards: cardsWithProfiles.length,
+        loans: loansWithProfiles.length
       });
 
       setAccountApps(accountRes.data || []);
-      setAccountRequests(requestsRes.data || []);
-      setCardApps(cardRes.data || []);
-      setLoanApps(loanRes.data || []);
+      setAccountRequests(requestsWithProfiles);
+      setCardApps(cardsWithProfiles);
+      setLoanApps(loansWithProfiles);
     } catch (error) {
       console.error("Error fetching applications:", error);
       toast.error("Failed to load applications");
