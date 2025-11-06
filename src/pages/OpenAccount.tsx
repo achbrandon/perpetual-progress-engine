@@ -65,7 +65,7 @@ const OpenAccount = () => {
     pin: "",
     securityQuestion: "",
     securityAnswer: "",
-    twoFactorMethod: "",
+    twoFactorMethod: "email",
 
     // Terms
     acceptTerms: false,
