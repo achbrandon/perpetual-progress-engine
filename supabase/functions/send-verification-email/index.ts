@@ -58,14 +58,58 @@ const handler = async (req: Request): Promise<Response> => {
       <html>
         <head>
           <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="font-family: Arial, sans-serif; margin: 20px; color: #333;">
-          <p>Hello ${fullName},</p>
-          <p>Your VaultBank account has been created.</p>
-          <p>Your authentication code:</p>
-          <p style="font-size: 18px; font-weight: bold; padding: 10px; background: #f5f5f5;">${qrSecret}</p>
-          <p>Save this code. You will need it to access your account.</p>
-          <p>VaultBank</p>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f5f5f5;">
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                  <tr>
+                    <td style="padding: 40px 40px 30px; text-align: center; background-color: #2563eb;">
+                      <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">Welcome to VaultBank</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 40px;">
+                      <p style="margin: 0 0 20px; color: #333333; font-size: 16px; line-height: 1.6;">
+                        Hello ${fullName},
+                      </p>
+                      <p style="margin: 0 0 20px; color: #333333; font-size: 16px; line-height: 1.6;">
+                        Your VaultBank account has been created successfully.
+                      </p>
+                      <p style="margin: 0 0 16px; color: #333333; font-size: 16px; line-height: 1.6;">
+                        Your authentication code:
+                      </p>
+                      <div style="background-color: #f5f5f5; padding: 20px; border-radius: 6px; margin: 0 0 24px; text-align: center;">
+                        <p style="margin: 0; color: #1a1a1a; font-size: 24px; font-weight: bold; letter-spacing: 2px; font-family: 'Courier New', monospace;">
+                          ${qrSecret}
+                        </p>
+                      </div>
+                      <p style="margin: 0 0 20px; color: #333333; font-size: 16px; line-height: 1.6;">
+                        Save this code. You will need it to access your account.
+                      </p>
+                      <p style="margin: 0 0 8px; color: #666666; font-size: 14px; line-height: 1.6;">
+                        If you did not request this, please contact our support team immediately.
+                      </p>
+                      <p style="margin: 24px 0 0; color: #333333; font-size: 16px; line-height: 1.6;">
+                        Thank you,<br>
+                        VaultBank Team
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 24px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
+                      <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.6; text-align: center;">
+                        VaultBank Financial<br>
+                        806 E Exchange St, Brodhead, WI 53520
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </body>
       </html>
     `;
@@ -92,7 +136,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         personalizations: [{
           to: [{ email }],
-          subject: "Your VaultBank Account Code"
+          subject: "Your VaultBank Email is Verified"
         }],
         from: {
           email: "noreply@vaulteonline.com",

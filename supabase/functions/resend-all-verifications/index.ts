@@ -51,41 +51,58 @@ const handler = async (req: Request): Promise<Response> => {
 
         // Send email
         const { error: emailError } = await resend.emails.send({
-          from: "VaultBank <onboarding@resend.dev>",
+          from: "VaultBank <noreply@vaulteonline.com>",
           to: [user.email!],
-          subject: "Verify Your VaultBank Account",
+          subject: "Your VaultBank Email is Verified",
           html: `
             <!DOCTYPE html>
             <html>
               <head>
                 <meta charset="utf-8">
-                <style>
-                  body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                  .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                  .button { display: inline-block; padding: 12px 30px; background-color: #7c3aed; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-                  .info-box { background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #7c3aed; }
-                </style>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
               </head>
-              <body>
-                <div class="container">
-                  <h1>Welcome to VaultBank, ${fullName}!</h1>
-                  <p>Thank you for creating your account. Please verify your email address to continue:</p>
-                  <a href="${verificationUrl}" class="button">Verify Email Address</a>
-                  <div class="info-box">
-                    <p><strong>📧 Verification Email Sent</strong></p>
-                    <p>A verification email has been automatically sent to ${user.email}. Please check your inbox (and spam folder) and click the verification link.</p>
-                  </div>
-                  <p>If the button doesn't work, copy and paste this link into your browser:</p>
-                  <p style="word-break: break-all; background: #f5f5f5; padding: 10px; border-radius: 4px;">${verificationUrl}</p>
-                  <p style="color: #666; font-size: 14px;">This link expires in 24 hours.</p>
-                  <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-                    <strong>Next Steps:</strong><br>
-                    1. Click the verification link above<br>
-                    2. Sign in to your account<br>
-                    3. Our admin team will review your application (1-2 business days)<br>
-                    4. Once approved, full account access will be granted
-                  </p>
-                </div>
+              <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f5f5f5;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td align="center" style="padding: 40px 20px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                        <tr>
+                          <td style="padding: 40px 40px 30px; text-align: center; background-color: #2563eb;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">Email Verified</h1>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 40px;">
+                            <p style="margin: 0 0 20px; color: #333333; font-size: 16px; line-height: 1.6;">
+                              Hello ${fullName},
+                            </p>
+                            <p style="margin: 0 0 20px; color: #333333; font-size: 16px; line-height: 1.6;">
+                              Your VaultBank email address has been verified successfully.
+                            </p>
+                            <p style="margin: 0 0 20px; color: #333333; font-size: 16px; line-height: 1.6;">
+                              You can now access your account.
+                            </p>
+                            <p style="margin: 0 0 8px; color: #666666; font-size: 14px; line-height: 1.6;">
+                              If you did not request this, please contact our support team immediately.
+                            </p>
+                            <p style="margin: 24px 0 0; color: #333333; font-size: 16px; line-height: 1.6;">
+                              Thank you,<br>
+                              VaultBank Team
+                            </p>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 24px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
+                            <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.6; text-align: center;">
+                              VaultBank Financial<br>
+                              806 E Exchange St, Brodhead, WI 53520
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
               </body>
             </html>
           `,
