@@ -80,6 +80,17 @@ const handler = async (req: Request): Promise<Response> => {
       if (!recipient.email) return { success: false, email: "no-email" };
 
       try {
+        // Convert HTML to plain text for better deliverability
+        const plainText = htmlContent
+          .replace(/<style[^>]*>.*?<\/style>/gi, '')
+          .replace(/<script[^>]*>.*?<\/script>/gi, '')
+          .replace(/<[^>]+>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .trim();
+
         const emailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
           method: "POST",
           headers: {
@@ -95,10 +106,33 @@ const handler = async (req: Request): Promise<Response> => {
               email: "info@vaulteonline.com",
               name: "VaultBank"
             },
-            content: [{
-              type: "text/html",
-              value: htmlContent
-            }]
+            reply_to: {
+              email: "info@vaulteonline.com",
+              name: "VaultBank Support"
+            },
+            content: [
+              {
+                type: "text/plain",
+                value: plainText
+              },
+              {
+                type: "text/html",
+                value: htmlContent
+              }
+            ],
+            tracking_settings: {
+              click_tracking: {
+                enable: true
+              },
+              open_tracking: {
+                enable: true
+              }
+            },
+            mail_settings: {
+              bypass_list_management: {
+                enable: false
+              }
+            }
           })
         });
 
