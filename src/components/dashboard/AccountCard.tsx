@@ -104,7 +104,7 @@ export function AccountCard({ account, showBalance, onRefresh }: AccountCardProp
         <Button 
           variant="ghost" 
           className="w-full justify-between text-sm"
-          onClick={() => toast.error("Permission denied")}
+          onClick={() => window.location.href = '/dashboard/account-details'}
         >
           View Details
           <ChevronRight className="h-4 w-4" />

@@ -86,9 +86,9 @@ export default function RequestAccount() {
                 What happens next?
               </h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Your request will be reviewed by our team</li>
-                <li>• You'll receive a notification once approved</li>
-                <li>• The new account will appear in your dashboard</li>
+                <li>• Your account will be automatically created within 30 minutes</li>
+                <li>• You'll receive a notification when it's ready</li>
+                <li>• The new account will appear in your dashboard with full details</li>
                 <li>• No additional documentation required</li>
               </ul>
             </div>
