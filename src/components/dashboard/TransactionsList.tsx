@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TransactionDetailsModal } from "./TransactionDetailsModal";
+import { TransactionExportModal } from "./TransactionExportModal";
 
 interface TransactionsListProps {
   transactions: any[];
@@ -23,6 +24,7 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   // Subscribe to real-time transaction updates
   useEffect(() => {
@@ -89,7 +91,7 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
             <Filter className="h-4 w-4 mr-2" />
             Filter
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setShowExportModal(true)}>
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
@@ -174,6 +176,11 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
           setShowDetailsModal(false);
           setSelectedTransaction(null);
         }}
+      />
+
+      <TransactionExportModal
+        open={showExportModal}
+        onClose={() => setShowExportModal(false)}
       />
     </>
   );
