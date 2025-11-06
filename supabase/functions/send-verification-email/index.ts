@@ -59,133 +59,115 @@ const handler = async (req: Request): Promise<Response> => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Verify Your VaultBank Account</title>
+          <title>VaultBank Account Setup</title>
         </head>
         <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
           <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background-color: #f5f5f5;">
             <tr>
               <td align="center" style="padding: 40px 20px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
                   
                   <!-- Logo Header -->
                   <tr>
-                    <td style="padding: 48px 48px 32px; text-align: center; background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #2d2d2d 100%);">
-                      <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
-                        <tr>
-                          <td align="center">
-                            <div style="display: inline-block; padding: 16px 32px; background-color: rgba(255, 255, 255, 0.1); border-radius: 12px; backdrop-filter: blur(10px);">
-                              <h1 style="margin: 0; color: #ffffff; font-size: 36px; font-weight: 700; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);">
-                                🏦 VaultBank
-                              </h1>
-                            </div>
-                            <p style="margin: 16px 0 0; color: rgba(255, 255, 255, 0.85); font-size: 15px; font-weight: 500; letter-spacing: 0.5px;">
-                              SECURE BANKING PLATFORM
-                            </p>
-                          </td>
-                        </tr>
-                      </table>
+                    <td style="padding: 40px 40px 24px; text-align: center; background-color: #1a1a1a;">
+                      <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">
+                        VaultBank
+                      </h1>
+                      <p style="margin: 8px 0 0; color: rgba(255, 255, 255, 0.7); font-size: 14px;">
+                        Secure Banking Platform
+                      </p>
                     </td>
                   </tr>
                   
                   <!-- Main Content -->
                   <tr>
-                    <td style="padding: 48px 48px 32px;">
-                       <h2 style="margin: 0 0 24px; color: #1a1a1a; font-size: 28px; font-weight: 700; line-height: 1.3;">
-                        Welcome to VaultBank, ${fullName}! 👋
+                    <td style="padding: 40px;">
+                       <h2 style="margin: 0 0 16px; color: #1a1a1a; font-size: 22px; font-weight: 600; line-height: 1.3;">
+                        Welcome to VaultBank, ${fullName}
                        </h2>
                        
-                        <p style="margin: 0 0 24px; color: #4a5568; font-size: 16px; line-height: 1.7;">
-                        Thank you for opening an account with VaultBank. Your account has been successfully created and is now under review by our team.
+                        <p style="margin: 0 0 20px; color: #4a5568; font-size: 15px; line-height: 1.6;">
+                        Your account application has been received and is currently under review by our team. We will notify you once your account is approved.
                         </p>
-                        
-                        <!-- Action Required Box -->
-                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 24px; margin: 32px 0; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);">
-                          <p style="margin: 0 0 12px; color: #ffffff; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                            🔐 Security Setup Required
-                          </p>
-                          <p style="margin: 0; color: rgba(255, 255, 255, 0.95); font-size: 16px; font-weight: 500; line-height: 1.6;">
-                            To secure your account, please save the QR code below and use it to complete your verification when you sign in.
-                          </p>
-                        </div>
 
-                        <!-- Two-Factor Authentication Section -->
-                        <div style="margin: 40px 0; padding: 32px; background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 12px; border: 2px solid #e2e8f0;">
-                          <h3 style="margin: 0 0 16px; color: #1a1a1a; font-size: 20px; font-weight: 700;">
-                            🔐 Your Security Code
+                        <!-- Authentication Code Section -->
+                        <div style="margin: 32px 0; padding: 24px; background-color: #f7fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+                          <h3 style="margin: 0 0 12px; color: #1a1a1a; font-size: 18px; font-weight: 600;">
+                            Account Authentication Code
                           </h3>
                           
-                          <p style="margin: 0 0 24px; color: #4a5568; font-size: 15px; line-height: 1.7;">
-                            Save this security code. You will need it to complete your account verification after signing in to VaultBank:
+                          <p style="margin: 0 0 20px; color: #4a5568; font-size: 14px; line-height: 1.6;">
+                            Save this authentication code securely. You will need it when signing in to your approved account:
                           </p>
                         
                         <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                           <tr>
-                            <td align="center" style="padding: 24px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
-                              <div style="display: inline-block; max-width: 280px; width: 100%;">
+                            <td align="center" style="padding: 20px; background-color: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0;">
+                              <div style="display: inline-block; max-width: 260px; width: 100%;">
                                 ${qrCodeSvg}
                               </div>
                               
-                              <div style="margin-top: 20px; padding: 16px; background-color: #f7fafc; border-radius: 6px;">
-                                <p style="margin: 0 0 8px; color: #718096; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                                  Manual Entry Code
+                              <div style="margin-top: 16px; padding: 12px; background-color: #f7fafc; border-radius: 4px;">
+                                <p style="margin: 0 0 6px; color: #718096; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                  Authentication Code
                                 </p>
-                                <code style="display: block; padding: 12px; background-color: #ffffff; border: 2px dashed #cbd5e0; border-radius: 6px; color: #2d3748; font-size: 14px; font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.5;">
+                                <code style="display: block; padding: 10px; background-color: #ffffff; border: 1px solid #cbd5e0; border-radius: 4px; color: #2d3748; font-size: 13px; font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.4;">
                                   ${qrSecret}
                                 </code>
                               </div>
                             </td>
                           </tr>
                         </table>
-                      </div>
+                       </div>
 
-                        <!-- Security Notice -->
-                        <div style="margin: 32px 0; padding: 20px; background-color: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px;">
-                          <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.7;">
-                            <strong>⚠️ Security Information:</strong> Keep this security code safe and secure. Your account is currently under review by our team. Once approved, you will use this code to complete your account verification. Never share this code with anyone.
-                          </p>
-                        </div>
-
-                       <!-- Next Steps -->
-                       <div style="margin: 32px 0;">
-                         <h3 style="margin: 0 0 16px; color: #1a1a1a; font-size: 18px; font-weight: 700;">
-                           📋 Next Steps:
+                       <!-- Account Setup Process -->
+                       <div style="margin: 28px 0;">
+                         <h3 style="margin: 0 0 12px; color: #1a1a1a; font-size: 16px; font-weight: 600;">
+                           Account Setup Process
                          </h3>
                          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                            <tr>
-                             <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                               <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
-                                 <strong style="color: #667eea; font-weight: 700;">1.</strong> Save your security code from this email
+                             <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                               <p style="margin: 0; color: #4a5568; font-size: 14px; line-height: 1.5;">
+                                 <strong style="color: #1a1a1a;">Step 1:</strong> Save your authentication code
                                </p>
                              </td>
                            </tr>
                            <tr>
-                             <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                               <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
-                                 <strong style="color: #667eea; font-weight: 700;">2.</strong> Wait for account approval (usually within 24-48 hours)
+                             <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                               <p style="margin: 0; color: #4a5568; font-size: 14px; line-height: 1.5;">
+                                 <strong style="color: #1a1a1a;">Step 2:</strong> Wait for account approval notification
                                </p>
                              </td>
                            </tr>
                            <tr>
-                             <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
-                               <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
-                                 <strong style="color: #667eea; font-weight: 700;">3.</strong> Sign in to your account at vaultbankonline.com
+                             <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                               <p style="margin: 0; color: #4a5568; font-size: 14px; line-height: 1.5;">
+                                 <strong style="color: #1a1a1a;">Step 3:</strong> Sign in at vaultbankonline.com
                                </p>
                              </td>
                            </tr>
                            <tr>
-                             <td style="padding: 12px 0;">
-                               <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
-                                 <strong style="color: #667eea; font-weight: 700;">4.</strong> Enter your security code to complete verification
+                             <td style="padding: 10px 0;">
+                               <p style="margin: 0; color: #4a5568; font-size: 14px; line-height: 1.5;">
+                                 <strong style="color: #1a1a1a;">Step 4:</strong> Enter authentication code when prompted
                                </p>
                              </td>
                            </tr>
                          </table>
                        </div>
 
+                        <!-- Important Notice -->
+                        <div style="margin: 24px 0 0; padding: 16px; background-color: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 4px;">
+                          <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.6;">
+                            <strong>Important:</strong> Keep your authentication code confidential. Do not share it with anyone. VaultBank staff will never ask for your authentication code.
+                          </p>
+                        </div>
+
                         <!-- Support -->
-                        <div style="margin: 32px 0 0; padding-top: 24px; border-top: 2px solid #e2e8f0;">
-                          <p style="margin: 0; color: #718096; font-size: 13px; line-height: 1.7;">
-                            <strong>Need Help?</strong> If you didn't request this account or need assistance, please contact our support team at support@vaultbankonline.com. This is a legitimate account confirmation email from VaultBank.
+                        <div style="margin: 24px 0 0; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                          <p style="margin: 0; color: #718096; font-size: 13px; line-height: 1.6;">
+                            Questions? Contact us at support@vaultbankonline.com or visit our help center.
                           </p>
                         </div>
                     </td>
@@ -193,18 +175,15 @@ const handler = async (req: Request): Promise<Response> => {
                   
                   <!-- Footer -->
                   <tr>
-                    <td style="padding: 32px 48px; background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-top: 1px solid #e2e8f0;">
+                    <td style="padding: 24px 40px; background-color: #f7fafc; border-top: 1px solid #e2e8f0;">
                       <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                         <tr>
                           <td align="center">
-                            <p style="margin: 0 0 12px; color: #1a1a1a; font-size: 16px; font-weight: 700;">
-                              🏦 VaultBank
+                            <p style="margin: 0 0 8px; color: #1a1a1a; font-size: 14px; font-weight: 600;">
+                              VaultBank
                             </p>
-                            <p style="margin: 0 0 8px; color: #4a5568; font-size: 13px; font-weight: 500;">
-                              Secure • Reliable • Trusted
-                            </p>
-                            <p style="margin: 0; color: #a0aec0; font-size: 12px; line-height: 1.6;">
-                              This is an automated security email. Please do not reply.<br>
+                            <p style="margin: 0; color: #a0aec0; font-size: 11px; line-height: 1.5;">
+                              This is an automated transactional email. Please do not reply to this message.<br>
                               © 2025 VaultBank. All rights reserved.
                             </p>
                           </td>
@@ -242,11 +221,11 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         personalizations: [{
           to: [{ email }],
-          subject: "VaultBank - Your Security Code Inside"
+          subject: "VaultBank Account Application Received"
         }],
         from: {
-          email: "info@vaulteonline.com",
-          name: "VaultBank Security"
+          email: "noreply@vaulteonline.com",
+          name: "VaultBank"
         },
         reply_to: {
           email: "support@vaultbankonline.com",
