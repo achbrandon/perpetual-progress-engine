@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Clock, FileText, CreditCard, Eye } from "lucide-react";
+import { CheckCircle, XCircle, Clock, FileText, CreditCard, Eye, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -211,7 +211,18 @@ export default function AdminApplications() {
 
       if (error) throw error;
 
-      toast.success("Account created successfully!");
+      // Send approval email
+      await supabase.functions.invoke("send-application-decision", {
+        body: {
+          applicantName: request.profiles?.full_name || "Customer",
+          applicantEmail: request.profiles?.email || "",
+          applicationType: "account",
+          decision: "approved",
+          accountType: request.account_type,
+        },
+      });
+
+      toast.success("Account created and approval email sent!");
       fetchApplications();
     } catch (error) {
       console.error("Error approving request:", error);
@@ -221,6 +232,9 @@ export default function AdminApplications() {
 
   const handleRejectRequest = async (requestId: string) => {
     try {
+      const request = accountRequests.find(r => r.id === requestId);
+      if (!request) throw new Error("Request not found");
+
       const { error } = await supabase
         .from("account_requests")
         .update({ status: "rejected" })
@@ -228,7 +242,18 @@ export default function AdminApplications() {
 
       if (error) throw error;
 
-      toast.success("Account request rejected");
+      // Send rejection email
+      await supabase.functions.invoke("send-application-decision", {
+        body: {
+          applicantName: request.profiles?.full_name || "Customer",
+          applicantEmail: request.profiles?.email || "",
+          applicationType: "account",
+          decision: "rejected",
+          accountType: request.account_type,
+        },
+      });
+
+      toast.success("Account request rejected and email sent");
       fetchApplications();
     } catch (error) {
       console.error("Error rejecting request:", error);
@@ -360,6 +385,90 @@ export default function AdminApplications() {
     }
   };
 
+  const handleDeleteAccountApp = async (appId: string) => {
+    if (!confirm("Are you sure you want to permanently delete this application? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("account_applications")
+        .delete()
+        .eq("id", appId);
+
+      if (error) throw error;
+
+      toast.success("Application deleted permanently");
+      fetchApplications();
+    } catch (error) {
+      console.error("Error deleting application:", error);
+      toast.error("Failed to delete application");
+    }
+  };
+
+  const handleDeleteAccountRequest = async (requestId: string) => {
+    if (!confirm("Are you sure you want to permanently delete this request? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("account_requests")
+        .delete()
+        .eq("id", requestId);
+
+      if (error) throw error;
+
+      toast.success("Request deleted permanently");
+      fetchApplications();
+    } catch (error) {
+      console.error("Error deleting request:", error);
+      toast.error("Failed to delete request");
+    }
+  };
+
+  const handleDeleteCardApp = async (appId: string) => {
+    if (!confirm("Are you sure you want to permanently delete this card application? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("card_applications")
+        .delete()
+        .eq("id", appId);
+
+      if (error) throw error;
+
+      toast.success("Card application deleted permanently");
+      fetchApplications();
+    } catch (error) {
+      console.error("Error deleting card application:", error);
+      toast.error("Failed to delete card application");
+    }
+  };
+
+  const handleDeleteLoanApp = async (appId: string) => {
+    if (!confirm("Are you sure you want to permanently delete this loan application? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("loan_applications")
+        .delete()
+        .eq("id", appId);
+
+      if (error) throw error;
+
+      toast.success("Loan application deleted permanently");
+      fetchApplications();
+    } catch (error) {
+      console.error("Error deleting loan application:", error);
+      toast.error("Failed to delete loan application");
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
@@ -478,11 +587,14 @@ export default function AdminApplications() {
                             </Button>
                           </>
                         )}
-                        {request.status !== 'pending' && (
-                          <span className="text-slate-400 text-sm">
-                            {request.status === 'approved' ? 'Approved' : 'Rejected'}
-                          </span>
-                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-slate-700/50 hover:bg-slate-700 text-red-400 border-slate-600"
+                          onClick={() => handleDeleteAccountRequest(request.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -524,148 +636,7 @@ export default function AdminApplications() {
                         setAppDialogOpen(open);
                         if (!open) setSelectedApp(null);
                       }}>
-                        <DialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 border-blue-500/50"
-                            onClick={() => {
-                              setSelectedApp(app);
-                              setAppDialogOpen(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Details
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="bg-slate-900 border-slate-700 max-w-2xl max-h-[80vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle className="text-white">Application Details</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label className="text-slate-400">Full Name</Label>
-                                <p className="text-white font-medium">{app.full_name}</p>
-                              </div>
-                              <div>
-                                <Label className="text-slate-400">Email</Label>
-                                <p className="text-white font-medium">{app.email}</p>
-                              </div>
-                              <div>
-                                <Label className="text-slate-400">Phone</Label>
-                                <p className="text-white font-medium">{app.phone || "N/A"}</p>
-                              </div>
-                              <div>
-                                <Label className="text-slate-400">Date of Birth</Label>
-                                <p className="text-white font-medium">{app.date_of_birth ? new Date(app.date_of_birth).toLocaleDateString() : "N/A"}</p>
-                              </div>
-                              <div>
-                                <Label className="text-slate-400">SSN</Label>
-                                <p className="text-white font-medium">{app.ssn ? `***-**-${app.ssn.slice(-4)}` : "N/A"}</p>
-                              </div>
-                              <div>
-                                <Label className="text-slate-400">Account Type</Label>
-                                <p className="text-white font-medium">{app.account_type}</p>
-                              </div>
-                              <div className="col-span-2">
-                                <Label className="text-slate-400">Address</Label>
-                                <p className="text-white font-medium">{app.address || "N/A"}</p>
-                              </div>
-                              <div>
-                                <Label className="text-slate-400">City</Label>
-                                <p className="text-white font-medium">{app.city || "N/A"}</p>
-                              </div>
-                              <div>
-                                <Label className="text-slate-400">State</Label>
-                                <p className="text-white font-medium">{app.state || "N/A"}</p>
-                              </div>
-                              <div>
-                                <Label className="text-slate-400">Zip Code</Label>
-                                <p className="text-white font-medium">{app.zip_code || "N/A"}</p>
-                              </div>
-                              <div>
-                                <Label className="text-slate-400">Status</Label>
-                                <div className="mt-1">{getStatusBadge(app.status)}</div>
-                              </div>
-                              <div>
-                                <Label className="text-slate-400">Email Verified</Label>
-                                <p className="text-white font-medium">{app.email_verified ? "Yes" : "No"}</p>
-                              </div>
-                              <div>
-                                <Label className="text-slate-400">QR Verified</Label>
-                                <p className="text-white font-medium">{app.qr_code_verified ? "Yes" : "No"}</p>
-                              </div>
-                              <div className="col-span-2">
-                                <Label className="text-slate-400">Application Date</Label>
-                                <p className="text-white font-medium">{new Date(app.created_at).toLocaleString()}</p>
-                              </div>
-
-                              {/* ID Verification Documents */}
-                              <div className="col-span-2 pt-4 border-t border-slate-700">
-                                <Label className="text-slate-400 text-lg mb-3 block">ID Verification Documents</Label>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                  {app.id_front_url && (
-                                    <div>
-                                      <Label className="text-slate-400 text-xs">ID Front</Label>
-                                      <a href={app.id_front_url} target="_blank" rel="noopener noreferrer" className="block mt-1">
-                                        <img src={app.id_front_url} alt="ID Front" className="w-full h-32 object-cover rounded border border-slate-600 hover:opacity-80 transition" />
-                                      </a>
-                                    </div>
-                                  )}
-                                  {app.id_back_url && (
-                                    <div>
-                                      <Label className="text-slate-400 text-xs">ID Back</Label>
-                                      <a href={app.id_back_url} target="_blank" rel="noopener noreferrer" className="block mt-1">
-                                        <img src={app.id_back_url} alt="ID Back" className="w-full h-32 object-cover rounded border border-slate-600 hover:opacity-80 transition" />
-                                      </a>
-                                    </div>
-                                  )}
-                                  {app.selfie_url && (
-                                    <div>
-                                      <Label className="text-slate-400 text-xs">Selfie</Label>
-                                      <a href={app.selfie_url} target="_blank" rel="noopener noreferrer" className="block mt-1">
-                                        <img src={app.selfie_url} alt="Selfie" className="w-full h-32 object-cover rounded border border-slate-600 hover:opacity-80 transition" />
-                                      </a>
-                                    </div>
-                                  )}
-                                  {app.address_proof_url && (
-                                    <div>
-                                      <Label className="text-slate-400 text-xs">Address Proof</Label>
-                                      <a href={app.address_proof_url} target="_blank" rel="noopener noreferrer" className="block mt-1">
-                                        <img src={app.address_proof_url} alt="Address Proof" className="w-full h-32 object-cover rounded border border-slate-600 hover:opacity-80 transition" />
-                                      </a>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            {app.status === "pending" && (
-                              <div className="flex gap-2 pt-4">
-                                <Button
-                                  className="flex-1 bg-green-500 hover:bg-green-600"
-                                  onClick={() => {
-                                    handleApproveAccount(app.id);
-                                    setAppDialogOpen(false);
-                                  }}
-                                >
-                                  Approve Application
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/50"
-                                  onClick={() => {
-                                    handleRejectAccount(app.id);
-                                    setAppDialogOpen(false);
-                                  }}
-                                >
-                                  Reject Application
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+...
                       {app.status === "pending" && (
                         <>
                           <Button
@@ -686,6 +657,14 @@ export default function AdminApplications() {
                           </Button>
                         </>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-slate-700/50 hover:bg-slate-700 text-red-400 border-slate-600"
+                        onClick={() => handleDeleteAccountApp(app.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -746,6 +725,14 @@ export default function AdminApplications() {
                           </Button>
                         </>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-slate-700/50 hover:bg-slate-700 text-red-400 border-slate-600"
+                        onClick={() => handleDeleteCardApp(app.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -806,6 +793,14 @@ export default function AdminApplications() {
                           </Button>
                         </>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-slate-700/50 hover:bg-slate-700 text-red-400 border-slate-600"
+                        onClick={() => handleDeleteLoanApp(app.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
