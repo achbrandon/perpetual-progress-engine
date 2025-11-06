@@ -50,27 +50,29 @@ export function AddAccountDialog({ open, onOpenChange, userId, onSuccess }: AddA
   const handleAddAccount = async (accountType: string) => {
     setLoading(true);
     try {
-      // Generate account number
-      const accountNumber = Math.floor(100000000000 + Math.random() * 900000000000).toString();
-      
-      const { error } = await supabase.from("accounts").insert({
+      // Create account request for backend validation
+      const { error: requestError } = await supabase.from("account_requests").insert({
         user_id: userId,
         account_type: accountType,
-        account_number: accountNumber,
         status: "pending",
-        balance: 0,
       });
 
-      if (error) throw error;
+      if (requestError) throw requestError;
+
+      // Create admin notification
+      await supabase.from("admin_notifications").insert({
+        message: `New account request: ${accountType.replace('_', ' ')} account`,
+        is_read: false
+      });
 
       toast.success(
-        `${accountType.replace('_', ' ')} account created successfully! It will be active in 30 minutes.`
+        `${accountType.replace('_', ' ')} account request submitted! It will be reviewed and activated within 30 minutes.`
       );
       onOpenChange(false);
       onSuccess();
     } catch (error) {
-      console.error("Error creating account:", error);
-      toast.error("Failed to create account");
+      console.error("Error creating account request:", error);
+      toast.error("Failed to create account request");
     } finally {
       setLoading(false);
     }

@@ -104,7 +104,14 @@ export function AccountCard({ account, showBalance, onRefresh }: AccountCardProp
         <Button 
           variant="ghost" 
           className="w-full justify-between text-sm"
-          onClick={() => window.location.href = `/dashboard/account-details?id=${account.id}`}
+          onClick={() => {
+            // Credit cards show blocked info, route to cards page
+            if (account.account_type === 'credit_card') {
+              window.location.href = '/dashboard/cards';
+            } else {
+              window.location.href = `/dashboard/account-details?id=${account.id}`;
+            }
+          }}
         >
           View Details
           <ChevronRight className="h-4 w-4" />

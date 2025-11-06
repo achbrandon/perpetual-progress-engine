@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 
 export default function AdminApplications() {
   const [accountApps, setAccountApps] = useState<any[]>([]);
+  const [accountRequests, setAccountRequests] = useState<any[]>([]);
   const [cardApps, setCardApps] = useState<any[]>([]);
   const [loanApps, setLoanApps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +34,10 @@ export default function AdminApplications() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'account_applications' }, () => {
         fetchApplications();
         toast.info("New account application received!");
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'account_requests' }, () => {
+        fetchApplications();
+        toast.info("New account request received!");
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'card_applications' }, () => {
         fetchApplications();
@@ -51,11 +56,18 @@ export default function AdminApplications() {
 
   const fetchApplications = async () => {
     try {
-      const [accountRes, cardRes, loanRes] = await Promise.all([
+      const [accountRes, requestsRes, cardRes, loanRes] = await Promise.all([
         supabase
           .from("account_applications")
           .select("*")
           .order("created_at", { ascending: false}),
+        supabase
+          .from("account_requests")
+          .select(`
+            *,
+            profiles(full_name, email)
+          `)
+          .order("created_at", { ascending: false }),
         supabase
           .from("card_applications")
           .select(`
@@ -74,11 +86,13 @@ export default function AdminApplications() {
 
       console.log('📊 Fetched applications:', {
         accounts: accountRes.data?.length || 0,
+        requests: requestsRes.data?.length || 0,
         cards: cardRes.data?.length || 0,
         loans: loanRes.data?.length || 0
       });
 
       setAccountApps(accountRes.data || []);
+      setAccountRequests(requestsRes.data || []);
       setCardApps(cardRes.data || []);
       setLoanApps(loanRes.data || []);
     } catch (error) {
