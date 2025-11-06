@@ -94,6 +94,23 @@ export default function AdminApplications() {
       const app = accountApps.find(a => a.id === appId);
       if (!app) throw new Error("Application not found");
 
+      // Generate unique account number
+      const accountNumber = `${Math.floor(100000000 + Math.random() * 900000000)}`;
+
+      // Create the account
+      const { error: accountError } = await supabase
+        .from("accounts")
+        .insert({
+          user_id: app.user_id,
+          account_number: accountNumber,
+          account_type: app.account_type,
+          balance: 0,
+          status: "active"
+        });
+
+      if (accountError) throw accountError;
+
+      // Update application status
       const { error } = await supabase
         .from("account_applications")
         .update({ status: "approved" })
@@ -112,7 +129,7 @@ export default function AdminApplications() {
         },
       });
 
-      toast.success("Account application approved and email sent!");
+      toast.success("Account created and approval email sent!");
       fetchApplications();
     } catch (error) {
       console.error("Error approving application:", error);
