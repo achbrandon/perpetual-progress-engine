@@ -35,12 +35,21 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    // DO NOT auto-redirect on mount - let user choose to sign in
-    // Only set up listener for explicit sign-in actions
+    // Clear any existing session on mount to force fresh login with PIN+OTP
+    const clearSessionAndSetupListener = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase.auth.signOut();
+      }
+    };
+    
+    clearSessionAndSetupListener();
+
+    // Set up listener for sign-in events - but ONLY during active login flow
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // Only handle explicit SIGNED_IN events (not INITIAL_SESSION or TOKEN_REFRESHED)
-        // AND only if we're not in the middle of a login flow (which requires PIN + OTP)
+        // NEVER auto-redirect during login flow
+        // Only redirect after explicit PIN+OTP verification is complete
         if (event === 'SIGNED_IN' && session?.user && !isRedirecting.current && !isLoggingIn.current) {
           isRedirecting.current = true;
           await handleAuthRedirect(session.user);
