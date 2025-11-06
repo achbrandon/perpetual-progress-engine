@@ -962,6 +962,7 @@ export type Database = {
         Row: {
           account_id: string | null
           amount: number
+          auto_complete_at: string | null
           created_at: string | null
           description: string | null
           id: string
@@ -972,6 +973,7 @@ export type Database = {
         Insert: {
           account_id?: string | null
           amount: number
+          auto_complete_at?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -982,6 +984,7 @@ export type Database = {
         Update: {
           account_id?: string | null
           amount?: number
+          auto_complete_at?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -1145,6 +1148,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_complete_pending_transactions: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

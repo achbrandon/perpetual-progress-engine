@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, X, Clock, TrendingUp, CreditCard, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { CreateTransactionForm } from "@/components/admin/CreateTransactionForm";
 
 export default function AdminTransactions() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -114,8 +115,10 @@ export default function AdminTransactions() {
     <div className="min-h-full w-full p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white">Transaction Management</h1>
-        <p className="text-slate-300">Approve or reject pending transactions</p>
+        <p className="text-slate-300">Create transactions and manage pending approvals</p>
       </div>
+
+      <CreateTransactionForm onSuccess={fetchData} />
 
       <Tabs defaultValue="crypto" className="w-full">
         <TabsList className="bg-slate-800/50">
