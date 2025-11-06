@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@4.0.0";
 import QRCode from "https://esm.sh/qrcode@1.5.4";
 
 const corsHeaders = {
@@ -20,14 +19,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const sendgridApiKey = Deno.env.get("SENDGRID_API_KEY");
     
-    if (!resendApiKey) {
-      console.log("RESEND_API_KEY not configured - email functionality disabled");
+    if (!sendgridApiKey) {
+      console.log("SENDGRID_API_KEY not configured - email functionality disabled");
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: "Email service not configured. Please add RESEND_API_KEY to continue." 
+          message: "Email service not configured. Please add SENDGRID_API_KEY to continue." 
         }),
         {
           status: 200,
@@ -36,7 +35,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const resend = new Resend(resendApiKey);
     const { email, fullName, verificationToken, qrSecret }: VerificationRequest = await req.json();
 
     // Generate QR code as SVG (works in Deno without canvas)
@@ -238,14 +236,36 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    const emailResponse = await resend.emails.send({
-      from: "VaultBank <no-reply@vaultbankonline.com>",
-      to: [email],
-      subject: "✉️ Verify Your VaultBank Account - Action Required",
-      html: emailHtml,
+    // Send email using SendGrid API
+    const emailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${sendgridApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        personalizations: [{
+          to: [{ email }],
+          subject: "✉️ Verify Your VaultBank Account - Action Required"
+        }],
+        from: {
+          email: "no-reply@vaultbankonline.com",
+          name: "VaultBank"
+        },
+        content: [{
+          type: "text/html",
+          value: emailHtml
+        }]
+      })
     });
 
-    console.log("Verification email sent successfully:", emailResponse);
+    if (!emailResponse.ok) {
+      const errorText = await emailResponse.text();
+      console.error("SendGrid API error:", errorText);
+      throw new Error(`SendGrid API error: ${emailResponse.status} - ${errorText}`);
+    }
+
+    console.log("Verification email sent successfully via SendGrid");
 
     return new Response(
       JSON.stringify({ success: true, message: "Verification email sent successfully" }),
