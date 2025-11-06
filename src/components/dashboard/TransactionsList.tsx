@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { TransactionDetailsModal } from "./TransactionDetailsModal";
 
 interface TransactionsListProps {
   transactions: any[];
@@ -20,6 +21,8 @@ interface TransactionsListProps {
 
 export function TransactionsList({ transactions, onRefresh }: TransactionsListProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // Subscribe to real-time transaction updates
   useEffect(() => {
@@ -28,7 +31,7 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
           schema: 'public',
           table: 'transactions'
         },
@@ -71,8 +74,14 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
     t.merchant?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleTransactionClick = (transaction: any) => {
+    setSelectedTransaction(transaction);
+    setShowDetailsModal(true);
+  };
+
   return (
-    <Card className="p-6">
+    <>
+      <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Recent Transactions</h2>
         <div className="flex gap-2">
@@ -113,6 +122,7 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
             <div
               key={transaction.id}
               className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+              onClick={() => handleTransactionClick(transaction)}
             >
               <div className="flex items-center gap-4">
                 {getTransactionIcon(transaction.type)}
@@ -156,5 +166,15 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
         </div>
       )}
     </Card>
+
+      <TransactionDetailsModal
+        transaction={selectedTransaction}
+        open={showDetailsModal}
+        onClose={() => {
+          setShowDetailsModal(false);
+          setSelectedTransaction(null);
+        }}
+      />
+    </>
   );
 }
