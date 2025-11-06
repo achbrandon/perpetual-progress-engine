@@ -280,9 +280,13 @@ const OpenAccount = () => {
       // Handle edge function errors - extract the real error message from the response
       if (error) {
         console.error('Application error:', error);
-        // Try to extract the actual error message from the data
-        const errorMessage = data?.error || error.message || 'Unknown error occurred';
-        alert(`Error creating account: ${errorMessage}`);
+        console.log('Response data:', data);
+        
+        // Extract the actual error message from the response body
+        const errorMessage = data?.error || 'Failed to create account. Please try again.';
+        
+        // Show user-friendly error message
+        alert(errorMessage);
         setIsSubmitting(false);
         return;
       }
