@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.delete-unverified-users]
 verify_jwt = true
+
+[functions.send-login-otp]
+verify_jwt = false
