@@ -174,6 +174,52 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('✅ Application created successfully');
 
+    // Create the actual account immediately with full details
+    console.log('💳 Creating account with details...');
+    const accountNumber = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+    const routingNumber = '021000021';
+    
+    const { data: newAccount, error: accountError } = await supabaseAdmin
+      .from('accounts')
+      .insert({
+        user_id: userId,
+        account_type: applicationData.accountType,
+        account_number: accountNumber,
+        balance: 0,
+        status: 'active',
+        qr_code_secret: qrSecret
+      })
+      .select()
+      .single();
+
+    if (accountError) {
+      console.error('❌ Error creating account:', accountError);
+      throw new Error(`Failed to create account: ${accountError.message}`);
+    }
+
+    console.log('✅ Account created successfully:', newAccount.id);
+
+    // Create account details for the new account
+    console.log('📋 Creating account details...');
+    const { error: detailsError } = await supabaseAdmin
+      .from('account_details')
+      .insert({
+        account_id: newAccount.id,
+        user_id: userId,
+        routing_number: routingNumber,
+        swift_code: 'CHASUS33',
+        bank_address: '383 Madison Avenue, New York, NY 10179',
+        branch_code: routingNumber.substring(0, 4),
+        iban: `US${routingNumber}${accountNumber}`
+      });
+
+    if (detailsError) {
+      console.error('❌ Error creating account details:', detailsError);
+      // Don't throw, account is still created
+    } else {
+      console.log('✅ Account details created successfully');
+    }
+
     // Generate email verification token using Supabase
     console.log('📧 Generating email verification token...');
     const { data: verificationData, error: tokenError } = await supabaseAdmin.auth.admin.generateLink({
