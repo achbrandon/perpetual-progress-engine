@@ -11,6 +11,7 @@ interface VerificationRequest {
   fullName: string;
   verificationToken: string;
   qrSecret: string;
+  redirectUrl?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -35,7 +36,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email, fullName, verificationToken, qrSecret }: VerificationRequest = await req.json();
+    const { email, fullName, verificationToken, qrSecret, redirectUrl }: VerificationRequest & { redirectUrl?: string } = await req.json();
+
+    console.log("📧 Preparing email for:", email);
+    console.log("🔗 Redirect URL:", redirectUrl);
 
     // Generate QR code as SVG (works in Deno without canvas)
     const qrCodeSvg = await QRCode.toString(qrSecret, {
@@ -48,8 +52,11 @@ const handler = async (req: Request): Promise<Response> => {
       }
     });
 
-    // Create verification URL - users will be redirected to verify-qr page
-    const verificationUrl = `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify?token=${verificationToken}&type=signup&redirect_to=https://vaultbankonline.com/verify-qr`;
+    // Create verification URL - use provided redirectUrl or fallback
+    const finalRedirectUrl = redirectUrl || 'https://vaultbankonline.com/verify-qr';
+    const verificationUrl = `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify?token=${verificationToken}&type=signup&redirect_to=${encodeURIComponent(finalRedirectUrl)}`;
+    
+    console.log("✅ Verification URL created:", verificationUrl);
 
     const emailHtml = `
       <!DOCTYPE html>

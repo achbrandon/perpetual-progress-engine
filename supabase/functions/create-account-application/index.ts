@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Generate QR secret
     const qrSecret = crypto.randomUUID();
 
-    // Create the user account
+    // Create the user account - request email verification
     console.log('Creating account for:', applicationData.email);
     const { data: signUpData, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
       email: applicationData.email,
@@ -53,6 +53,8 @@ const handler = async (req: Request): Promise<Response> => {
         full_name: applicationData.fullName,
       }
     });
+    
+    console.log('✅ User created with ID:', signUpData?.user?.id);
 
     if (signUpError) {
       console.error('SignUp error:', signUpError);
@@ -131,14 +133,39 @@ const handler = async (req: Request): Promise<Response> => {
       // Don't throw, this is not critical
     }
 
+    // Generate email verification token using Supabase
+    console.log('📧 Generating email verification token...');
+    const { data: verificationData, error: tokenError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'signup',
+      email: applicationData.email,
+      password: applicationData.password,
+    });
+
+    if (tokenError || !verificationData) {
+      console.error("❌ Failed to generate verification token:", tokenError);
+      throw new Error("Failed to generate verification link");
+    }
+
+    console.log('✅ Verification token generated successfully');
+
+    // Extract the token from the hashed_token
+    const verificationToken = verificationData.properties?.hashed_token || userId;
+    
+    // Get the request origin for redirect URL
+    const origin = req.headers.get('origin') || 'https://vaultbankonline.com';
+    const redirectUrl = `${origin}/verify-qr`;
+    
+    console.log('🔗 Using redirect URL:', redirectUrl);
+
     // Send verification email using SendGrid
-    console.log('Sending verification email...');
+    console.log('📧 Sending verification email...');
     const { data: emailData, error: emailError } = await supabaseAdmin.functions.invoke("send-verification-email", {
       body: {
         email: applicationData.email,
         fullName: applicationData.fullName,
-        verificationToken: userId,
+        verificationToken: verificationToken,
         qrSecret: qrSecret,
+        redirectUrl: redirectUrl,
       },
     });
 
@@ -147,7 +174,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Don't throw, account is created
     } else {
       console.log('✅ Email function called successfully');
-      console.log('Email function response:', emailData);
+      console.log('📧 Email response:', emailData);
     }
 
     console.log('Application submitted successfully');

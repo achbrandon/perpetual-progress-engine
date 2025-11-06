@@ -242,6 +242,7 @@ const Auth = () => {
                 fullName: signUpFullName,
                 verificationToken: data.user.id,
                 qrSecret: qrSecret,
+                redirectUrl: `${window.location.origin}/verify-qr`,
               },
             }
           );
