@@ -94,13 +94,10 @@ export function TransferModal({ onClose, onSuccess }: TransferModalProps) {
         .from("transfers")
         .insert({
           user_id: user.id,
-          from_account_id: fromAccount,
-          to_account_id: toAccount,
+          from_account: fromAccount,
+          to_account: toAccount,
           amount: transferAmount,
-          transfer_type: "internal",
-          status: "completed",
-          notes: notes || null,
-          completed_date: new Date().toISOString()
+          status: "completed"
         });
 
       if (transferError) throw transferError;
