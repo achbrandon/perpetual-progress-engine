@@ -17,6 +17,7 @@ const Auth = () => {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const navigate = useNavigate();
   const isRedirecting = useRef(false);
+  const isLoggingIn = useRef(false);
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string>("");
@@ -39,7 +40,8 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         // Only handle explicit SIGNED_IN events (not INITIAL_SESSION or TOKEN_REFRESHED)
-        if (event === 'SIGNED_IN' && session?.user && !isRedirecting.current) {
+        // AND only if we're not in the middle of a login flow (which requires PIN + OTP)
+        if (event === 'SIGNED_IN' && session?.user && !isRedirecting.current && !isLoggingIn.current) {
           isRedirecting.current = true;
           await handleAuthRedirect(session.user);
         }
@@ -83,6 +85,7 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     setShowLoadingSpinner(true);
+    isLoggingIn.current = true; // Prevent auto-redirect during login flow
 
     // Ensure spinner shows for at least 2 seconds
     const minSpinnerTime = new Promise(resolve => setTimeout(resolve, 2000));
@@ -130,6 +133,7 @@ const Auth = () => {
         }
         setLoading(false);
         setShowLoadingSpinner(false);
+        isLoggingIn.current = false;
         return;
       }
 
@@ -146,6 +150,7 @@ const Auth = () => {
           await supabase.auth.signOut();
           setLoading(false);
           setShowLoadingSpinner(false);
+          isLoggingIn.current = false;
           return;
         }
 
@@ -155,6 +160,7 @@ const Auth = () => {
           await supabase.auth.signOut();
           setLoading(false);
           setShowLoadingSpinner(false);
+          isLoggingIn.current = false;
           return;
         }
 
@@ -163,6 +169,7 @@ const Auth = () => {
           await supabase.auth.signOut();
           setLoading(false);
           setShowLoadingSpinner(false);
+          isLoggingIn.current = false;
           return;
         }
 
@@ -177,6 +184,7 @@ const Auth = () => {
       console.error("Sign in error:", error);
       toast.error(error?.message || "An error occurred during sign in");
       setShowLoadingSpinner(false);
+      isLoggingIn.current = false;
     } finally {
       setLoading(false);
     }
@@ -190,12 +198,20 @@ const Auth = () => {
       // Wait for minimum spinner time
       await new Promise(resolve => setTimeout(resolve, 2000));
       
+      isLoggingIn.current = false; // Allow redirect now
       toast.success("Login successful! Welcome back.");
-      // The auth state listener will handle the redirect
+      
+      // Get current session and redirect
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        isRedirecting.current = true;
+        await handleAuthRedirect(session.user);
+      }
     } catch (error) {
       console.error("Post-OTP error:", error);
       toast.error("An error occurred. Please try again.");
       setShowLoadingSpinner(false);
+      isLoggingIn.current = false;
     }
   };
 
@@ -449,6 +465,7 @@ const Auth = () => {
         open={showOTPModal}
         onClose={() => {
           setShowOTPModal(false);
+          isLoggingIn.current = false;
           supabase.auth.signOut();
         }}
         onVerify={handleOTPVerified}
