@@ -67,39 +67,10 @@ export default function AccountDetails() {
       if (profileRes.data) setProfile(profileRes.data);
       if (accountsRes.data) {
         setAccounts(accountsRes.data);
-        
-        // Generate details for accounts that don't have them
-        const existingDetails = detailsRes.data || [];
-        setAccountDetails(existingDetails);
-        
-        for (const account of accountsRes.data) {
-          const hasDetails = existingDetails.some(d => d.account_id === account.id);
-          if (!hasDetails) {
-            // Create account details with VaultBank format
-            const routingNumber = generateRoutingNumber();
-            const swift = generateSWIFT();
-            const bankAddress = generateBankAddress(account.account_number);
-            const branchCode = generateBranchCode(routingNumber);
-            
-            await supabase.from("account_details").insert({
-              account_id: account.id,
-              user_id: userId,
-              routing_number: routingNumber,
-              iban: "", // US banks don't use IBAN
-              swift_code: swift,
-              branch_code: branchCode,
-              bank_address: bankAddress
-            });
-          }
-        }
-        
-        // Refetch details
-        const { data: updatedDetails } = await supabase
-          .from("account_details")
-          .select("*")
-          .eq("user_id", userId);
-        
-        if (updatedDetails) setAccountDetails(updatedDetails);
+      }
+      
+      if (detailsRes.data) {
+        setAccountDetails(detailsRes.data);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
