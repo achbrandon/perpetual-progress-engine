@@ -18,6 +18,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const isRedirecting = useRef(false);
   const isLoggingIn = useRef(false);
+  const allowRedirect = useRef(false); // NEW: Only allow redirect after OTP verification
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string>("");
@@ -35,22 +36,20 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    // Clear any existing session on mount to force fresh login with PIN+OTP
-    const clearSessionAndSetupListener = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    // Clear any existing session on mount - do this synchronously
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        await supabase.auth.signOut();
+        supabase.auth.signOut();
       }
-    };
-    
-    clearSessionAndSetupListener();
+    });
 
-    // Set up listener for sign-in events - but ONLY during active login flow
+    // Set up listener - BLOCK all automatic redirects
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // NEVER auto-redirect during login flow
-        // Only redirect after explicit PIN+OTP verification is complete
-        if (event === 'SIGNED_IN' && session?.user && !isRedirecting.current && !isLoggingIn.current) {
+        console.log("Auth event:", event, "allowRedirect:", allowRedirect.current);
+        
+        // ONLY redirect if explicitly allowed after OTP verification
+        if (event === 'SIGNED_IN' && session?.user && allowRedirect.current && !isRedirecting.current) {
           isRedirecting.current = true;
           await handleAuthRedirect(session.user);
         }
@@ -182,12 +181,14 @@ const Auth = () => {
           return;
         }
 
-        // PIN verified - now require OTP verification
+        // PIN verified - now sign out and require OTP verification
+        // User must complete OTP before getting dashboard access
+        await supabase.auth.signOut();
+        
         setPendingUserId(data.user.id);
         setPendingUserEmail(data.user.email || "");
         setShowLoadingSpinner(false);
         setShowOTPModal(true);
-        // Note: User will be redirected after OTP verification
       }
     } catch (error: any) {
       console.error("Sign in error:", error);
@@ -204,13 +205,29 @@ const Auth = () => {
     setShowLoadingSpinner(true);
     
     try {
+      // Re-authenticate the user after OTP verification
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: signInEmail,
+        password: signInPassword,
+      });
+
+      if (signInError) {
+        toast.error("Authentication error. Please try again.");
+        setShowLoadingSpinner(false);
+        isLoggingIn.current = false;
+        return;
+      }
+
       // Wait for minimum spinner time
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      isLoggingIn.current = false; // Allow redirect now
+      // NOW allow the auth state listener to redirect
+      allowRedirect.current = true;
+      isLoggingIn.current = false;
+      
       toast.success("Login successful! Welcome back.");
       
-      // Get current session and redirect
+      // Get current session and redirect manually
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         isRedirecting.current = true;
@@ -221,6 +238,7 @@ const Auth = () => {
       toast.error("An error occurred. Please try again.");
       setShowLoadingSpinner(false);
       isLoggingIn.current = false;
+      allowRedirect.current = false;
     }
   };
 
@@ -475,7 +493,7 @@ const Auth = () => {
         onClose={() => {
           setShowOTPModal(false);
           isLoggingIn.current = false;
-          supabase.auth.signOut();
+          allowRedirect.current = false;
         }}
         onVerify={handleOTPVerified}
         email={pendingUserEmail}
