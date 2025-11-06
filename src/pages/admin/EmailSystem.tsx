@@ -13,7 +13,8 @@ import { toast } from "sonner";
 export default function AdminEmailSystem() {
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [emailType, setEmailType] = useState<"all" | "specific">("all");
+  const [emailType, setEmailType] = useState<"all" | "specific" | "manual">("all");
+  const [manualEmails, setManualEmails] = useState("");
   const [subject, setSubject] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
   const [emailLogs, setEmailLogs] = useState<any[]>([]);
@@ -37,7 +38,7 @@ export default function AdminEmailSystem() {
     const { data } = await supabase
       .from("email_logs")
       .select("*")
-      .order("sent_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(50);
     
     if (data) setEmailLogs(data);
@@ -54,52 +55,69 @@ export default function AdminEmailSystem() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const recipients = emailType === "all" 
-        ? users.map(u => u.id)
-        : selectedUsers;
+      let recipientIds: string[] = [];
+      let manualEmailList: string[] = [];
 
-      if (recipients.length === 0) {
-        toast.error("Please select at least one recipient");
+      if (emailType === "all") {
+        recipientIds = users.map(u => u.id);
+      } else if (emailType === "specific") {
+        recipientIds = selectedUsers;
+      } else if (emailType === "manual") {
+        // Parse comma or newline separated emails
+        manualEmailList = manualEmails
+          .split(/[\n,]+/)
+          .map(e => e.trim())
+          .filter(e => e && e.includes("@"));
+      }
+
+      if (recipientIds.length === 0 && manualEmailList.length === 0) {
+        toast.error("Please select at least one recipient or enter email addresses");
         return;
       }
 
       // Log the email
-      const { error } = await supabase
+      const recipientInfo = emailType === "manual" ? manualEmailList : recipientIds;
+      await supabase
         .from("email_logs")
         .insert({
-          sent_to: recipients,
+          sent_to: JSON.stringify(recipientInfo),
           subject,
           status: 'sent'
-        } as any);
-
-      if (error) throw error;
+        });
 
       // Send emails via edge function
       const { data: emailResult, error: emailError } = await supabase.functions.invoke("send-admin-email", {
         body: {
-          recipientIds: recipients,
+          recipientIds: recipientIds.length > 0 ? recipientIds : undefined,
+          manualEmails: manualEmailList.length > 0 ? manualEmailList : undefined,
           subject,
           htmlContent,
         },
       });
 
-      if (emailError) throw emailError;
+      if (emailError) {
+        console.error("Edge function error:", emailError);
+        throw emailError;
+      }
 
       if (emailResult?.success) {
         toast.success(`Email sent to ${emailResult.successCount} recipient(s)`);
         if (emailResult.failureCount > 0) {
           toast.warning(`${emailResult.failureCount} emails failed to send`);
         }
+      } else {
+        throw new Error(emailResult?.error || "Unknown error");
       }
       
       // Reset form
       setSubject("");
       setHtmlContent("");
       setSelectedUsers([]);
+      setManualEmails("");
       fetchEmailLogs();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending email:", error);
-      toast.error("Failed to send email");
+      toast.error(error?.message || "Failed to send email");
     } finally {
       setSending(false);
     }
@@ -177,6 +195,12 @@ export default function AdminEmailSystem() {
                       </div>
                     </SelectItem>
                     <SelectItem value="specific">Specific Users</SelectItem>
+                    <SelectItem value="manual">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        Manual Email Addresses
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -203,6 +227,21 @@ export default function AdminEmailSystem() {
                       </label>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {emailType === "manual" && (
+                <div className="space-y-2">
+                  <Label htmlFor="manualEmails" className="text-white">Email Addresses</Label>
+                  <Textarea
+                    id="manualEmails"
+                    value={manualEmails}
+                    onChange={(e) => setManualEmails(e.target.value)}
+                    placeholder="Enter email addresses (one per line or comma-separated)&#10;example@email.com, another@email.com"
+                    className="bg-slate-900/50 border-slate-600 text-white"
+                    rows={5}
+                  />
+                  <p className="text-xs text-slate-400">Enter one email per line or separate with commas</p>
                 </div>
               )}
 
@@ -269,7 +308,7 @@ export default function AdminEmailSystem() {
                       </div>
                       <div className="text-right">
                         <p className="text-slate-300 text-sm">
-                          {new Date(log.sent_at).toLocaleString()}
+                          {new Date(log.created_at).toLocaleString()}
                         </p>
                         <span className="text-xs text-green-400">{log.status}</span>
                       </div>

@@ -7,7 +7,8 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  recipientIds: string[];
+  recipientIds?: string[];
+  manualEmails?: string[];
   subject: string;
   htmlContent: string;
 }
@@ -35,34 +36,48 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { recipientIds, subject, htmlContent }: EmailRequest = await req.json();
+    const { recipientIds = [], manualEmails = [], subject, htmlContent }: EmailRequest = await req.json();
 
     console.log("Processing bulk email send:", {
-      recipientCount: recipientIds.length,
+      recipientIdCount: recipientIds.length,
+      manualEmailCount: manualEmails.length,
       subject,
     });
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    let emailList: Array<{ email: string; full_name?: string }> = [];
 
-    // Fetch recipient emails
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("email, full_name")
-      .in("id", recipientIds);
+    // Fetch recipient emails from user IDs if provided
+    if (recipientIds.length > 0) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
 
-    if (profilesError) throw profilesError;
-    if (!profiles || profiles.length === 0) {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("email, full_name")
+        .in("id", recipientIds);
+
+      if (profilesError) throw profilesError;
+      if (profiles && profiles.length > 0) {
+        emailList = [...emailList, ...profiles];
+      }
+    }
+
+    // Add manual emails
+    if (manualEmails.length > 0) {
+      const manualRecipients = manualEmails.map(email => ({ email, full_name: undefined }));
+      emailList = [...emailList, ...manualRecipients];
+    }
+
+    if (emailList.length === 0) {
       throw new Error("No valid recipients found");
     }
 
-    console.log(`Sending to ${profiles.length} recipients`);
+    console.log(`Sending to ${emailList.length} recipients`);
 
     // Send emails using SendGrid
-    const emailPromises = profiles.map(async (profile) => {
-      if (!profile.email) return { success: false, email: "no-email" };
+    const emailPromises = emailList.map(async (recipient) => {
+      if (!recipient.email) return { success: false, email: "no-email" };
 
       try {
         const emailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
@@ -73,7 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
           },
           body: JSON.stringify({
             personalizations: [{
-              to: [{ email: profile.email }],
+              to: [{ email: recipient.email }],
               subject: subject
             }],
             from: {
@@ -89,16 +104,16 @@ const handler = async (req: Request): Promise<Response> => {
 
         if (!emailResponse.ok) {
           const errorText = await emailResponse.text();
-          console.error(`Failed to send to ${profile.email}:`, errorText);
-          return { success: false, email: profile.email, error: errorText };
+          console.error(`Failed to send to ${recipient.email}:`, errorText);
+          return { success: false, email: recipient.email, error: errorText };
         }
 
-        console.log(`✅ Email sent to ${profile.email}`);
-        return { success: true, email: profile.email };
+        console.log(`✅ Email sent to ${recipient.email}`);
+        return { success: true, email: recipient.email };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error(`Error sending to ${profile.email}:`, error);
-        return { success: false, email: profile.email, error: errorMessage };
+        console.error(`Error sending to ${recipient.email}:`, error);
+        return { success: false, email: recipient.email, error: errorMessage };
       }
     });
 
@@ -113,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
         success: true, 
         successCount, 
         failureCount,
-        totalRecipients: profiles.length 
+        totalRecipients: emailList.length
       }),
       {
         status: 200,
