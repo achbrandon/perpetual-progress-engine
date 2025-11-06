@@ -46,15 +46,13 @@ const handler = async (req: Request): Promise<Response> => {
     // Wait a bit for the trigger to create the profile
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Update profile with test data
+    // Update profile with test data (only using fields that exist)
     const { error: profileError } = await supabase
       .from('profiles')
       .update({
-        email_verified: true,
         qr_verified: true,
         can_transact: true,
-        pin: testPin,
-        full_name: "Test User"
+        pin: testPin
       })
       .eq('id', userData.user.id);
 
@@ -65,85 +63,36 @@ const handler = async (req: Request): Promise<Response> => {
     // Generate unique 12-digit account numbers
     const checkingAccountNumber = '1000' + Math.floor(10000000 + Math.random() * 90000000).toString();
     const savingsAccountNumber = '2000' + Math.floor(10000000 + Math.random() * 90000000).toString();
-    
-    // Generate unique routing number (Chase-style)
-    const routingNumber = '021000021';
 
-    // Create checking account with money
-    const { data: checkingAccount, error: checkingError } = await supabase
+    // Create checking account with money (using only fields that exist in schema)
+    const { error: checkingError } = await supabase
       .from('accounts')
       .insert({
         user_id: userData.user.id,
         account_type: 'checking',
-        account_name: 'Checking Account',
         account_number: checkingAccountNumber,
-        routing_number: routingNumber,
         balance: 50000.00,
-        available_balance: 50000.00,
         status: 'active'
-      })
-      .select()
-      .single();
+      });
 
     if (checkingError) throw checkingError;
     console.log('Checking account created');
 
-    // Create savings account with money
-    const { data: savingsAccount, error: savingsError } = await supabase
+    // Create savings account with money (using only fields that exist in schema)
+    const { error: savingsError } = await supabase
       .from('accounts')
       .insert({
         user_id: userData.user.id,
         account_type: 'savings',
-        account_name: 'Savings Account',
         account_number: savingsAccountNumber,
-        routing_number: routingNumber,
         balance: 100000.00,
-        available_balance: 100000.00,
         status: 'active'
-      })
-      .select()
-      .single();
+      });
 
     if (savingsError) throw savingsError;
     console.log('Savings account created');
 
-    // Generate account details for checking account
-    const checkingBranchCode = routingNumber.slice(1, 5);
-    const checkingBankAddress = generateBankAddress(checkingAccountNumber);
-    
-    const { error: checkingDetailsError } = await supabase
-      .from('account_details')
-      .insert({
-        account_id: checkingAccount.id,
-        user_id: userData.user.id,
-        iban: '',
-        swift_code: 'VBKNUS33XXX',
-        branch_code: checkingBranchCode,
-        bank_address: checkingBankAddress
-      });
-
-    if (checkingDetailsError) throw checkingDetailsError;
-    console.log('Checking account details created');
-
-    // Generate account details for savings account
-    const savingsBranchCode = routingNumber.slice(1, 5);
-    const savingsBankAddress = generateBankAddress(savingsAccountNumber);
-    
-    const { error: savingsDetailsError } = await supabase
-      .from('account_details')
-      .insert({
-        account_id: savingsAccount.id,
-        user_id: userData.user.id,
-        iban: '',
-        swift_code: 'VBKNUS33XXX',
-        branch_code: savingsBranchCode,
-        bank_address: savingsBankAddress
-      });
-
-    if (savingsDetailsError) throw savingsDetailsError;
-    console.log('Savings account details created');
-
-    console.log('Accounts and details created successfully');
+    console.log('Accounts created successfully');
 
     return new Response(
       JSON.stringify({
