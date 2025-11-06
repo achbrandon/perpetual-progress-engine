@@ -113,6 +113,33 @@ export type Database = {
         }
         Relationships: []
       }
+      account_requests: {
+        Row: {
+          account_type: string
+          created_at: string | null
+          id: string
+          reason: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          account_type: string
+          created_at?: string | null
+          id?: string
+          reason?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          account_type?: string
+          created_at?: string | null
+          id?: string
+          reason?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       accounts: {
         Row: {
           account_number: string
@@ -251,6 +278,69 @@ export type Database = {
         }
         Relationships: []
       }
+      alerts: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bill_payments: {
+        Row: {
+          account_number: string
+          amount: number
+          created_at: string | null
+          id: string
+          payee_name: string
+          payment_date: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          account_number: string
+          amount: number
+          created_at?: string | null
+          id?: string
+          payee_name: string
+          payment_date: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          account_number?: string
+          amount?: number
+          created_at?: string | null
+          id?: string
+          payee_name?: string
+          payment_date?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       card_applications: {
         Row: {
           application_status: string | null
@@ -278,6 +368,69 @@ export type Database = {
         }
         Relationships: []
       }
+      cards: {
+        Row: {
+          card_holder: string
+          card_number: string
+          card_type: string
+          created_at: string | null
+          cvv: string
+          expiry_date: string
+          id: string
+          is_locked: boolean | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          card_holder: string
+          card_number: string
+          card_type: string
+          created_at?: string | null
+          cvv: string
+          expiry_date: string
+          id?: string
+          is_locked?: boolean | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          card_holder?: string
+          card_number?: string
+          card_type?: string
+          created_at?: string | null
+          cvv?: string
+          expiry_date?: string
+          id?: string
+          is_locked?: boolean | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      credit_scores: {
+        Row: {
+          created_at: string | null
+          id: string
+          report_date: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          report_date: string
+          score: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          report_date?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       crypto_deposit_addresses: {
         Row: {
           created_at: string | null
@@ -301,6 +454,33 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           network?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      crypto_wallets: {
+        Row: {
+          balance: number | null
+          created_at: string | null
+          currency: string
+          id: string
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          balance?: number | null
+          created_at?: string | null
+          currency: string
+          id?: string
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          balance?: number | null
+          created_at?: string | null
+          currency?: string
+          id?: string
+          user_id?: string
           wallet_address?: string
         }
         Relationships: []
@@ -356,6 +536,45 @@ export type Database = {
         }
         Relationships: []
       }
+      loans: {
+        Row: {
+          amount: number
+          balance: number
+          created_at: string | null
+          id: string
+          interest_rate: number
+          loan_type: string
+          monthly_payment: number
+          status: string | null
+          term_months: number
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance: number
+          created_at?: string | null
+          id?: string
+          interest_rate: number
+          loan_type: string
+          monthly_payment: number
+          status?: string | null
+          term_months: number
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance?: number
+          created_at?: string | null
+          id?: string
+          interest_rate?: number
+          loan_type?: string
+          monthly_payment?: number
+          status?: string | null
+          term_months?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       manual_deposits: {
         Row: {
           account_id: string | null
@@ -379,6 +598,80 @@ export type Database = {
           created_at?: string | null
           id?: string
           status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mobile_deposits: {
+        Row: {
+          account_id: string | null
+          amount: number
+          check_image_back: string | null
+          check_image_front: string | null
+          created_at: string | null
+          id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          check_image_back?: string | null
+          check_image_front?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          check_image_back?: string | null
+          check_image_front?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mobile_deposits_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offers: {
+        Row: {
+          created_at: string | null
+          description: string
+          expires_at: string | null
+          id: string
+          is_claimed: boolean | null
+          offer_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          expires_at?: string | null
+          id?: string
+          is_claimed?: boolean | null
+          offer_type: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          expires_at?: string | null
+          id?: string
+          is_claimed?: boolean | null
+          offer_type?: string
+          title?: string
           user_id?: string
         }
         Relationships: []
@@ -475,6 +768,47 @@ export type Database = {
           security_question?: string | null
         }
         Relationships: []
+      }
+      statements: {
+        Row: {
+          account_id: string | null
+          created_at: string | null
+          end_date: string
+          id: string
+          pdf_url: string | null
+          start_date: string
+          statement_date: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string | null
+          end_date: string
+          id?: string
+          pdf_url?: string | null
+          start_date: string
+          statement_date: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          pdf_url?: string | null
+          start_date?: string
+          statement_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "statements_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_agents: {
         Row: {
