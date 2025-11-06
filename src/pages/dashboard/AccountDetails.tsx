@@ -79,6 +79,10 @@ export default function AccountDetails() {
 
       if (profileRes.data) setProfile(profileRes.data);
       if (accountsRes.data) {
+        console.log("DEBUG - Fetched accounts:", accountsRes.data);
+        accountsRes.data.forEach(acc => {
+          console.log(`Account ${acc.id}: type='${acc.account_type}', isCreditCard=${acc.account_type === 'credit_card'}`);
+        });
         setAccounts(accountsRes.data);
       }
       
@@ -161,7 +165,9 @@ export default function AccountDetails() {
 
       {accounts.map((account) => {
         // Check if this is a credit card account FIRST
+        console.log(`RENDER - Account ${account.id}: type='${account.account_type}'`);
         const isCreditCard = account.account_type === 'credit_card';
+        console.log(`RENDER - isCreditCard=${isCreditCard}`);
         const details = accountDetails.find(d => d.account_id === account.id);
         
         // For non-credit cards, skip if no details exist
