@@ -858,15 +858,18 @@ const OpenAccount = () => {
 
                 <div className="md:col-span-2">
                   <Label htmlFor="twoFactorMethod">Two-Factor Authentication Method *</Label>
-                  <Select value={formData.twoFactorMethod} onValueChange={(value) => handleInputChange("twoFactorMethod", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select 2FA method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sms">SMS / Text Message</SelectItem>
-                      <SelectItem value="email">Email Verification</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-primary text-xl">✉️</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">Email Verification</p>
+                        <p className="text-sm text-muted-foreground">Secure code sent to your email address</p>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" value="email" name="twoFactorMethod" />
                 </div>
               </div>
             </div>
