@@ -78,12 +78,10 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
         .from("transfers")
         .insert({
           user_id: user.id,
-          from_account_id: fromAccount,
+          from_account: fromAccount,
+          to_account: accountNumber,
           amount: transferAmount,
-          transfer_type: transferMethod === "Wire" ? "wire" : "external",
-          status: "completed",
-          notes: memo || null,
-          completed_date: new Date().toISOString()
+          status: "completed"
         });
 
       if (error) throw error;
@@ -94,7 +92,7 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
         setShowLoadingSpinner(false);
         setReceiptData({
           type: 'domestic',
-          fromAccount: selectedAccount?.account_name || '',
+          fromAccount: selectedAccount?.account_type || '',
           toAccount: accountNumber,
           recipientName,
           recipientBank,
@@ -134,7 +132,7 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
                 <SelectContent>
                   {accounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
-                      {account.account_name} - ${parseFloat(account.available_balance).toFixed(2)}
+                      {account.account_type} - ${parseFloat(account.balance || 0).toFixed(2)}
                     </SelectItem>
                   ))}
                 </SelectContent>
