@@ -18,6 +18,12 @@ interface AccountApplicationRequest {
   pin: string;
   securityQuestion: string;
   securityAnswer: string;
+  // Document URLs
+  idFrontUrl?: string | null;
+  idBackUrl?: string | null;
+  selfieUrl?: string | null;
+  driversLicenseUrl?: string | null;
+  addressProofUrl?: string | null;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -153,6 +159,12 @@ const handler = async (req: Request): Promise<Response> => {
         security_answer: applicationData.securityAnswer,
         status: 'pending',
         qr_code_secret: qrSecret,
+        // Document URLs
+        id_front_url: applicationData.idFrontUrl,
+        id_back_url: applicationData.idBackUrl,
+        selfie_url: applicationData.selfieUrl,
+        drivers_license_url: applicationData.driversLicenseUrl,
+        address_proof_url: applicationData.addressProofUrl,
       });
 
     if (appError) {

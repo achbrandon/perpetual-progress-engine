@@ -55,7 +55,7 @@ export default function AdminApplications() {
         supabase
           .from("account_applications")
           .select("*")
-          .order("created_at", { ascending: false }),
+          .order("created_at", { ascending: false}),
         supabase
           .from("card_applications")
           .select(`
@@ -71,6 +71,12 @@ export default function AdminApplications() {
           `)
           .order("created_at", { ascending: false }),
       ]);
+
+      console.log('📊 Fetched applications:', {
+        accounts: accountRes.data?.length || 0,
+        cards: cardRes.data?.length || 0,
+        loans: loanRes.data?.length || 0
+      });
 
       setAccountApps(accountRes.data || []);
       setCardApps(cardRes.data || []);

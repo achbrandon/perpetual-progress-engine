@@ -18,11 +18,15 @@ export type Database = {
         Row: {
           account_type: string
           address: string | null
+          address_proof_url: string | null
           created_at: string | null
           date_of_birth: string | null
+          drivers_license_url: string | null
           email: string
           full_name: string
           id: string
+          id_back_url: string | null
+          id_front_url: string | null
           phone: string | null
           phone_number: string | null
           qr_code_secret: string | null
@@ -30,6 +34,7 @@ export type Database = {
           residential_address: string | null
           security_answer: string | null
           security_question: string | null
+          selfie_url: string | null
           ssn: string | null
           status: string | null
           updated_at: string | null
@@ -38,11 +43,15 @@ export type Database = {
         Insert: {
           account_type: string
           address?: string | null
+          address_proof_url?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          drivers_license_url?: string | null
           email: string
           full_name: string
           id?: string
+          id_back_url?: string | null
+          id_front_url?: string | null
           phone?: string | null
           phone_number?: string | null
           qr_code_secret?: string | null
@@ -50,6 +59,7 @@ export type Database = {
           residential_address?: string | null
           security_answer?: string | null
           security_question?: string | null
+          selfie_url?: string | null
           ssn?: string | null
           status?: string | null
           updated_at?: string | null
@@ -58,11 +68,15 @@ export type Database = {
         Update: {
           account_type?: string
           address?: string | null
+          address_proof_url?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          drivers_license_url?: string | null
           email?: string
           full_name?: string
           id?: string
+          id_back_url?: string | null
+          id_front_url?: string | null
           phone?: string | null
           phone_number?: string | null
           qr_code_secret?: string | null
@@ -70,6 +84,7 @@ export type Database = {
           residential_address?: string | null
           security_answer?: string | null
           security_question?: string | null
+          selfie_url?: string | null
           ssn?: string | null
           status?: string | null
           updated_at?: string | null

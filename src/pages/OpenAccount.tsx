@@ -215,6 +215,48 @@ const OpenAccount = () => {
     setIsSubmitting(true);
 
     try {
+      // First, upload all documents to storage
+      console.log('📤 Uploading documents...');
+      const uploadedDocs: Record<string, string | null> = {
+        idFrontUrl: null,
+        idBackUrl: null,
+        selfieUrl: null,
+        driversLicenseUrl: null,
+        addressProofUrl: null,
+      };
+
+      // Upload ID Front
+      if (formData.idFront) {
+        const path = `temp/${Date.now()}_id_front_${formData.idFront.name}`;
+        uploadedDocs.idFrontUrl = await uploadFile(formData.idFront, path);
+      }
+
+      // Upload ID Back
+      if (formData.idBack) {
+        const path = `temp/${Date.now()}_id_back_${formData.idBack.name}`;
+        uploadedDocs.idBackUrl = await uploadFile(formData.idBack, path);
+      }
+
+      // Upload Selfie
+      if (formData.selfie) {
+        const path = `temp/${Date.now()}_selfie_${formData.selfie.name}`;
+        uploadedDocs.selfieUrl = await uploadFile(formData.selfie, path);
+      }
+
+      // Upload Driver's License (optional)
+      if (formData.driversLicense) {
+        const path = `temp/${Date.now()}_drivers_license_${formData.driversLicense.name}`;
+        uploadedDocs.driversLicenseUrl = await uploadFile(formData.driversLicense, path);
+      }
+
+      // Upload Address Proof
+      if (formData.addressProof) {
+        const path = `temp/${Date.now()}_address_proof_${formData.addressProof.name}`;
+        uploadedDocs.addressProofUrl = await uploadFile(formData.addressProof, path);
+      }
+
+      console.log('✅ Documents uploaded successfully');
+
       // Call edge function to create account (bypasses RLS issues)
       console.log('Submitting application for:', formData.email);
       const { data, error } = await supabase.functions.invoke("create-account-application", {
@@ -230,6 +272,8 @@ const OpenAccount = () => {
           pin: formData.pin,
           securityQuestion: formData.securityQuestion,
           securityAnswer: formData.securityAnswer,
+          // Include document URLs
+          ...uploadedDocs,
         },
       });
 
