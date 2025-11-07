@@ -20,6 +20,7 @@ export default function AdminSupport() {
   const [loading, setLoading] = useState(false);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [userTypingStatus, setUserTypingStatus] = useState<Record<string, boolean>>({});
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const channelRef = useRef<any>(null);
   
@@ -89,7 +90,11 @@ export default function AdminSupport() {
           filter: `id=eq.${selectedTicket.id}`
         },
         (payload) => {
-          console.log('ADMIN: Ticket updated, user typing:', payload.new.user_typing);
+          console.log('ADMIN: Ticket updated:', {
+            agent_typing: payload.new.agent_typing,
+            user_typing: payload.new.user_typing,
+            ticket_id: selectedTicket.id
+          });
           setUserTypingStatus(prev => ({
             ...prev,
             [selectedTicket.id]: payload.new.user_typing
@@ -106,6 +111,17 @@ export default function AdminSupport() {
     return () => {
       console.log('ADMIN: Cleaning up ticket subscriptions');
       updateAgentStatus(false);
+      // Clear typing status on cleanup
+      if (selectedTicket?.id) {
+        supabase
+          .from('support_tickets')
+          .update({ agent_typing: false })
+          .eq('id', selectedTicket.id)
+          .then();
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
       supabase.removeChannel(channel);
       channelRef.current = null;
     };
@@ -229,6 +245,17 @@ export default function AdminSupport() {
     const messageText = newMessage.trim();
     setNewMessage("");
     setLoading(true);
+    
+    // Clear agent typing status immediately
+    console.log('ADMIN: Clearing agent typing status');
+    await supabase
+      .from('support_tickets')
+      .update({ agent_typing: false })
+      .eq('id', selectedTicket.id);
+    
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
     
     try {
       console.log('ADMIN: Sending message to ticket:', selectedTicket.id);
@@ -457,7 +484,48 @@ export default function AdminSupport() {
                   <Input
                     placeholder="Type your response..."
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={(e) => {
+                      setNewMessage(e.target.value);
+                      
+                      // Handle typing indicator
+                      if (!selectedTicket) return;
+                      
+                      // Clear existing timeout
+                      if (typingTimeoutRef.current) {
+                        clearTimeout(typingTimeoutRef.current);
+                      }
+                      
+                      if (e.target.value && e.target.value.trim()) {
+                        // Set agent typing to true
+                        console.log('ADMIN: Setting agent_typing to true for ticket:', selectedTicket.id);
+                        supabase
+                          .from('support_tickets')
+                          .update({ agent_typing: true })
+                          .eq('id', selectedTicket.id)
+                          .then(({ error }) => {
+                            if (error) console.error('ADMIN: Error setting typing:', error);
+                            else console.log('ADMIN: Successfully set agent_typing to true');
+                          });
+                        
+                        // Auto-clear after 500ms of no typing
+                        typingTimeoutRef.current = setTimeout(() => {
+                          console.log('ADMIN: Clearing agent_typing (timeout)');
+                          supabase
+                            .from('support_tickets')
+                            .update({ agent_typing: false })
+                            .eq('id', selectedTicket.id)
+                            .then();
+                        }, 500);
+                      } else {
+                        // Clear immediately when message is empty
+                        console.log('ADMIN: Clearing agent_typing (empty input)');
+                        supabase
+                          .from('support_tickets')
+                          .update({ agent_typing: false })
+                          .eq('id', selectedTicket.id)
+                          .then();
+                      }
+                    }}
                     disabled={loading || selectedTicket.status === 'closed'}
                   />
                   <Button 

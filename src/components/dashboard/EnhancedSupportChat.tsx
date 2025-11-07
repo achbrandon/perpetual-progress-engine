@@ -108,30 +108,33 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
           table: 'support_tickets',
           filter: `id=eq.${ticketId}`
         },
-        async (payload) => {
-          console.log('USER: Ticket updated:', {
-            agent_online: payload.new.agent_online,
-            agent_typing: payload.new.agent_typing
-          });
-          
-          setAgentOnline(payload.new.agent_online || false);
-          setAgentTyping(payload.new.agent_typing || false);
-          setTicket(payload.new);
-          
-          // Load agent info if assigned
-          if (payload.new.assigned_agent_id && !agentName) {
-            const { data } = await supabase
-              .from('support_agents')
-              .select('name, avatar_url')
-              .eq('user_id', payload.new.assigned_agent_id)
-              .maybeSingle();
-            if (data) {
-              console.log('USER: Agent loaded:', data.name);
-              setAgentName(data.name);
-              setAgentAvatar(data.avatar_url || '');
+          async (payload) => {
+            console.log('USER: Ticket updated:', {
+              agent_online: payload.new.agent_online,
+              agent_typing: payload.new.agent_typing,
+              ticket_id: ticketId
+            });
+            
+            setAgentOnline(payload.new.agent_online || false);
+            setAgentTyping(payload.new.agent_typing || false);
+            setTicket(payload.new);
+            
+            console.log('USER: Agent typing status set to:', payload.new.agent_typing);
+            
+            // Load agent info if assigned
+            if (payload.new.assigned_agent_id && !agentName) {
+              const { data } = await supabase
+                .from('support_agents')
+                .select('name, avatar_url')
+                .eq('user_id', payload.new.assigned_agent_id)
+                .maybeSingle();
+              if (data) {
+                console.log('USER: Agent loaded:', data.name);
+                setAgentName(data.name);
+                setAgentAvatar(data.avatar_url || '');
+              }
             }
           }
-        }
       )
       .subscribe((status) => {
         console.log('USER: Subscription status:', status);

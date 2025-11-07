@@ -16,24 +16,20 @@ export function useConnectionStatus(channel: RealtimeChannel | null): Connection
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
 
   const attemptReconnect = useCallback(() => {
-    if (!channel || reconnectAttempts >= 5) {
-      console.error('Max reconnection attempts reached');
+    if (!channel || reconnectAttempts >= 3) {
+      if (reconnectAttempts >= 3) {
+        console.warn('Max reconnection attempts reached, stopping reconnection');
+      }
       return;
     }
 
-    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+    const delay = Math.min(2000 * Math.pow(2, reconnectAttempts), 10000);
     
-    console.log(`Attempting reconnection in ${delay}ms (attempt ${reconnectAttempts + 1}/5)`);
+    console.log(`Attempting reconnection in ${delay}ms (attempt ${reconnectAttempts + 1}/3)`);
     
     setTimeout(() => {
       setReconnectAttempts(prev => prev + 1);
       setStatus('connecting');
-      
-      channel.unsubscribe().then(() => {
-        channel.subscribe((status) => {
-          console.log('Reconnection status:', status);
-        });
-      });
     }, delay);
   }, [channel, reconnectAttempts]);
 
@@ -56,6 +52,9 @@ export function useConnectionStatus(channel: RealtimeChannel | null): Connection
           setStatus('connecting');
           break;
         case 'CLOSED':
+          // Only set disconnected, don't auto-reconnect to prevent loops
+          setStatus('disconnected');
+          break;
         case 'CHANNEL_ERROR':
         case 'TIMED_OUT':
           setStatus('disconnected');
@@ -74,15 +73,10 @@ export function useConnectionStatus(channel: RealtimeChannel | null): Connection
   const reconnect = useCallback(() => {
     if (!channel) return;
     
-    console.log('Manual reconnection triggered');
+    console.log('Manual reconnection triggered - page refresh recommended');
     setReconnectAttempts(0);
-    setStatus('connecting');
-    
-    channel.unsubscribe().then(() => {
-      channel.subscribe((status) => {
-        console.log('Manual reconnection status:', status);
-      });
-    });
+    // Just recommend refresh instead of trying to reconnect
+    window.location.reload();
   }, [channel]);
 
   return {
