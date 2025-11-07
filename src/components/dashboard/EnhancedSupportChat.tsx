@@ -36,11 +36,13 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
   const [botTyping, setBotTyping] = useState(false);
   const [agentName, setAgentName] = useState("");
   const [agentAvatar, setAgentAvatar] = useState("");
+  const [previousAgentTyping, setPreviousAgentTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const channelRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const typingSoundRef = useRef<HTMLAudioElement | null>(null);
   
   // Connection status monitoring
   const { status: connectionStatus, isConnected, reconnect: reconnectChannel, lastConnected } = useConnectionStatus(channelRef.current);
@@ -49,6 +51,10 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
   useEffect(() => {
     audioRef.current = new Audio('/notification.mp3');
     audioRef.current.volume = 0.5;
+    
+    // Initialize typing sound
+    typingSoundRef.current = new Audio('/notification.mp3');
+    typingSoundRef.current.volume = 0.3;
   }, []);
 
   useEffect(() => {
@@ -115,11 +121,20 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
               ticket_id: ticketId
             });
             
+            const newAgentTyping = payload.new.agent_typing || false;
+            
+            // Play sound when agent starts typing (transition from false to true)
+            if (newAgentTyping && !previousAgentTyping && typingSoundRef.current) {
+              console.log('USER: Agent started typing - playing sound');
+              typingSoundRef.current.play().catch((e: any) => console.log('Typing sound failed:', e));
+            }
+            
+            setPreviousAgentTyping(newAgentTyping);
             setAgentOnline(payload.new.agent_online || false);
-            setAgentTyping(payload.new.agent_typing || false);
+            setAgentTyping(newAgentTyping);
             setTicket(payload.new);
             
-            console.log('USER: Agent typing status set to:', payload.new.agent_typing);
+            console.log('USER: Agent typing status set to:', newAgentTyping);
             
             // Load agent info if assigned
             if (payload.new.assigned_agent_id && !agentName) {
@@ -729,6 +744,31 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
                      </div>
                    </div>
                  ))}
+                   {/* Agent viewing indicator - shown when agent is online but not typing */}
+                   {agentOnline && !agentTyping && !botTyping && ticket?.chat_mode === 'live' && (
+                     <div className="flex gap-3 items-center py-2">
+                       <Avatar className="h-8 w-8 border-2">
+                         {agentAvatar && (
+                           <AvatarImage src={agentAvatar} alt={agentName} />
+                         )}
+                         <AvatarFallback className="bg-primary/10 text-primary">
+                           {agentName ? agentName.charAt(0) : "A"}
+                         </AvatarFallback>
+                       </Avatar>
+                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                         <div className="flex items-center gap-1.5">
+                           <div className="relative flex h-2 w-2">
+                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                           </div>
+                           <span className="font-medium">
+                             {agentName ? `${agentName} is viewing your messages` : 'Agent is viewing your messages'}
+                           </span>
+                         </div>
+                       </div>
+                     </div>
+                   )}
+                   {/* Typing indicator */}
                    {(agentTyping || botTyping) && (
                    <div className="flex gap-3">
                      <Avatar className="h-10 w-10 border-2">
