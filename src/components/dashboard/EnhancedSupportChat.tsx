@@ -440,6 +440,13 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
 
           console.log('Bot response:', data, 'Error:', botError);
 
+          // Reload messages to ensure bot message is displayed
+          if (!botError) {
+            // Wait a moment for the bot message to be inserted
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await loadMessages(ticketId);
+          }
+
           // If bot succeeded and suggests live agent
           if (data?.suggestsLiveAgent) {
             // Update ticket to connecting mode
