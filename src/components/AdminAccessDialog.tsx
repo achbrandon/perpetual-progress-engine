@@ -24,13 +24,6 @@ export function AdminAccessDialog({ open, onOpenChange }: AdminAccessDialogProps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password !== "Ultimateunique1#") {
-      toast.error("Invalid password");
-      setPassword("");
-      return;
-    }
-
     setLoading(true);
     
     try {
@@ -43,20 +36,14 @@ export function AdminAccessDialog({ open, onOpenChange }: AdminAccessDialogProps
         return;
       }
 
-      // Grant admin role to user
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .upsert({
-          user_id: user.id,
-          role: "admin",
-        }, {
-          onConflict: "user_id,role",
-          ignoreDuplicates: false
-        });
+      // Verify password on server
+      const { data, error } = await supabase.functions.invoke('verify-admin-password', {
+        body: { password, userId: user.id }
+      });
 
-      if (roleError) {
-        console.error("Error granting admin role:", roleError);
-        toast.error("Failed to grant admin access. Please try again.");
+      if (error || !data?.success) {
+        toast.error(data?.error || "Invalid password");
+        setPassword("");
         setLoading(false);
         return;
       }

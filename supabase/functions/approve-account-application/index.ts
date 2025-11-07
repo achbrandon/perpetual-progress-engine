@@ -41,25 +41,45 @@ Deno.serve(async (req) => {
       throw new Error('Cannot approve application - QR code verification not completed by user');
     }
 
-    // Generate unique account number
-    const accountNumber = `${Math.floor(100000000 + Math.random() * 900000000)}`;
-
-    // Create the account using service role (bypasses RLS)
-    const { data: newAccount, error: accountError } = await supabase
+    // Check if account already exists for this user and type
+    const { data: existingAccount } = await supabase
       .from('accounts')
-      .insert({
-        user_id: app.user_id,
-        account_number: accountNumber,
-        account_type: app.account_type,
-        balance: 0,
-        status: 'active'
-      })
-      .select()
-      .single();
+      .select('id, account_number')
+      .eq('user_id', app.user_id)
+      .eq('account_type', app.account_type)
+      .maybeSingle();
 
-    if (accountError) {
-      console.error('Error creating account:', accountError);
-      throw accountError;
+    let newAccount;
+    let accountNumber;
+
+    if (existingAccount) {
+      // Account already exists, use it instead of creating a new one
+      newAccount = existingAccount;
+      accountNumber = existingAccount.account_number;
+      console.log('Account already exists, using existing account:', existingAccount.id);
+    } else {
+      // Generate unique account number
+      accountNumber = `${Math.floor(100000000 + Math.random() * 900000000)}`;
+
+      // Create the account using service role (bypasses RLS)
+      const { data: createdAccount, error: accountError } = await supabase
+        .from('accounts')
+        .insert({
+          user_id: app.user_id,
+          account_number: accountNumber,
+          account_type: app.account_type,
+          balance: 0,
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (accountError) {
+        console.error('Error creating account:', accountError);
+        throw accountError;
+      }
+
+      newAccount = createdAccount;
     }
 
     // Update application status
