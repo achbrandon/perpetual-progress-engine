@@ -38,6 +38,13 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const messagesChannelRef = useRef<any>(null);
   const ticketChannelRef = useRef<any>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio
+  useEffect(() => {
+    audioRef.current = new Audio('/notification.mp3');
+    audioRef.current.volume = 0.5;
+  }, []);
 
   useEffect(() => {
     if (userId) {
@@ -188,9 +195,39 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
               console.log('Duplicate message prevented:', payload.new.id);
               return prev;
             }
+            
+            // Play sound notification if message is from agent or bot
+            if (payload.new.sender_type === 'staff' || payload.new.sender_type === 'bot') {
+              audioRef.current?.play().catch(err => console.log('Audio play failed:', err));
+            }
+            
             console.log('Adding new message to state');
             return [...prev, payload.new];
           });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'support_messages',
+          filter: `ticket_id=eq.${ticketId}`
+        },
+        (payload) => {
+          console.log('USER SIDE: Message updated:', payload.new);
+          setMessages((prev) =>
+            prev.map((msg) => {
+              if (msg.id === payload.new.id) {
+                // Play sound if message was just marked as read
+                if (!msg.is_read && payload.new.is_read && msg.sender_type === 'user') {
+                  audioRef.current?.play().catch(err => console.log('Audio play failed:', err));
+                }
+                return payload.new;
+              }
+              return msg;
+            })
+          );
         }
       )
       .subscribe((status) => {
@@ -350,15 +387,37 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
     setNewMessage("");
     setLoading(true);
 
+    // Create optimistic message for instant display
+    const optimisticMessage = {
+      id: `temp-${Date.now()}`,
+      ticket_id: ticketId,
+      message: messageText,
+      sender_type: "user",
+      created_at: new Date().toISOString(),
+      is_read: false
+    };
+
+    // Add message to UI immediately
+    setMessages(prev => [...prev, optimisticMessage]);
+
     try {
-      // Insert the user's message to database (real-time will handle UI update)
-      const { error: insertError } = await supabase.from("support_messages").insert({
-        ticket_id: ticketId,
-        message: messageText,
-        sender_type: "user"
-      });
+      // Insert the user's message to database
+      const { data: insertedMessage, error: insertError } = await supabase
+        .from("support_messages")
+        .insert({
+          ticket_id: ticketId,
+          message: messageText,
+          sender_type: "user"
+        })
+        .select()
+        .single();
 
       if (insertError) throw insertError;
+
+      // Replace optimistic message with real one
+      setMessages(prev => 
+        prev.map(msg => msg.id === optimisticMessage.id ? insertedMessage : msg)
+      );
 
       // Clear typing indicator
       await supabase
@@ -418,6 +477,8 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
       }
     } catch (error: any) {
       console.error("Error sending message:", error);
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
       toast.error("Failed to send message");
     } finally {
       setLoading(false);
