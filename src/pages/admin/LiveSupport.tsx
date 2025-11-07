@@ -175,7 +175,6 @@ export default function LiveSupport() {
     const result: any = await (supabase as any)
       .from('support_agents')
       .select('*')
-      .eq('is_available', true)
       .order('name');
     
     const { data, error } = result;
@@ -478,9 +477,10 @@ export default function LiveSupport() {
                       const ratingText = rating 
                         ? ` ⭐ ${rating.avg.toFixed(1)} (${rating.count})` 
                         : '';
+                      const statusIndicator = agent.is_online ? '🟢' : '⚫';
                       return (
                         <option key={agent.id} value={agent.id}>
-                          {agent.name}{ratingText}
+                          {statusIndicator} {agent.name}{ratingText}
                         </option>
                       );
                     })}
