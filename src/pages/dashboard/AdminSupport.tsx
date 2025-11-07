@@ -59,24 +59,26 @@ export default function AdminSupport() {
           filter: `ticket_id=eq.${selectedTicket.id}`
         },
         (payload) => {
-          console.log('ADMIN: New message received:', {
+          console.log('ADMIN: New message received via realtime:', {
             id: payload.new.id,
             sender: payload.new.sender_type,
-            text: payload.new.message?.substring(0, 30)
+            text: payload.new.message?.substring(0, 30),
+            ticket_id: selectedTicket.id
           });
 
           setMessages(prev => {
             if (prev.some(m => m.id === payload.new.id)) {
-              console.log('ADMIN: Duplicate prevented');
+              console.log('ADMIN: Duplicate message prevented:', payload.new.id);
               return prev;
             }
 
             // Play sound for user messages
             if (payload.new.sender_type === 'user' && audioRef.current) {
+              console.log('ADMIN: Playing sound for user message');
               audioRef.current.play().catch((e: any) => console.log('Audio failed:', e));
             }
 
-            console.log('ADMIN: Adding message, total:', prev.length + 1);
+            console.log('ADMIN: Adding message to state, new total:', prev.length + 1);
             return [...prev, payload.new];
           });
         }
@@ -243,6 +245,20 @@ export default function AdminSupport() {
     if (!newMessage.trim() || !selectedTicket) return;
 
     const messageText = newMessage.trim();
+    const tempId = `admin-temp-${Date.now()}`;
+    
+    // Add message optimistically
+    const optimisticMessage = {
+      id: tempId,
+      ticket_id: selectedTicket.id,
+      message: messageText,
+      sender_type: "staff",
+      created_at: new Date().toISOString(),
+      is_read: false
+    };
+    
+    console.log('ADMIN: Adding optimistic message:', tempId);
+    setMessages(prev => [...prev, optimisticMessage]);
     setNewMessage("");
     setLoading(true);
     
@@ -275,13 +291,16 @@ export default function AdminSupport() {
       
       console.log('ADMIN: Message sent successfully:', insertedMessage.id);
       
-      // Add to state immediately (realtime will deduplicate)
+      // Replace optimistic message with real one
       setMessages(prev => {
-        if (prev.some(msg => msg.id === insertedMessage.id)) {
-          console.log('ADMIN: Message already in state from realtime');
-          return prev;
+        const filtered = prev.filter(msg => msg.id !== tempId);
+        // Check if real message already exists (from realtime)
+        if (filtered.some(msg => msg.id === insertedMessage.id)) {
+          console.log('ADMIN: Real message already in state from realtime');
+          return filtered;
         }
-        return [...prev, insertedMessage];
+        console.log('ADMIN: Replacing optimistic message with real one');
+        return [...filtered, insertedMessage];
       });
       
       // Update ticket timestamp
@@ -293,7 +312,9 @@ export default function AdminSupport() {
       toast.success("Message sent");
     } catch (error: any) {
       console.error("Error sending message:", error);
-      setNewMessage(messageText); // Restore on error
+      // Remove optimistic message and restore input on error
+      setMessages(prev => prev.filter(msg => msg.id !== tempId));
+      setNewMessage(messageText);
       toast.error("Failed to send message");
     } finally {
       setLoading(false);

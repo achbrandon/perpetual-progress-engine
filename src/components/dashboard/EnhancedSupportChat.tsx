@@ -84,24 +84,29 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
           filter: `ticket_id=eq.${ticketId}`
         },
         (payload) => {
-          console.log('USER: New message received:', {
+          console.log('USER: New message received via realtime:', {
             id: payload.new.id,
             sender: payload.new.sender_type,
-            text: payload.new.message?.substring(0, 30)
+            text: payload.new.message?.substring(0, 30),
+            ticket_id: payload.new.ticket_id
           });
 
           setMessages(prev => {
+            // Check if it's a temp message (starts with 'temp-' or 'admin-temp-')
+            const isTempId = payload.new.id?.toString().includes('temp-');
+            
             if (prev.some(m => m.id === payload.new.id)) {
-              console.log('USER: Duplicate prevented');
+              console.log('USER: Duplicate message prevented:', payload.new.id);
               return prev;
             }
             
             // Play sound for staff/bot messages
             if (payload.new.sender_type === 'staff' || payload.new.sender_type === 'bot') {
+              console.log('USER: Playing sound for staff/bot message');
               audioRef.current?.play().catch(e => console.log('Audio failed:', e));
             }
             
-            console.log('USER: Adding message, total:', prev.length + 1);
+            console.log('USER: Adding message to state, new total:', prev.length + 1);
             return [...prev, payload.new];
           });
         }
