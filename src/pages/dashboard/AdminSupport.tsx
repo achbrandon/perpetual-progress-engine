@@ -17,7 +17,9 @@ export default function AdminSupport() {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [userTypingStatus, setUserTypingStatus] = useState<Record<string, boolean>>({});
   const audioRef = useState<HTMLAudioElement | null>(null)[0];
+  const typingChannelRef = useState<any>(null)[0];
 
   useEffect(() => {
     // Initialize audio
@@ -34,6 +36,7 @@ export default function AdminSupport() {
     if (selectedTicket) {
       loadMessages(selectedTicket.id);
       subscribeToMessages(selectedTicket.id);
+      subscribeToTyping(selectedTicket.id);
       updateAgentStatus(true);
       markTicketMessagesAsRead(selectedTicket.id);
     }
@@ -41,6 +44,9 @@ export default function AdminSupport() {
     return () => {
       if (selectedTicket) {
         updateAgentStatus(false);
+      }
+      if (typingChannelRef) {
+        supabase.removeChannel(typingChannelRef);
       }
     };
   }, [selectedTicket]);
@@ -55,8 +61,16 @@ export default function AdminSupport() {
           schema: 'public',
           table: 'support_tickets'
         },
-        () => {
+        (payload) => {
           loadTickets();
+          // Update typing status when user_typing changes
+          if (payload.new && typeof payload.new === 'object' && 'user_typing' in payload.new && 'id' in payload.new) {
+            const newPayload = payload.new as any;
+            setUserTypingStatus(prev => ({
+              ...prev,
+              [newPayload.id]: newPayload.user_typing
+            }));
+          }
         }
       )
       .subscribe();
@@ -64,6 +78,33 @@ export default function AdminSupport() {
     return () => {
       supabase.removeChannel(channel);
     };
+  };
+
+  const subscribeToTyping = (ticketId: string) => {
+    const channel = supabase
+      .channel(`ticket-typing-${ticketId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'support_tickets',
+          filter: `id=eq.${ticketId}`
+        },
+        (payload) => {
+          console.log('Typing status update:', payload.new);
+          if (payload.new && typeof payload.new === 'object' && 'user_typing' in payload.new) {
+            const newPayload = payload.new as any;
+            setUserTypingStatus(prev => ({
+              ...prev,
+              [ticketId]: newPayload.user_typing
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    (typingChannelRef as any) = channel;
   };
 
   const loadAllUnreadCounts = async () => {
@@ -362,6 +403,22 @@ export default function AdminSupport() {
                         </div>
                       </div>
                     ))}
+                    {userTypingStatus[selectedTicket.id] && (
+                      <div className="flex gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-muted">U</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="inline-block rounded-lg px-4 py-2 bg-muted">
+                            <div className="flex gap-1">
+                              <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                              <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                              <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </ScrollArea>
 

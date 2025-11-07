@@ -52,7 +52,7 @@ serve(async (req) => {
 
     // Build conversation context
     const conversationHistory = messages?.map(msg => ({
-      role: msg.is_staff ? 'assistant' : 'user',
+      role: (msg.sender_type === 'staff' || msg.sender_type === 'bot') ? 'assistant' : 'user',
       content: msg.message
     })) || [];
 
