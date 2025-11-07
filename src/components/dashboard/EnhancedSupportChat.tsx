@@ -186,7 +186,12 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
     }
 
     const channel = supabase
-      .channel(`support-messages-${ticketId}`)
+      .channel(`support-messages-${ticketId}`, {
+        config: {
+          broadcast: { self: true },
+          presence: { key: '' }
+        }
+      })
       .on(
         'postgres_changes',
         {
@@ -202,6 +207,7 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
             message: payload.new.message?.substring(0, 50)
           });
           
+          // Immediately add to state
           setMessages(prev => {
             // Check for duplicate by ID
             const isDuplicate = prev.some(msg => msg.id === payload.new.id);
@@ -212,11 +218,21 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
             
             // Play sound notification if message is from agent or bot
             if (payload.new.sender_type === 'staff' || payload.new.sender_type === 'bot') {
+              console.log('USER: Playing notification sound for:', payload.new.sender_type);
               audioRef.current?.play().catch(err => console.log('Audio play failed:', err));
             }
             
             console.log('USER: Adding new message to state, total will be:', prev.length + 1);
-            return [...prev, payload.new];
+            const newMessages = [...prev, payload.new];
+            
+            // Force scroll to bottom after state update
+            setTimeout(() => {
+              if (scrollRef.current) {
+                scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+              }
+            }, 100);
+            
+            return newMessages;
           });
         }
       )
@@ -229,14 +245,10 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
           filter: `ticket_id=eq.${ticketId}`
         },
         (payload) => {
-          console.log('USER SIDE: Message updated:', payload.new);
+          console.log('USER SIDE: Message updated:', payload.new.id);
           setMessages((prev) =>
             prev.map((msg) => {
               if (msg.id === payload.new.id) {
-                // Play sound if message was just marked as read
-                if (!msg.is_read && payload.new.is_read && msg.sender_type === 'user') {
-                  audioRef.current?.play().catch(err => console.log('Audio play failed:', err));
-                }
                 return payload.new;
               }
               return msg;
@@ -245,12 +257,16 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
         }
       )
       .subscribe((status) => {
-        console.log('Message subscription status:', status);
+        console.log('USER: Message subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('USER: Successfully subscribed to messages for ticket:', ticketId);
+        }
       });
 
     messagesChannelRef.current = channel;
 
     return () => {
+      console.log('USER: Cleaning up message subscription');
       supabase.removeChannel(channel);
     };
   };
@@ -463,9 +479,21 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
             body: { message: messageText, ticketId }
           });
 
-          console.log('USER: Bot response:', data, 'Error:', botError);
+          console.log('USER: Bot function response:', { data, botError });
 
-          // Bot message will be added via realtime subscription - no need to reload
+          if (botError) {
+            console.error('USER: Bot function error:', botError);
+            // Reload messages to get bot response if it was inserted
+            await loadMessages(ticketId);
+          } else {
+            console.log('USER: Bot replied successfully, reply:', data?.reply?.substring(0, 100));
+            // Wait a bit for realtime to sync, then reload if message doesn't appear
+            setTimeout(async () => {
+              const currentMsgCount = messages.length;
+              await loadMessages(ticketId);
+              console.log('USER: Reloaded messages after bot response');
+            }, 1000);
+          }
 
           // If bot succeeded and suggests live agent
           if (data?.suggestsLiveAgent) {
@@ -496,7 +524,8 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
           }
         } catch (botError) {
           // Bot failed, but user's message was still sent successfully
-          console.error('Bot error (non-fatal):', botError);
+          console.error('USER: Bot error (non-fatal):', botError);
+          toast.error('Assistant is having trouble. Please wait for a live agent.');
         } finally {
           // Hide bot typing indicator
           setBotTyping(false);

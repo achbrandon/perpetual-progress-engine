@@ -151,7 +151,12 @@ export default function AdminSupport() {
 
   const subscribeToMessages = (ticketId: string) => {
     const channel = supabase
-      .channel(`admin-messages-${ticketId}`)
+      .channel(`admin-messages-${ticketId}`, {
+        config: {
+          broadcast: { self: true },
+          presence: { key: '' }
+        }
+      })
       .on(
         'postgres_changes',
         {
@@ -161,11 +166,25 @@ export default function AdminSupport() {
           filter: `ticket_id=eq.${ticketId}`
         },
         (payload) => {
-          console.log('ADMIN SIDE: New message received:', payload.new);
-          setMessages(prev => [...prev, payload.new]);
+          console.log('ADMIN SIDE: New message INSERT received:', {
+            id: payload.new.id,
+            sender_type: payload.new.sender_type,
+            message: payload.new.message?.substring(0, 50)
+          });
+          
+          setMessages(prev => {
+            // Check for duplicates
+            if (prev.some(msg => msg.id === payload.new.id)) {
+              console.log('ADMIN: Duplicate prevented:', payload.new.id);
+              return prev;
+            }
+            console.log('ADMIN: Adding message to state, total will be:', prev.length + 1);
+            return [...prev, payload.new];
+          });
           
           // Play sound and update counter if it's a user message
           if (payload.new.sender_type === 'user') {
+            console.log('ADMIN: Playing notification for user message');
             (audioRef as any)?.play().catch((err: any) => console.log('Audio play failed:', err));
             setUnreadCounts(prev => ({
               ...prev,
@@ -183,13 +202,19 @@ export default function AdminSupport() {
           filter: `ticket_id=eq.${ticketId}`
         },
         (payload) => {
-          console.log('ADMIN SIDE: Message updated:', payload.new);
+          console.log('ADMIN SIDE: Message updated:', payload.new.id);
           setMessages(prev => prev.map(msg => msg.id === payload.new.id ? payload.new : msg));
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('ADMIN: Message subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('ADMIN: Successfully subscribed to messages for ticket:', ticketId);
+        }
+      });
 
     return () => {
+      console.log('ADMIN: Cleaning up message subscription');
       supabase.removeChannel(channel);
     };
   };
@@ -238,21 +263,47 @@ export default function AdminSupport() {
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedTicket) return;
 
+    const messageText = newMessage.trim();
+    setNewMessage("");
     setLoading(true);
+    
     try {
-      const { error } = await supabase
+      console.log('ADMIN: Sending message to ticket:', selectedTicket.id);
+      
+      // Insert and get the message back immediately
+      const { data: insertedMessage, error } = await supabase
         .from("support_messages")
         .insert({
           ticket_id: selectedTicket.id,
-          message: newMessage.trim(),
+          message: messageText,
           sender_type: "staff"
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
-      setNewMessage("");
+      
+      console.log('ADMIN: Message sent successfully:', insertedMessage.id);
+      
+      // Add to state immediately (realtime will deduplicate)
+      setMessages(prev => {
+        if (prev.some(msg => msg.id === insertedMessage.id)) {
+          console.log('ADMIN: Message already in state from realtime');
+          return prev;
+        }
+        return [...prev, insertedMessage];
+      });
+      
+      // Update ticket timestamp
+      await supabase
+        .from('support_tickets')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', selectedTicket.id);
+      
       toast.success("Message sent");
     } catch (error: any) {
       console.error("Error sending message:", error);
+      setNewMessage(messageText); // Restore on error
       toast.error("Failed to send message");
     } finally {
       setLoading(false);
