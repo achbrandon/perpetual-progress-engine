@@ -22,6 +22,7 @@ const OpenAccount = () => {
   const [qrLoading, setQrLoading] = useState(false);
   const [verificationSuccess, setVerificationSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdUserId, setCreatedUserId] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -303,6 +304,10 @@ const OpenAccount = () => {
       }
 
       console.log('Application submitted successfully');
+      // Store the user ID for QR verification
+      if (data?.userId) {
+        setCreatedUserId(data.userId);
+      }
       setShowSuccessDialog(true);
     } catch (error: any) {
       console.error("Unexpected error:", error);
@@ -1151,20 +1156,29 @@ const OpenAccount = () => {
             setQrLoading(true);
 
             try {
-              const { data: { user } } = await supabase.auth.getUser();
+              // Use the stored user ID instead of relying on session
+              let userId = createdUserId;
               
-              if (!user) {
-                alert("Session expired. Please sign up again.");
-                setShowQRVerification(false);
-                setQrLoading(false);
-                return;
+              // If we don't have stored user ID, try to get it from session
+              if (!userId) {
+                // Refresh the session first to ensure it's not expired
+                const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+                
+                if (refreshError || !session?.user) {
+                  alert("Session expired. Please sign up again.");
+                  setShowQRVerification(false);
+                  setQrLoading(false);
+                  return;
+                }
+                
+                userId = session.user.id;
               }
 
               // Get application to verify QR code
               const { data: application } = await supabase
                 .from("account_applications")
                 .select("qr_code_secret")
-                .eq("user_id", user.id)
+                .eq("user_id", userId)
                 .maybeSingle();
 
               if (application && application.qr_code_secret !== qrCode.trim()) {
@@ -1178,7 +1192,7 @@ const OpenAccount = () => {
                 await supabase
                   .from("account_applications")
                   .update({ qr_code_verified: true })
-                  .eq("user_id", user.id);
+                  .eq("user_id", userId);
               }
 
               // Update profile
@@ -1188,7 +1202,7 @@ const OpenAccount = () => {
                   qr_verified: true,
                   can_transact: true 
                 })
-                .eq("id", user.id);
+                .eq("id", userId);
 
               if (updateProfileError) {
                 console.error("Error updating profile:", updateProfileError);
