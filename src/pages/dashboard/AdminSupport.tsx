@@ -69,7 +69,21 @@ export default function AdminSupport() {
           filter: `ticket_id=eq.${ticketId}`
         },
         (payload) => {
+          console.log('ADMIN SIDE: New message received:', payload.new);
           setMessages(prev => [...prev, payload.new]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'support_messages',
+          filter: `ticket_id=eq.${ticketId}`
+        },
+        (payload) => {
+          console.log('ADMIN SIDE: Message updated:', payload.new);
+          setMessages(prev => prev.map(msg => msg.id === payload.new.id ? payload.new : msg));
         }
       )
       .subscribe();
@@ -129,9 +143,8 @@ export default function AdminSupport() {
         .from("support_messages")
         .insert({
           ticket_id: selectedTicket.id,
-          sender_id: "admin",
           message: newMessage.trim(),
-          is_staff: true
+          sender_type: "staff"
         });
 
       if (error) throw error;
@@ -249,17 +262,17 @@ export default function AdminSupport() {
                     {messages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex gap-3 ${message.is_staff ? "flex-row-reverse" : ""}`}
+                        className={`flex gap-3 ${message.sender_type === "staff" ? "flex-row-reverse" : ""}`}
                       >
                         <Avatar className="h-8 w-8">
-                          <AvatarFallback className={message.is_staff ? "bg-primary text-primary-foreground" : "bg-muted"}>
-                            {message.is_staff ? "A" : "U"}
+                          <AvatarFallback className={message.sender_type === "staff" ? "bg-primary text-primary-foreground" : "bg-muted"}>
+                            {message.sender_type === "staff" ? "A" : message.sender_type === "bot" ? "B" : "U"}
                           </AvatarFallback>
                         </Avatar>
-                        <div className={`flex-1 ${message.is_staff ? "text-right" : ""}`}>
+                        <div className={`flex-1 ${message.sender_type === "staff" ? "text-right" : ""}`}>
                           <div
                             className={`inline-block rounded-lg px-4 py-2 max-w-[80%] ${
-                              message.is_staff
+                              message.sender_type === "staff"
                                 ? "bg-primary text-primary-foreground text-right"
                                 : "bg-muted text-left"
                             }`}
