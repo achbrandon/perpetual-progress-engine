@@ -121,43 +121,23 @@ export default function AdminApplications() {
 
   const handleApproveAccount = async (appId: string) => {
     try {
-      const app = accountApps.find(a => a.id === appId);
-      if (!app) throw new Error("Application not found");
+      // Get current admin user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
-      // Generate unique account number
-      const accountNumber = `${Math.floor(100000000 + Math.random() * 900000000)}`;
-
-      // Create the account
-      const { error: accountError } = await supabase
-        .from("accounts")
-        .insert({
-          user_id: app.user_id,
-          account_number: accountNumber,
-          account_type: app.account_type,
-          balance: 0,
-          status: "active"
-        });
-
-      if (accountError) throw accountError;
-
-      // Update application status
-      const { error } = await supabase
-        .from("account_applications")
-        .update({ status: "approved" })
-        .eq("id", appId);
+      // Use edge function with service role to bypass RLS
+      const { data, error } = await supabase.functions.invoke("approve-account-application", {
+        body: {
+          applicationId: appId,
+          adminUserId: user.id
+        },
+      });
 
       if (error) throw error;
 
-      // Send approval email
-      await supabase.functions.invoke("send-application-decision", {
-        body: {
-          applicantName: app.full_name,
-          applicantEmail: app.email,
-          applicationType: "account",
-          decision: "approved",
-          accountType: app.account_type,
-        },
-      });
+      if (!data.success) {
+        throw new Error(data.error || "Failed to approve application");
+      }
 
       toast.success("Account created and approval email sent!");
       fetchApplications();
