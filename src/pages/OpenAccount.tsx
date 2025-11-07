@@ -1200,7 +1200,8 @@ const OpenAccount = () => {
                 .from("profiles")
                 .update({ 
                   qr_verified: true,
-                  can_transact: true 
+                  can_transact: true,
+                  email_verified: true
                 })
                 .eq("id", userId);
 
@@ -1209,6 +1210,19 @@ const OpenAccount = () => {
                 alert("Failed to update profile");
                 setQrLoading(false);
                 return;
+              }
+
+              // CRITICAL: Confirm the email in Supabase Auth system
+              console.log("✅ Confirming email in authentication system...");
+              const { error: confirmError } = await supabase.functions.invoke("confirm-user-email", {
+                body: { email: formData.email }
+              });
+
+              if (confirmError) {
+                console.error("⚠️ Error confirming email:", confirmError);
+                // Don't block the user, but log it for debugging
+              } else {
+                console.log("✅ Email confirmed successfully in auth system");
               }
 
               // Show success message
