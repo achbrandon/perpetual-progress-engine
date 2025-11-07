@@ -1187,11 +1187,14 @@ const OpenAccount = () => {
                 return;
               }
 
-              // Update application
+              // Update application - mark as approved and QR verified
               if (application) {
                 await supabase
                   .from("account_applications")
-                  .update({ qr_code_verified: true })
+                  .update({ 
+                    qr_code_verified: true,
+                    status: 'approved'
+                  })
                   .eq("user_id", userId);
               }
 
