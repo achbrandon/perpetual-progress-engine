@@ -144,7 +144,10 @@ const TokenSignIn = () => {
       }
 
       if (application.status !== 'approved') {
-        toast.error("Your account is pending approval");
+        toast.info(
+          "🔍 Your account is under review. Our team is reviewing your application.",
+          { duration: 6000 }
+        );
         await supabase.auth.signOut();
         setSubmitting(false);
         return;
@@ -152,7 +155,10 @@ const TokenSignIn = () => {
 
       // Step 3: Check if email is verified
       if (!authData.user.email_confirmed_at) {
-        toast.error("Please verify your email before signing in");
+        toast.info(
+          "🔍 Your account verification is complete. Waiting for final email confirmation.",
+          { duration: 6000 }
+        );
         await supabase.auth.signOut();
         setSubmitting(false);
         return;
@@ -166,8 +172,11 @@ const TokenSignIn = () => {
         .single();
 
       if (!profile?.qr_verified) {
-        toast.info("Please complete QR verification");
-        navigate("/verify-qr");
+        toast.info(
+          "🔍 Your account verification is complete. Waiting for final approval.",
+          { duration: 6000 }
+        );
+        await supabase.auth.signOut();
         setSubmitting(false);
         return;
       }

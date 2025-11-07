@@ -73,32 +73,50 @@ export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
           return;
         }
 
-        // For regular users: Check QR verification first
+        // For regular users: Check account application status first
+        const { data: application } = await supabase
+          .from("account_applications")
+          .select("status, qr_code_verified")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
+
         const { data: profile } = await supabase
           .from("profiles")
           .select("qr_verified, pin")
           .eq("id", data.user.id)
           .maybeSingle();
 
-        if (!profile?.qr_verified) {
+        // If account is pending approval
+        if (application?.status === 'pending') {
+          toast.info(
+            "🔍 Your account is under review. You'll receive an email once approved.",
+            { duration: 6000 }
+          );
+          await supabase.auth.signOut();
+          setLoading(false);
+          setShowLoadingSpinner(false);
+          onOpenChange(false);
+          return;
+        }
+
+        // If account is approved but QR not verified (edge case)
+        if (application?.status === 'approved' && !profile?.qr_verified) {
           toast.info("Please complete QR verification to access your account");
           onOpenChange(false);
           navigate("/verify-qr");
           return;
         }
 
-        // Check if account is approved by admin
-        const { data: application } = await supabase
-          .from("account_applications")
-          .select("status")
-          .eq("user_id", data.user.id)
-          .maybeSingle();
-
-        if (application && application.status !== 'approved') {
-          toast.info("Your account is under review. Our team will verify your information shortly and notify you once approved.");
+        // If QR verified but account not approved (shouldn't happen)
+        if (profile?.qr_verified && application?.status !== 'approved') {
+          toast.info(
+            "🔍 Your verification is complete. Waiting for final approval.",
+            { duration: 6000 }
+          );
           await supabase.auth.signOut();
           setLoading(false);
           setShowLoadingSpinner(false);
+          onOpenChange(false);
           return;
         }
 

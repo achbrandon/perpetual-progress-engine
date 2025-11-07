@@ -67,15 +67,42 @@ const Dashboard = () => {
       return;
     }
 
-    // For all other users, check verification status
+    // For all other users, check account status first
+    const { data: application } = await supabase
+      .from("account_applications")
+      .select("status")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
     const { data: profileData } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .maybeSingle();
 
-    if (!profileData?.qr_verified) {
+    // If account is pending approval
+    if (application?.status === 'pending') {
+      toast.info(
+        "🔍 Your account is under review. Please wait for approval.",
+        { duration: 6000 }
+      );
+      navigate("/");
+      return;
+    }
+
+    // If account is approved but QR not verified (edge case)
+    if (application?.status === 'approved' && !profileData?.qr_verified) {
       navigate("/verify-qr");
+      return;
+    }
+
+    // If QR verified but account not approved (shouldn't happen)
+    if (profileData?.qr_verified && application?.status !== 'approved') {
+      toast.info(
+        "🔍 Your verification is complete. Waiting for approval.",
+        { duration: 6000 }
+      );
+      navigate("/");
       return;
     }
 

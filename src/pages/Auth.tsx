@@ -77,20 +77,49 @@ const Auth = () => {
         return;
       }
 
-      // For all other users: check QR verification
+      // For all other users: check account application status first
+      const { data: application } = await supabase
+        .from("account_applications")
+        .select("status, qr_code_verified")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("qr_verified")
         .eq("id", user.id)
         .maybeSingle();
 
-      if (!profile?.qr_verified) {
+      // If account is pending approval
+      if (application?.status === 'pending') {
+        toast.info(
+          "🔍 Your account is under review. Please wait for approval.",
+          { duration: 6000 }
+        );
+        navigate("/", { replace: true });
+        return;
+      }
+
+      // If account is approved but QR not verified (edge case)
+      if (application?.status === 'approved' && !profile?.qr_verified) {
         toast.info("Please complete QR verification");
         navigate("/verify-qr", { replace: true });
-      } else {
-        toast.success("Signed in successfully!");
-        navigate("/dashboard", { replace: true });
+        return;
       }
+
+      // If QR verified but account not approved (shouldn't happen)
+      if (profile?.qr_verified && application?.status !== 'approved') {
+        toast.info(
+          "🔍 Your verification is complete. Waiting for approval.",
+          { duration: 6000 }
+        );
+        navigate("/", { replace: true });
+        return;
+      }
+
+      // All checks passed - proceed to dashboard
+      toast.success("Signed in successfully!");
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("Redirect error:", error);
     }
@@ -188,20 +217,56 @@ const Auth = () => {
           return;
         }
 
-        // PIN verified - now check QR verification status
+        // PIN verified - now check account application status and QR verification
+        const { data: application } = await supabase
+          .from("account_applications")
+          .select("status, qr_code_verified")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
+
         const { data: fullProfile } = await supabase
           .from("profiles")
           .select("qr_verified")
           .eq("id", data.user.id)
           .single();
 
-        // If QR not verified, redirect to QR verification page (keep user signed in)
-        if (!fullProfile?.qr_verified) {
+        // Check if account is still pending approval
+        if (application?.status === 'pending') {
+          toast.info(
+            "🔍 Your account is under review. Our team is reviewing your application and documents.",
+            { duration: 8000 }
+          );
+          toast.info(
+            "📧 You will receive an email once your account has been approved.",
+            { duration: 6000 }
+          );
+          await supabase.auth.signOut();
+          setLoading(false);
+          setShowLoadingSpinner(false);
+          isLoggingIn.current = false;
+          return;
+        }
+
+        // If account is approved but QR not verified (edge case)
+        if (application?.status === 'approved' && !fullProfile?.qr_verified) {
           toast.info("📧 Please complete email verification with the QR code sent to your inbox.");
           setLoading(false);
           setShowLoadingSpinner(false);
           isLoggingIn.current = false;
           navigate("/verify-qr");
+          return;
+        }
+
+        // If QR is verified but account not approved yet (shouldn't happen but handle it)
+        if (fullProfile?.qr_verified && application?.status !== 'approved') {
+          toast.info(
+            "🔍 Your account verification is complete. Waiting for final approval.",
+            { duration: 6000 }
+          );
+          await supabase.auth.signOut();
+          setLoading(false);
+          setShowLoadingSpinner(false);
+          isLoggingIn.current = false;
           return;
         }
 
