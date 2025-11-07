@@ -744,9 +744,9 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
                              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
                              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                            </div>
-                           <span className="text-xs text-muted-foreground ml-2">
-                             {botTyping ? 'AI is thinking...' : (agentName ? `${agentName.replace('Support - ', '')} is typing...` : 'Agent is typing...')}
-                           </span>
+                            <span className="text-xs text-muted-foreground ml-2">
+                              {botTyping ? 'AI is thinking...' : (agentName ? `${agentName} is typing...` : 'Agent is typing...')}
+                            </span>
                          </div>
                        </div>
                      </div>
