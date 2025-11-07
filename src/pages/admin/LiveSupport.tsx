@@ -339,35 +339,50 @@ export default function LiveSupport() {
       return;
     }
 
+    const messageText = newMessage.trim();
+    setNewMessage("");
     setIsSending(true);
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('Not authenticated');
+        setNewMessage(messageText); // Restore message on error
         return;
       }
 
       console.log('Sending staff message:', { 
         ticket_id: selectedChat.id, 
-        message: newMessage.trim(),
+        message: messageText,
         user_id: user.id 
       });
 
-      // Don't add to state here - let realtime handle it
-      const { error } = await supabase
+      // Insert and get the message back immediately
+      const { data: insertedMessage, error } = await supabase
         .from("support_messages")
         .insert({
           ticket_id: selectedChat.id,
-          message: newMessage.trim(),
+          message: messageText,
           sender_type: 'staff'
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Message send error:', error);
         throw error;
       }
 
-      setNewMessage("");
+      // Add message to state immediately
+      console.log('Adding sent message to state:', insertedMessage.id);
+      setMessages(prev => {
+        // Check if message already exists (from realtime)
+        if (prev.some(msg => msg.id === insertedMessage.id)) {
+          console.log('Message already in state from realtime');
+          return prev;
+        }
+        return [...prev, insertedMessage];
+      });
       
       // Update typing indicator
       await supabase

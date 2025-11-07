@@ -406,21 +406,8 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
     setNewMessage("");
     setLoading(true);
 
-    // Create optimistic message for instant display
-    const optimisticMessage = {
-      id: `temp-${Date.now()}`,
-      ticket_id: ticketId,
-      message: messageText,
-      sender_type: "user",
-      created_at: new Date().toISOString(),
-      is_read: false
-    };
-
-    // Add message to UI immediately
-    setMessages(prev => [...prev, optimisticMessage]);
-
     try {
-      // Insert the user's message to database
+      // Insert the user's message to database and get it back immediately
       const { data: insertedMessage, error: insertError } = await supabase
         .from("support_messages")
         .insert({
@@ -433,10 +420,16 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
 
       if (insertError) throw insertError;
 
-      // Replace optimistic message with real one
-      setMessages(prev => 
-        prev.map(msg => msg.id === optimisticMessage.id ? insertedMessage : msg)
-      );
+      // Add message to state immediately (realtime subscription will deduplicate)
+      console.log('USER: Adding sent message to state:', insertedMessage.id);
+      setMessages(prev => {
+        // Check if message already exists (from realtime)
+        if (prev.some(msg => msg.id === insertedMessage.id)) {
+          console.log('USER: Message already in state from realtime');
+          return prev;
+        }
+        return [...prev, insertedMessage];
+      });
 
       // Clear typing indicator
       await supabase
@@ -503,8 +496,8 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
       }
     } catch (error: any) {
       console.error("Error sending message:", error);
-      // Remove optimistic message on error
-      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+      // Restore message on error
+      setNewMessage(messageText);
       toast.error("Failed to send message");
     } finally {
       setLoading(false);
