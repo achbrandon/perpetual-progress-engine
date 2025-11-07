@@ -20,6 +20,7 @@ const OpenAccount = () => {
   const [showQRVerification, setShowQRVerification] = useState(false);
   const [qrCode, setQrCode] = useState("");
   const [qrLoading, setQrLoading] = useState(false);
+  const [verificationSuccess, setVerificationSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
@@ -1196,11 +1197,15 @@ const OpenAccount = () => {
                 return;
               }
 
-              alert("Email verified! You can now sign in to your account.");
+              // Show success message
+              setVerificationSuccess(true);
+              setQrLoading(false);
               
-              // Sign out and redirect
-              await supabase.auth.signOut();
-              window.location.href = "/auth";
+              // Wait 2 seconds then sign out and redirect
+              setTimeout(async () => {
+                await supabase.auth.signOut();
+                window.location.href = "/auth";
+              }, 2000);
               
             } catch (error) {
               console.error("Error verifying QR:", error);
@@ -1226,26 +1231,41 @@ const OpenAccount = () => {
               </p>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full h-12" 
-              disabled={qrLoading}
-            >
-              {qrLoading ? "Verifying..." : "Verify & Continue"}
-            </Button>
+            {verificationSuccess ? (
+              <div className="text-center py-6 space-y-4">
+                <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
+                <p className="text-xl font-semibold text-green-600">
+                  Account verified successfully!
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Redirecting to sign in...
+                </p>
+              </div>
+            ) : (
+              <>
+                <Button 
+                  type="submit" 
+                  className="w-full h-12" 
+                  disabled={qrLoading}
+                >
+                  {qrLoading ? "Verifying..." : "Verify & Continue"}
+                </Button>
 
-            <Button 
-              type="button"
-              variant="outline"
-              className="w-full h-12"
-              onClick={() => {
-                setShowQRVerification(false);
-                setQrCode("");
-                supabase.auth.signOut();
-              }}
-            >
-              Cancel
-            </Button>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  className="w-full h-12"
+                  onClick={() => {
+                    setShowQRVerification(false);
+                    setQrCode("");
+                    setVerificationSuccess(false);
+                    supabase.auth.signOut();
+                  }}
+                >
+                  Cancel
+                </Button>
+              </>
+            )}
           </form>
         </DialogContent>
       </Dialog>
