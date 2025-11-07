@@ -923,10 +923,14 @@ export type Database = {
         Row: {
           agent_online: boolean | null
           agent_typing: boolean | null
+          assigned_agent_id: string | null
           chat_mode: string | null
           created_at: string | null
+          description: string | null
           id: string
           status: string | null
+          subject: string | null
+          ticket_type: string | null
           updated_at: string | null
           user_id: string
           user_online: boolean | null
@@ -935,10 +939,14 @@ export type Database = {
         Insert: {
           agent_online?: boolean | null
           agent_typing?: boolean | null
+          assigned_agent_id?: string | null
           chat_mode?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           status?: string | null
+          subject?: string | null
+          ticket_type?: string | null
           updated_at?: string | null
           user_id: string
           user_online?: boolean | null
@@ -947,10 +955,14 @@ export type Database = {
         Update: {
           agent_online?: boolean | null
           agent_typing?: boolean | null
+          assigned_agent_id?: string | null
           chat_mode?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           status?: string | null
+          subject?: string | null
+          ticket_type?: string | null
           updated_at?: string | null
           user_id?: string
           user_online?: boolean | null
