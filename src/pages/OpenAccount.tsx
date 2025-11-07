@@ -17,6 +17,9 @@ const OpenAccount = () => {
   const [step, setStep] = useState(1);
   const totalSteps = 8;
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showQRVerification, setShowQRVerification] = useState(false);
+  const [qrCode, setQrCode] = useState("");
+  const [qrLoading, setQrLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
@@ -1095,15 +1098,155 @@ const OpenAccount = () => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Button onClick={() => setShowSuccessDialog(false)} className="w-full">
-              Close
+            <Button 
+              onClick={() => {
+                setShowSuccessDialog(false);
+                setShowQRVerification(true);
+              }} 
+              className="w-full"
+            >
+              Okay to Continue
             </Button>
-            <Link to="/auth" className="w-full">
-              <Button variant="outline" className="w-full">
-                Return to Sign In
-              </Button>
-            </Link>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Verification Dialog */}
+      <Dialog open={showQRVerification} onOpenChange={setShowQRVerification}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex justify-center mb-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full"></div>
+                <div className="relative bg-primary/10 p-4 rounded-2xl border border-primary/30">
+                  <CheckCircle className="h-12 w-12 text-primary" />
+                </div>
+              </div>
+            </div>
+            <DialogTitle className="text-center text-2xl">Verify Your Email</DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              Check your email for the verification code to complete your account setup
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-2 my-4">
+            <p className="text-sm font-semibold text-primary flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Security Verification Required
+            </p>
+            <p className="text-xs text-muted-foreground">
+              We've sent a verification email with a secret key to <strong>{formData.email}</strong>. Enter it below to activate your account.
+            </p>
+          </div>
+
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            
+            if (!qrCode.trim()) {
+              alert("Please enter your QR code");
+              return;
+            }
+
+            setQrLoading(true);
+
+            try {
+              const { data: { user } } = await supabase.auth.getUser();
+              
+              if (!user) {
+                alert("Session expired. Please sign up again.");
+                setShowQRVerification(false);
+                setQrLoading(false);
+                return;
+              }
+
+              // Get application to verify QR code
+              const { data: application } = await supabase
+                .from("account_applications")
+                .select("qr_code_secret")
+                .eq("user_id", user.id)
+                .maybeSingle();
+
+              if (application && application.qr_code_secret !== qrCode.trim()) {
+                alert("Invalid QR code. Please check your email and try again.");
+                setQrLoading(false);
+                return;
+              }
+
+              // Update application
+              if (application) {
+                await supabase
+                  .from("account_applications")
+                  .update({ qr_code_verified: true })
+                  .eq("user_id", user.id);
+              }
+
+              // Update profile
+              const { error: updateProfileError } = await supabase
+                .from("profiles")
+                .update({ 
+                  qr_verified: true,
+                  can_transact: true 
+                })
+                .eq("id", user.id);
+
+              if (updateProfileError) {
+                console.error("Error updating profile:", updateProfileError);
+                alert("Failed to update profile");
+                setQrLoading(false);
+                return;
+              }
+
+              alert("Email verified! You can now sign in to your account.");
+              
+              // Sign out and redirect
+              await supabase.auth.signOut();
+              window.location.href = "/auth";
+              
+            } catch (error) {
+              console.error("Error verifying QR:", error);
+              alert("An error occurred during verification");
+              setQrLoading(false);
+            }
+          }} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="qrCode" className="text-sm font-semibold">
+                Security Secret Key
+              </Label>
+              <Input
+                id="qrCode"
+                type="text"
+                placeholder="Enter your secret key from email"
+                value={qrCode}
+                onChange={(e) => setQrCode(e.target.value)}
+                required
+                className="h-12"
+              />
+              <p className="text-xs text-muted-foreground">
+                Copy the secret key from your verification email
+              </p>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full h-12" 
+              disabled={qrLoading}
+            >
+              {qrLoading ? "Verifying..." : "Verify & Continue"}
+            </Button>
+
+            <Button 
+              type="button"
+              variant="outline"
+              className="w-full h-12"
+              onClick={() => {
+                setShowQRVerification(false);
+                setQrCode("");
+                supabase.auth.signOut();
+              }}
+            >
+              Cancel
+            </Button>
+          </form>
         </DialogContent>
       </Dialog>
 
