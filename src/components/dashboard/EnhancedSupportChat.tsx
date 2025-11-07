@@ -508,6 +508,40 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
     }
   };
 
+  const handleSwitchToLiveAgent = async () => {
+    if (!ticketId) return;
+
+    try {
+      // Update ticket to connecting mode
+      await supabase
+        .from('support_tickets')
+        .update({ chat_mode: 'connecting' })
+        .eq('id', ticketId);
+      
+      toast.info("🔄 Connecting you to a live agent...", {
+        duration: 3000
+      });
+
+      // Call smart agent assignment
+      const { data: assignData } = await supabase.functions.invoke('assign-best-agent', {
+        body: { ticketId }
+      });
+
+      if (assignData?.assigned) {
+        toast.success(`✅ Connected to ${assignData.agentName}!`, {
+          duration: 4000
+        });
+      } else {
+        toast.info("⏳ All agents are currently busy. You'll be connected shortly.", {
+          duration: 5000
+        });
+      }
+    } catch (error: any) {
+      console.error("Error switching to live agent:", error);
+      toast.error("Failed to connect to live agent");
+    }
+  };
+
   const handleSubmitRating = async () => {
     if (!ticketId || !userId || rating === 0) {
       toast.error("Please select a rating");
@@ -740,6 +774,17 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
 
             <div className="p-4 border-t bg-muted/30">
               <div className="flex gap-2 mb-2">
+                {(!agentOnline && ticket?.chat_mode !== 'agent' && ticket?.chat_mode !== 'connecting') && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleSwitchToLiveAgent}
+                    className="bg-gradient-to-r from-primary to-primary/80"
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Switch to Live Agent
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
