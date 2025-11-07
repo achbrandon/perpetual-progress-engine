@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Send, Circle, Bell, Users } from "lucide-react";
+import { MessageSquare, Send, Circle, Bell, Users, Star } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminSupportPage() {
@@ -16,6 +16,7 @@ export default function AdminSupportPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [agents, setAgents] = useState<any[]>([]);
+  const [agentRatings, setAgentRatings] = useState<Record<string, { avg: number; count: number }>>({});
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -101,6 +102,39 @@ export default function AdminSupportPage() {
 
       if (error) throw error;
       setAgents(data || []);
+      
+      // Load ratings for each agent
+      if (data && data.length > 0) {
+        const agentIds = data.map((a: any) => a.user_id);
+        const { data: ratingsData } = await supabase
+          .from('support_ratings')
+          .select(`
+            rating,
+            support_tickets!inner(assigned_agent_id)
+          `)
+          .in('support_tickets.assigned_agent_id', agentIds);
+
+        // Calculate average ratings per agent
+        const ratingsMap: Record<string, { avg: number; count: number }> = {};
+        
+        if (ratingsData) {
+          agentIds.forEach((agentId: string) => {
+            const agentRatings = ratingsData.filter(
+              (r: any) => r.support_tickets?.assigned_agent_id === agentId
+            );
+            
+            if (agentRatings.length > 0) {
+              const sum = agentRatings.reduce((acc: number, r: any) => acc + r.rating, 0);
+              ratingsMap[agentId] = {
+                avg: sum / agentRatings.length,
+                count: agentRatings.length
+              };
+            }
+          });
+        }
+        
+        setAgentRatings(ratingsMap);
+      }
     } catch (error) {
       console.error("Error fetching agents:", error);
     }
@@ -364,14 +398,26 @@ export default function AdminSupportPage() {
                       </SelectTrigger>
                       <SelectContent className="bg-slate-900 border-slate-700">
                         <SelectItem value="" className="text-white">Unassigned</SelectItem>
-                        {agents.map((agent) => (
-                          <SelectItem key={agent.user_id} value={agent.user_id} className="text-white">
-                            <div className="flex items-center gap-2">
-                              <Users className="h-3 w-3" />
-                              {agent.profiles?.full_name || agent.profiles?.email}
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {agents.map((agent) => {
+                          const rating = agentRatings[agent.user_id];
+                          return (
+                            <SelectItem key={agent.user_id} value={agent.user_id} className="text-white">
+                              <div className="flex items-center justify-between w-full gap-2">
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-3 w-3" />
+                                  {agent.profiles?.full_name || agent.profiles?.email}
+                                </div>
+                                {rating && (
+                                  <div className="flex items-center gap-1 text-xs text-yellow-400">
+                                    <Star className="h-3 w-3 fill-yellow-400" />
+                                    <span>{rating.avg.toFixed(1)}</span>
+                                    <span className="text-slate-400">({rating.count})</span>
+                                  </div>
+                                )}
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                     <Badge variant="secondary">{selectedTicket.ticket_type}</Badge>

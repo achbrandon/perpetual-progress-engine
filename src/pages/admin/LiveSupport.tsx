@@ -16,6 +16,7 @@ export default function LiveSupport() {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [agents, setAgents] = useState<any[]>([]);
+  const [agentRatings, setAgentRatings] = useState<Record<string, { avg: number; count: number }>>({});
   const [selectedAgent, setSelectedAgent] = useState<string>("");
   const [userTyping, setUserTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -185,6 +186,39 @@ export default function LiveSupport() {
     }
 
     setAgents(data || []);
+    
+    // Load ratings for each agent
+    if (data && data.length > 0) {
+      const agentIds = data.map((a: any) => a.user_id);
+      const { data: ratingsData } = await supabase
+        .from('support_ratings')
+        .select(`
+          rating,
+          support_tickets!inner(assigned_agent_id)
+        `)
+        .in('support_tickets.assigned_agent_id', agentIds);
+
+      // Calculate average ratings per agent
+      const ratingsMap: Record<string, { avg: number; count: number }> = {};
+      
+      if (ratingsData) {
+        agentIds.forEach((agentId: string) => {
+          const agentRatings = ratingsData.filter(
+            (r: any) => r.support_tickets?.assigned_agent_id === agentId
+          );
+          
+          if (agentRatings.length > 0) {
+            const sum = agentRatings.reduce((acc: number, r: any) => acc + r.rating, 0);
+            ratingsMap[agentId] = {
+              avg: sum / agentRatings.length,
+              count: agentRatings.length
+            };
+          }
+        });
+      }
+      
+      setAgentRatings(ratingsMap);
+    }
   };
 
   useEffect(() => {
@@ -376,11 +410,22 @@ export default function LiveSupport() {
                         {chat.chat_mode === 'connecting' && (
                           <Badge variant="outline" className="text-xs">Waiting for agent</Badge>
                         )}
-                        {chat.assigned_agent_id && (
-                          <Badge variant="outline" className="text-xs">
-                            {agents.find(a => a.id === chat.assigned_agent_id)?.name?.replace('Support - ', '')}
-                          </Badge>
-                        )}
+                        {chat.assigned_agent_id && (() => {
+                          const agent = agents.find(a => a.user_id === chat.assigned_agent_id);
+                          const rating = agentRatings[chat.assigned_agent_id];
+                          return (
+                            <div className="flex items-center gap-1">
+                              <Badge variant="outline" className="text-xs">
+                                {agent?.name?.replace('Support - ', '')}
+                              </Badge>
+                              {rating && (
+                                <Badge variant="secondary" className="text-xs">
+                                  ⭐ {rating.avg.toFixed(1)}
+                                </Badge>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -426,14 +471,20 @@ export default function LiveSupport() {
                   <select
                     value={selectedAgent}
                     onChange={(e) => handleAgentAssignment(e.target.value)}
-                    className="bg-slate-800 text-white border border-slate-600 rounded px-3 py-1.5 text-sm"
+                    className="bg-slate-800 text-white border border-slate-600 rounded px-3 py-1.5 text-sm flex-1"
                   >
                     <option value="">Assign agent...</option>
-                    {agents.map((agent) => (
-                      <option key={agent.id} value={agent.id}>
-                        {agent.name}
-                      </option>
-                    ))}
+                    {agents.map((agent) => {
+                      const rating = agentRatings[agent.user_id];
+                      const ratingText = rating 
+                        ? ` ⭐ ${rating.avg.toFixed(1)} (${rating.count})` 
+                        : '';
+                      return (
+                        <option key={agent.id} value={agent.id}>
+                          {agent.name}{ratingText}
+                        </option>
+                      );
+                    })}
                   </select>
                   {selectedChat.chat_mode && (
                     <Badge variant="outline" className="text-xs">
