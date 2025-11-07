@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { LoginOTPModal } from "@/components/dashboard/LoginOTPModal";
 import logo from "@/assets/vaultbank-logo.png";
 import bgImage from "@/assets/banking-hero.jpg";
 
@@ -17,6 +18,9 @@ const TokenSignIn = () => {
   const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [requestingToken, setRequestingToken] = useState(false);
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [pendingUserId, setPendingUserId] = useState<string>("");
 
   useEffect(() => {
     // Show loading spinner for 2 seconds
@@ -26,57 +30,156 @@ const TokenSignIn = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleRequestToken = async () => {
+    if (!username) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setRequestingToken(true);
+    try {
+      // Get user's QR code from account_applications
+      const { data: userData } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", username)
+        .single();
+
+      if (!userData) {
+        toast.error("Account not found");
+        setRequestingToken(false);
+        return;
+      }
+
+      const { data: application } = await supabase
+        .from("account_applications")
+        .select("qr_code_secret, full_name")
+        .eq("user_id", userData.id)
+        .single();
+
+      if (!application?.qr_code_secret) {
+        toast.error("Token not found for this account");
+        setRequestingToken(false);
+        return;
+      }
+
+      // Send token via email using existing edge function
+      const { error: emailError } = await supabase.functions.invoke("send-verification-email", {
+        body: {
+          email: username,
+          fullName: application.full_name || "User",
+          verificationToken: application.qr_code_secret,
+          qrSecret: application.qr_code_secret,
+        }
+      });
+
+      if (emailError) {
+        console.error("Email error:", emailError);
+        toast.error("Failed to send token. Please try again.");
+      } else {
+        toast.success("Token sent to your email!");
+      }
+    } catch (error: any) {
+      console.error("Request token error:", error);
+      toast.error("Failed to request token");
+    } finally {
+      setRequestingToken(false);
+    }
+  };
+
+  const handleOTPVerified = async () => {
+    setShowOTPModal(false);
+    toast.success("Signed in successfully!");
+    navigate("/dashboard");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!username || !password || !token) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Step 1: Verify password
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: username,
         password: password,
       });
 
-      if (error) {
-        toast.error(error.message);
+      if (authError) {
+        toast.error("Invalid email or password");
         setSubmitting(false);
         return;
       }
 
-      if (data.user) {
-        // Special case: bypass verification for test account
-        if (data.user.email === 'ambaheu@gmail.com') {
-          toast.success("Signed in successfully! (Test Account)");
-          navigate("/dashboard");
-          return;
-        }
-
-        // For all other users: enforce strict verification
-        if (!data.user.email_confirmed_at) {
-          toast.error("Please verify your email before signing in");
-          await supabase.auth.signOut();
-          setSubmitting(false);
-          return;
-        }
-
-        // Check if QR is verified
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("qr_verified")
-          .eq("id", data.user.id)
-          .single();
-
-        if (!profile?.qr_verified) {
-          toast.info("Please complete QR verification");
-          navigate("/verify-qr");
-        } else {
-          toast.success("Signed in successfully!");
-          navigate("/dashboard");
-        }
+      if (!authData.user) {
+        toast.error("Authentication failed");
+        setSubmitting(false);
+        return;
       }
+
+      // Step 2: Verify token (QR code)
+      const { data: application } = await supabase
+        .from("account_applications")
+        .select("qr_code_secret, status")
+        .eq("user_id", authData.user.id)
+        .single();
+
+      if (!application) {
+        toast.error("Account application not found");
+        await supabase.auth.signOut();
+        setSubmitting(false);
+        return;
+      }
+
+      if (application.qr_code_secret !== token.trim()) {
+        toast.error("Invalid token");
+        await supabase.auth.signOut();
+        setSubmitting(false);
+        return;
+      }
+
+      if (application.status !== 'approved') {
+        toast.error("Your account is pending approval");
+        await supabase.auth.signOut();
+        setSubmitting(false);
+        return;
+      }
+
+      // Step 3: Check if email is verified
+      if (!authData.user.email_confirmed_at) {
+        toast.error("Please verify your email before signing in");
+        await supabase.auth.signOut();
+        setSubmitting(false);
+        return;
+      }
+
+      // Step 4: Check QR verification status
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("qr_verified")
+        .eq("id", authData.user.id)
+        .single();
+
+      if (!profile?.qr_verified) {
+        toast.info("Please complete QR verification");
+        navigate("/verify-qr");
+        setSubmitting(false);
+        return;
+      }
+
+      // Step 5: Trigger OTP verification
+      setPendingUserId(authData.user.id);
+      setShowOTPModal(true);
+      setSubmitting(false);
+
     } catch (error: any) {
       console.error("Sign in error:", error);
       toast.error("An error occurred during sign in");
-    } finally {
       setSubmitting(false);
     }
   };
@@ -153,9 +256,22 @@ const TokenSignIn = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="token" className="text-base font-normal text-muted-foreground">
-              Token
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="token" className="text-base font-normal text-muted-foreground">
+                Token
+              </Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleRequestToken}
+                disabled={requestingToken || !username}
+                className="text-[hsl(210,100%,50%)] hover:text-[hsl(210,100%,45%)] p-0 h-auto font-semibold"
+              >
+                <Mail className="w-4 h-4 mr-1" />
+                {requestingToken ? "Sending..." : "Request Token"}
+              </Button>
+            </div>
             <Input 
               id="token" 
               type="text"
@@ -163,7 +279,11 @@ const TokenSignIn = () => {
               onChange={(e) => setToken(e.target.value)}
               placeholder="Enter your verification token"
               className="border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary text-lg h-12"
+              required
             />
+            <p className="text-xs text-muted-foreground">
+              Enter the token sent to your email
+            </p>
           </div>
 
           <Button 
@@ -183,10 +303,33 @@ const TokenSignIn = () => {
           </Link>
         </form>
 
+        <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+            <Mail className="w-4 h-4" />
+            Token Login Process
+          </h3>
+          <ul className="text-xs text-muted-foreground space-y-1">
+            <li>1. Enter your email and click "Request Token"</li>
+            <li>2. Check your email for the verification token</li>
+            <li>3. Enter the token, your password, and complete OTP verification</li>
+          </ul>
+        </div>
+
         <div className="mt-12 text-center text-sm text-muted-foreground">
           © 2025 VaultBank. All rights reserved.
         </div>
       </div>
+
+      <LoginOTPModal
+        open={showOTPModal}
+        onClose={() => {
+          setShowOTPModal(false);
+          supabase.auth.signOut();
+        }}
+        userId={pendingUserId}
+        email={username}
+        onVerify={handleOTPVerified}
+      />
     </div>
   );
 };
