@@ -176,7 +176,7 @@ const Dashboard = () => {
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-2xl font-bold">Your Accounts</h2>
-                    <Button size="sm" onClick={() => navigate("/open-account")}>
+                    <Button size="sm" onClick={() => navigate("/dashboard/request-account")}>
                       <Plus className="h-4 w-4 mr-2" />
                       Add Account
                     </Button>

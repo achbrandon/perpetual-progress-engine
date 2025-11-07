@@ -183,7 +183,25 @@ const Auth = () => {
           return;
         }
 
-        // PIN verified - now sign out and require OTP verification
+        // PIN verified - now check QR verification status
+        const { data: fullProfile } = await supabase
+          .from("profiles")
+          .select("qr_verified")
+          .eq("id", data.user.id)
+          .single();
+
+        // If QR not verified, redirect to QR verification page
+        if (!fullProfile?.qr_verified) {
+          toast.info("📧 Please verify your email with the QR code sent to your inbox.");
+          await supabase.auth.signOut();
+          setLoading(false);
+          setShowLoadingSpinner(false);
+          isLoggingIn.current = false;
+          navigate("/verify-qr");
+          return;
+        }
+
+        // QR verified - now sign out and require OTP verification
         // User must complete OTP before getting dashboard access
         await supabase.auth.signOut();
         
