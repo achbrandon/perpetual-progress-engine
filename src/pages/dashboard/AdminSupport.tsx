@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { MessageSquare, Clock, User, Send } from "lucide-react";
+import { useConnectionStatus } from "@/hooks/useConnectionStatus";
+import { ConnectionIndicator } from "@/components/ConnectionIndicator";
 
 export default function AdminSupport() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -18,14 +20,18 @@ export default function AdminSupport() {
   const [loading, setLoading] = useState(false);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [userTypingStatus, setUserTypingStatus] = useState<Record<string, boolean>>({});
-  const audioRef = useState<HTMLAudioElement | null>(null)[0];
-  const typingChannelRef = useState<any>(null)[0];
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const channelRef = useRef<any>(null);
+  
+  // Connection status monitoring
+  const { status: connectionStatus, isConnected, reconnect: reconnectChannel, lastConnected } = useConnectionStatus(channelRef.current);
 
   useEffect(() => {
     // Initialize audio
-    const audio = new Audio('/notification.mp3');
-    audio.volume = 0.5;
-    (audioRef as any) = audio;
+    audioRef.current = new Audio('/notification.mp3');
+    if (audioRef.current) {
+      audioRef.current.volume = 0.5;
+    }
     
     loadTickets();
     subscribeToTickets();
@@ -65,8 +71,8 @@ export default function AdminSupport() {
             }
 
             // Play sound for user messages
-            if (payload.new.sender_type === 'user') {
-              (audioRef as any)?.play().catch((e: any) => console.log('Audio failed:', e));
+            if (payload.new.sender_type === 'user' && audioRef.current) {
+              audioRef.current.play().catch((e: any) => console.log('Audio failed:', e));
             }
 
             console.log('ADMIN: Adding message, total:', prev.length + 1);
@@ -94,10 +100,14 @@ export default function AdminSupport() {
         console.log('ADMIN: Subscription status:', status);
       });
 
+    // Store channel ref for connection monitoring
+    channelRef.current = channel;
+
     return () => {
       console.log('ADMIN: Cleaning up ticket subscriptions');
       updateAgentStatus(false);
       supabase.removeChannel(channel);
+      channelRef.current = null;
     };
   }, [selectedTicket]);
 
@@ -355,10 +365,21 @@ export default function AdminSupport() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                {selectedTicket ? `Chat with ${selectedTicket.profiles?.full_name || 'User'}` : 'Select a ticket'}
-              </CardTitle>
+              <div className="flex items-center gap-3">
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  {selectedTicket ? `Chat with ${selectedTicket.profiles?.full_name || 'User'}` : 'Select a ticket'}
+                </CardTitle>
+                {selectedTicket && (
+                  <ConnectionIndicator 
+                    status={connectionStatus}
+                    onReconnect={reconnectChannel}
+                    lastConnected={lastConnected}
+                    showReconnectButton={!isConnected}
+                    className="ml-2"
+                  />
+                )}
+              </div>
               {selectedTicket && (
                 <Badge variant={selectedTicket.user_online ? "default" : "secondary"}>
                   {selectedTicket.user_online ? "User Online" : "User Offline"}

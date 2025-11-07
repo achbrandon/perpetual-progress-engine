@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Send, X, Upload, Star, Clock, MessageSquare, History, Check } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { useConnectionStatus } from "@/hooks/useConnectionStatus";
+import { ConnectionIndicator } from "@/components/ConnectionIndicator";
 
 interface EnhancedSupportChatProps {
   userId?: string;
@@ -37,9 +39,11 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
-  const messagesChannelRef = useRef<any>(null);
-  const ticketChannelRef = useRef<any>(null);
+  const channelRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // Connection status monitoring
+  const { status: connectionStatus, isConnected, reconnect: reconnectChannel, lastConnected } = useConnectionStatus(channelRef.current);
 
   // Initialize audio
   useEffect(() => {
@@ -120,7 +124,7 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
               .from('support_agents')
               .select('name, avatar_url')
               .eq('user_id', payload.new.assigned_agent_id)
-              .single();
+              .maybeSingle();
             if (data) {
               console.log('USER: Agent loaded:', data.name);
               setAgentName(data.name);
@@ -133,10 +137,14 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
         console.log('USER: Subscription status:', status);
       });
 
+    // Store channel ref for connection monitoring
+    channelRef.current = channel;
+
     return () => {
       console.log('USER: Cleaning up subscriptions');
       updateUserOnlineStatus(false);
       supabase.removeChannel(channel);
+      channelRef.current = null;
     };
   }, [ticketId]);
 
@@ -188,100 +196,6 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
       }
     };
   }, [newMessage, ticketId]);
-
-  const subscribeToMessages = () => {
-    // Clean up any existing subscription first
-    if (messagesChannelRef.current) {
-      console.log('Removing existing message subscription');
-      supabase.removeChannel(messagesChannelRef.current);
-      messagesChannelRef.current = null;
-    }
-
-    const channel = supabase
-      .channel(`support-messages-${ticketId}`, {
-        config: {
-          broadcast: { self: true },
-          presence: { key: '' }
-        }
-      })
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'support_messages',
-          filter: `ticket_id=eq.${ticketId}`
-        },
-        (payload) => {
-          console.log('USER SIDE: New message INSERT received:', {
-            id: payload.new.id,
-            sender_type: payload.new.sender_type,
-            message: payload.new.message?.substring(0, 50)
-          });
-          
-          // Immediately add to state
-          setMessages(prev => {
-            // Check for duplicate by ID
-            const isDuplicate = prev.some(msg => msg.id === payload.new.id);
-            if (isDuplicate) {
-              console.log('USER: Duplicate message prevented:', payload.new.id);
-              return prev;
-            }
-            
-            // Play sound notification if message is from agent or bot
-            if (payload.new.sender_type === 'staff' || payload.new.sender_type === 'bot') {
-              console.log('USER: Playing notification sound for:', payload.new.sender_type);
-              audioRef.current?.play().catch(err => console.log('Audio play failed:', err));
-            }
-            
-            console.log('USER: Adding new message to state, total will be:', prev.length + 1);
-            const newMessages = [...prev, payload.new];
-            
-            // Force scroll to bottom after state update
-            setTimeout(() => {
-              if (scrollRef.current) {
-                scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-              }
-            }, 100);
-            
-            return newMessages;
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'support_messages',
-          filter: `ticket_id=eq.${ticketId}`
-        },
-        (payload) => {
-          console.log('USER SIDE: Message updated:', payload.new.id);
-          setMessages((prev) =>
-            prev.map((msg) => {
-              if (msg.id === payload.new.id) {
-                return payload.new;
-              }
-              return msg;
-            })
-          );
-        }
-      )
-      .subscribe((status) => {
-        console.log('USER: Message subscription status:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('USER: Successfully subscribed to messages for ticket:', ticketId);
-        }
-      });
-
-    messagesChannelRef.current = channel;
-
-    return () => {
-      console.log('USER: Cleaning up message subscription');
-      supabase.removeChannel(channel);
-    };
-  };
 
   const updateUserOnlineStatus = async (online: boolean) => {
     if (!ticketId) return;
