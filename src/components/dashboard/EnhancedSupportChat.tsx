@@ -103,10 +103,11 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
             const { data } = await supabase
               .from('support_agents')
               .select('name, avatar_url')
-              .eq('id', payload.new.assigned_agent_id)
+              .eq('user_id', payload.new.assigned_agent_id)
               .limit(1)
               .maybeSingle();
             if (data) {
+              console.log('USER: Agent assigned:', data.name);
               setAgentName(data.name);
               setAgentAvatar(data.avatar_url || '');
             }
@@ -300,10 +301,11 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
           const { data: agentData } = await supabase
             .from('support_agents')
             .select('name, avatar_url')
-            .eq('id', currentTicket.assigned_agent_id)
+            .eq('user_id', currentTicket.assigned_agent_id)
             .limit(1)
             .maybeSingle();
           if (agentData) {
+            console.log('USER: Loaded agent info:', agentData.name);
             setAgentName(agentData.name);
             setAgentAvatar(agentData.avatar_url || '');
           }

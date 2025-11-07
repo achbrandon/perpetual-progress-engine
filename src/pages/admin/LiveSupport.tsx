@@ -203,29 +203,29 @@ export default function LiveSupport() {
 
     setAgents(data || []);
     
-    // Load ratings for each agent
+    // Load ratings for each agent using user_id
     if (data && data.length > 0) {
-      const agentIds = data.map((a: any) => a.id);
+      const userIds = data.map((a: any) => a.user_id);
       const { data: ratingsData } = await supabase
         .from('support_ratings')
         .select(`
           rating,
           support_tickets!inner(assigned_agent_id)
         `)
-        .in('support_tickets.assigned_agent_id', agentIds);
+        .in('support_tickets.assigned_agent_id', userIds);
 
-      // Calculate average ratings per agent
+      // Calculate average ratings per agent using user_id
       const ratingsMap: Record<string, { avg: number; count: number }> = {};
       
       if (ratingsData) {
-        agentIds.forEach((agentId: string) => {
+        userIds.forEach((userId: string) => {
           const agentRatings = ratingsData.filter(
-            (r: any) => r.support_tickets?.assigned_agent_id === agentId
+            (r: any) => r.support_tickets?.assigned_agent_id === userId
           );
           
           if (agentRatings.length > 0) {
             const sum = agentRatings.reduce((acc: number, r: any) => acc + r.rating, 0);
-            ratingsMap[agentId] = {
+            ratingsMap[userId] = {
               avg: sum / agentRatings.length,
               count: agentRatings.length
             };
@@ -293,19 +293,19 @@ export default function LiveSupport() {
 
     setSelectedAgent(agentId);
 
-    // Find the agent
-    const agent = agents.find(a => a.id === agentId);
+    // Find the agent by user_id
+    const agent = agents.find(a => a.user_id === agentId);
     if (!agent) {
       toast.error('Agent not found');
       return;
     }
 
-    console.log('Assigning agent:', { agentId, agentName: agent.name, chatId: selectedChat.id });
+    console.log('Assigning agent:', { userId: agentId, agentName: agent.name, chatId: selectedChat.id });
 
     const { error } = await supabase
       .from('support_tickets')
       .update({ 
-        assigned_agent_id: agentId,  // Use agent id directly
+        assigned_agent_id: agentId,  // This is the user_id
         chat_mode: 'agent',
         agent_online: true
       })
@@ -477,7 +477,7 @@ export default function LiveSupport() {
                           <Badge variant="outline" className="text-xs">Waiting for agent</Badge>
                         )}
                         {chat.assigned_agent_id && (() => {
-                          const agent = agents.find(a => a.id === chat.assigned_agent_id);
+                          const agent = agents.find(a => a.user_id === chat.assigned_agent_id);
                           const rating = agentRatings[chat.assigned_agent_id];
                           return (
                             <div className="flex items-center gap-1">
@@ -549,13 +549,13 @@ export default function LiveSupport() {
                   >
                     <option value="">Assign agent...</option>
                     {agents.map((agent) => {
-                      const rating = agentRatings[agent.id];
+                      const rating = agentRatings[agent.user_id];
                       const ratingText = rating 
                         ? ` ⭐ ${rating.avg.toFixed(1)} (${rating.count})` 
                         : '';
                       const statusIndicator = agent.is_online ? '🟢' : '⚫';
                       return (
-                        <option key={agent.id} value={agent.id}>
+                        <option key={agent.user_id} value={agent.user_id}>
                           {statusIndicator} {agent.name}{ratingText}
                         </option>
                       );
@@ -580,7 +580,7 @@ export default function LiveSupport() {
                     >
                       <Avatar className="w-8 h-8">
                         {message.sender_type === 'staff' && (() => {
-                          const agent = agents.find(a => a.id === selectedChat?.assigned_agent_id);
+                          const agent = agents.find(a => a.user_id === selectedChat?.assigned_agent_id);
                           return agent?.avatar_url && <AvatarImage src={agent.avatar_url} alt={agent.name} />;
                         })()}
                         <AvatarFallback className={message.sender_type === 'user' ? 'bg-slate-600 text-white' : (message.sender_type === 'staff' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white')}>
