@@ -36,6 +36,11 @@ Deno.serve(async (req) => {
       throw new Error('Application not found');
     }
 
+    // Check if QR code has been verified
+    if (!app.qr_code_verified) {
+      throw new Error('Cannot approve application - QR code verification not completed by user');
+    }
+
     // Generate unique account number
     const accountNumber = `${Math.floor(100000000 + Math.random() * 900000000)}`;
 
