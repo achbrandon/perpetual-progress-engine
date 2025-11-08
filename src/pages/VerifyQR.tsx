@@ -94,6 +94,13 @@ const VerifyQR = () => {
           .eq("user_id", userId)
           .maybeSingle();
 
+        console.log('Verification Debug:', {
+          applicationFound: !!application,
+          storedSecret: application?.qr_code_secret,
+          enteredSecret: qrCode.trim(),
+          match: application?.qr_code_secret === qrCode.trim()
+        });
+
         // Only verify QR code if application exists
         if (application && application.qr_code_secret !== qrCode.trim()) {
           toast.error("Invalid QR code. Please check your email and try again.");
