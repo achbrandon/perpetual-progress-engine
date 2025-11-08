@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, DollarSign, KeyRound, FileText } from "lucide-react";
+import { Search, DollarSign, KeyRound, FileText, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ export default function AdminUserManagement() {
   const [users, setUsers] = useState<any[]>([]);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
+  const [userRoles, setUserRoles] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -51,8 +52,16 @@ export default function AdminUserManagement() {
 
       if (applicationsError) throw applicationsError;
 
+      // Fetch user roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("*");
+
+      if (rolesError) throw rolesError;
+
       setUsers(profilesData || []);
       setApplications(applicationsData || []);
+      setUserRoles(rolesData || []);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Failed to load users");
@@ -193,6 +202,50 @@ export default function AdminUserManagement() {
     return applications.find(app => app.user_id === userId);
   };
 
+  const isUserAdmin = (userId: string) => {
+    return userRoles.some(role => role.user_id === userId && role.role === 'admin');
+  };
+
+  const handleToggleAdminRole = async (user: any) => {
+    const isAdmin = isUserAdmin(user.id);
+    
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error("Not authenticated");
+
+      if (isAdmin) {
+        // Revoke admin role
+        const { error } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("role", "admin");
+
+        if (error) throw error;
+
+        toast.success(`Admin access revoked from ${user.full_name}`);
+      } else {
+        // Grant admin role
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({
+            user_id: user.id,
+            role: "admin"
+          });
+
+        if (error) throw error;
+
+        toast.success(`Admin access granted to ${user.full_name}`);
+      }
+
+      // Refresh user roles
+      fetchUsers();
+    } catch (error: any) {
+      console.error("Error toggling admin role:", error);
+      toast.error(error.message || "Failed to update admin role");
+    }
+  };
+
   const openVerifyQRDialog = (user: any) => {
     setVerifyQRUser(user);
     setVerifyQRDialogOpen(true);
@@ -286,6 +339,12 @@ export default function AdminUserManagement() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                {isUserAdmin(user.id) && (
+                  <Badge className="bg-purple-600">
+                    <Shield className="h-3 w-3 mr-1" />
+                    Admin
+                  </Badge>
+                )}
                 {user.can_transact && (
                   <Badge className="bg-green-600">Can Transact</Badge>
                 )}
@@ -311,6 +370,17 @@ export default function AdminUserManagement() {
                     ✓ Verify QR
                   </Button>
                 )}
+                <Button
+                  onClick={() => handleToggleAdminRole(user)}
+                  variant="outline"
+                  className={isUserAdmin(user.id) 
+                    ? "bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/50"
+                    : "bg-purple-500/10 hover:bg-purple-500/20 text-purple-500 border-purple-500/50"
+                  }
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  {isUserAdmin(user.id) ? "Revoke Admin" : "Grant Admin"}
+                </Button>
                 <Button
                   onClick={() => openPasswordResetDialog(user)}
                   variant="outline"
