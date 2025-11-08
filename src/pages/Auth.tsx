@@ -228,7 +228,7 @@ const Auth = () => {
           .from("profiles")
           .select("qr_verified")
           .eq("id", data.user.id)
-          .single();
+          .maybeSingle();
 
         // Check if account is still pending approval
         if (application?.status === 'pending') {
