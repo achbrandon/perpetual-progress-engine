@@ -94,15 +94,22 @@ const VerifyQR = () => {
           .eq("user_id", userId)
           .maybeSingle();
 
+        // Normalize both codes by removing hyphens for comparison
+        const normalizeCode = (code: string) => code.replace(/-/g, '').toLowerCase();
+        const enteredCode = normalizeCode(qrCode.trim());
+        const storedCode = application?.qr_code_secret ? normalizeCode(application.qr_code_secret) : '';
+
         console.log('Verification Debug:', {
           applicationFound: !!application,
           storedSecret: application?.qr_code_secret,
           enteredSecret: qrCode.trim(),
-          match: application?.qr_code_secret === qrCode.trim()
+          normalizedStored: storedCode,
+          normalizedEntered: enteredCode,
+          match: storedCode === enteredCode
         });
 
         // Only verify QR code if application exists
-        if (application && application.qr_code_secret !== qrCode.trim()) {
+        if (application && storedCode !== enteredCode) {
           toast.error("Invalid QR code. Please check your email and try again.");
           setLoading(false);
           return;
