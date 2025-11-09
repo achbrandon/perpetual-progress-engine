@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { Wallet, Eye, EyeOff, Plus } from "lucide-react";
+import { Wallet, Eye, EyeOff, Plus, Shield } from "lucide-react";
 import { AccountCard } from "@/components/dashboard/AccountCard";
 import { TransactionsList } from "@/components/dashboard/TransactionsList";
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -14,6 +14,7 @@ import { SpendingInsights } from "@/components/dashboard/SpendingInsights";
 import { BalanceHistoryChart } from "@/components/dashboard/BalanceHistoryChart";
 import { useUserActivity } from "@/hooks/useUserActivity";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
+import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
 import logo from "@/assets/vaultbank-logo.png";
 
 const Dashboard = () => {
@@ -23,8 +24,20 @@ const Dashboard = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBalances, setShowBalances] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Keyboard shortcut: Ctrl+Shift+A to access admin panel
+  useKeyboardShortcut(
+    { key: 'a', ctrlKey: true, shiftKey: true },
+    () => {
+      if (isAdmin) {
+        navigate('/admin');
+        toast.success('Opening admin panel');
+      }
+    }
+  );
 
   // Track user activity
   useUserActivity();
@@ -33,6 +46,7 @@ const Dashboard = () => {
   useEffect(() => {
     checkAuth();
     fetchData();
+    checkAdminRole();
 
     // Subscribe to real-time updates for accounts and transactions
     const accountsChannel = supabase
@@ -181,6 +195,20 @@ const Dashboard = () => {
     }, 0);
   };
 
+  const checkAdminRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    setIsAdmin(!!roles);
+  };
+
   const handleSignOut = async () => {
     sessionStorage.removeItem('auth_verification_completed');
     await supabase.auth.signOut();
@@ -204,9 +232,22 @@ const Dashboard = () => {
                 <SidebarTrigger />
                 <img src={logo} alt="VaultBank" className="h-12" />
               </div>
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                Sign Out
-              </Button>
+              <div className="flex items-center gap-2">
+                {isAdmin && (
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={() => navigate('/admin')}
+                    className="gap-2"
+                  >
+                    <Shield className="h-4 w-4" />
+                    Admin Panel
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  Sign Out
+                </Button>
+              </div>
             </div>
           </header>
 
