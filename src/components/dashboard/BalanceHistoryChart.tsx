@@ -58,11 +58,17 @@ export const BalanceHistoryChart = () => {
     const now = new Date();
     switch (dateRange) {
       case '7':
-        return new Date(now.setDate(now.getDate() - 7));
+        const date7 = new Date();
+        date7.setDate(date7.getDate() - 7);
+        return date7;
       case '30':
-        return new Date(now.setDate(now.getDate() - 30));
+        const date30 = new Date();
+        date30.setDate(date30.getDate() - 30);
+        return date30;
       case '90':
-        return new Date(now.setDate(now.getDate() - 90));
+        const date90 = new Date();
+        date90.setDate(date90.getDate() - 90);
+        return date90;
       case 'all':
       default:
         return new Date(0); // Beginning of time
