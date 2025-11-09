@@ -10,7 +10,8 @@ import {
   UserCog,
   Activity,
   Sliders,
-  Shield
+  Shield,
+  Wrench
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
@@ -95,6 +96,11 @@ const menuItems = [
     title: "Authentication Logs",
     url: "/admin/authentication-logs",
     icon: Shield,
+  },
+  {
+    title: "Account Repair",
+    url: "/admin/account-repair",
+    icon: Wrench,
   },
 ];
 

@@ -70,6 +70,7 @@ import CheckAdmin from "./pages/CheckAdmin";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import AuthenticationLogs from "./pages/admin/AuthenticationLogs";
 import LoginHistory from "./pages/dashboard/LoginHistory";
+import AccountRepair from "./pages/admin/AccountRepair";
 import { useState } from "react";
 
 const queryClient = new QueryClient();
@@ -161,6 +162,7 @@ function AppRoutes() {
         <Route path="activity" element={<AdminUserActivity />} />
         <Route path="activity-logs" element={<ActivityLogs />} />
         <Route path="authentication-logs" element={<AuthenticationLogs />} />
+        <Route path="account-repair" element={<AccountRepair />} />
       </Route>
       
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
