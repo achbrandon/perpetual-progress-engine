@@ -73,20 +73,29 @@ export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
           return;
         }
 
-        // For regular users: Check account application status first
+        // For regular users: Check profile verification status
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("qr_verified, email_verified, can_transact, pin")
+          .eq("id", data.user.id)
+          .maybeSingle();
+
+        // If user can transact and is verified, allow login
+        if (profile?.can_transact && profile?.qr_verified) {
+          toast.success("Signed in successfully!");
+          onOpenChange(false);
+          navigate("/dashboard");
+          return;
+        }
+
+        // Check account application status only if can't transact yet
         const { data: application } = await supabase
           .from("account_applications")
           .select("status, qr_code_verified")
           .eq("user_id", data.user.id)
           .maybeSingle();
 
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("qr_verified, pin")
-          .eq("id", data.user.id)
-          .maybeSingle();
-
-        // If account is pending approval
+        // If account application is pending
         if (application?.status === 'pending') {
           toast.info(
             "🔍 Your account is under review. You'll receive an email once approved.",
@@ -99,7 +108,7 @@ export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
           return;
         }
 
-        // If account is approved but QR not verified (edge case)
+        // If account is approved but QR not verified
         if (application?.status === 'approved' && !profile?.qr_verified) {
           toast.info("Please complete QR verification to access your account");
           onOpenChange(false);
@@ -107,10 +116,10 @@ export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
           return;
         }
 
-        // If QR verified but account not approved (shouldn't happen)
-        if (profile?.qr_verified && application?.status !== 'approved') {
-          toast.info(
-            "🔍 Your verification is complete. Waiting for final approval.",
+        // If rejected
+        if (application?.status === 'rejected') {
+          toast.error(
+            "Your account application was rejected. Please contact support.",
             { duration: 6000 }
           );
           await supabase.auth.signOut();
