@@ -26,6 +26,12 @@ interface TransactionDetailsModalProps {
 export function TransactionDetailsModal({ transaction, open, onClose }: TransactionDetailsModalProps) {
   if (!transaction) return null;
 
+  // Clean up description by removing "Admin" prefix
+  let cleanDescription = transaction.description;
+  if (cleanDescription?.toLowerCase().startsWith('admin ')) {
+    cleanDescription = cleanDescription.substring(6); // Remove "Admin " prefix
+  }
+
   const isDebit = transaction.type === 'debit' || transaction.type === 'payment' || transaction.type === 'withdrawal' || transaction.type === 'fee';
   
   const getStatusIcon = (status: string) => {
@@ -52,6 +58,12 @@ export function TransactionDetailsModal({ transaction, open, onClose }: Transact
   };
 
   const handleDownloadReceipt = () => {
+    // Clean description for receipt
+    let cleanDescription = transaction.description;
+    if (cleanDescription?.toLowerCase().startsWith('admin ')) {
+      cleanDescription = cleanDescription.substring(6);
+    }
+    
     // Generate a simple receipt
     const receiptContent = `
 VaultBank Transaction Receipt
@@ -61,7 +73,7 @@ Transaction ID: ${transaction.id}
 Date: ${new Date(transaction.created_at).toLocaleString()}
 Type: ${transaction.type.toUpperCase()}
 Amount: $${Math.abs(parseFloat(transaction.amount)).toFixed(2)}
-Description: ${transaction.description}
+Description: ${cleanDescription}
 Status: ${transaction.status.toUpperCase()}
 
 ${transaction.category ? `Category: ${transaction.category}` : ''}
@@ -180,7 +192,7 @@ Thank you for banking with VaultBank!
           <div className="space-y-4">
             <div className="space-y-2">
               <h4 className="font-semibold">Description</h4>
-              <p className="text-sm text-muted-foreground">{transaction.description}</p>
+              <p className="text-sm text-muted-foreground capitalize">{cleanDescription}</p>
             </div>
 
             {transaction.category && (
