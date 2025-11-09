@@ -324,8 +324,21 @@ const OpenAccount = () => {
         console.error('Application error:', error);
         console.log('Response data:', data);
         
-        // Extract the actual error message from the response body
-        const errorMessage = data?.error || 'Failed to create account. Please try again.';
+        // Extract the actual error message - check both data.error and error.message
+        let errorMessage = 'Failed to create account. Please try again.';
+        
+        // When there's an HTTP error, the response body is in the error object
+        if (error.message) {
+          try {
+            // Try to parse the error message as JSON to get the actual error
+            const errorData = JSON.parse(error.message);
+            errorMessage = errorData.error || errorMessage;
+          } catch {
+            errorMessage = error.message;
+          }
+        } else if (data?.error) {
+          errorMessage = data.error;
+        }
         
         // Show user-friendly error message
         alert(errorMessage);
