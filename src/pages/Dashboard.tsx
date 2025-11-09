@@ -15,6 +15,7 @@ import { BalanceHistoryChart } from "@/components/dashboard/BalanceHistoryChart"
 import { useUserActivity } from "@/hooks/useUserActivity";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
 import logo from "@/assets/vaultbank-logo.png";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -204,9 +205,12 @@ const Dashboard = () => {
                 <SidebarTrigger className="mobile-icon-button" />
                 <img src={logo} alt="VaultBank" className="h-8 sm:h-10 lg:h-12" />
               </div>
-              <Button variant="outline" size="sm" className="h-9 sm:h-10 text-xs sm:text-sm" onClick={handleSignOut}>
-                Sign Out
-              </Button>
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <Button variant="outline" size="sm" className="h-9 sm:h-10 text-xs sm:text-sm" onClick={handleSignOut}>
+                  Sign Out
+                </Button>
+              </div>
             </div>
           </header>
 
