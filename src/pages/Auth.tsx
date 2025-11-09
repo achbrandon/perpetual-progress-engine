@@ -84,14 +84,7 @@ const Auth = () => {
         .eq("id", user.id)
         .maybeSingle();
 
-      if (!profile?.email_verified) {
-        toast.error("Please verify your email address before logging in. Check your inbox for the verification link.");
-        await supabase.auth.signOut();
-        navigate("/resend-emails", { replace: true });
-        return;
-      }
-
-      // If user can transact and is verified, allow access
+      // If user can transact and is verified, allow access (skip email check if QR verified)
       if (profile?.can_transact && profile?.qr_verified) {
         toast.success("Signed in successfully!");
         navigate("/dashboard", { replace: true });
@@ -239,18 +232,7 @@ const Auth = () => {
           .eq("id", data.user.id)
           .maybeSingle();
 
-        // Check email verification first
-        if (!fullProfile?.email_verified) {
-          toast.error("📧 Please verify your email address before logging in. Check your inbox for the verification link.");
-          await supabase.auth.signOut();
-          setLoading(false);
-          setShowLoadingSpinner(false);
-          isLoggingIn.current = false;
-          navigate("/resend-emails");
-          return;
-        }
-
-        // If user can transact and is verified, proceed to OTP
+        // If user can transact and is verified, proceed to OTP (skip email check if already QR verified)
         if (fullProfile?.can_transact && fullProfile?.qr_verified) {
           // QR verified - now sign out and require OTP verification
           await supabase.auth.signOut();
