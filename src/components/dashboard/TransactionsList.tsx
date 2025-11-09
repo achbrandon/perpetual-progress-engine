@@ -8,7 +8,11 @@ import {
   Download,
   AlertCircle,
   Heart,
-  X
+  X,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  ArrowLeftRight,
+  CreditCard
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +33,7 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
   const [showExportModal, setShowExportModal] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
 
   // Fetch favorites
   const fetchFavorites = async () => {
@@ -93,6 +98,30 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
     };
   }, []);
 
+  // Transaction type filters configuration
+  const transactionTypeFilters = [
+    { type: 'deposit', label: 'Deposits', icon: ArrowDownCircle, color: 'text-green-600' },
+    { type: 'withdrawal', label: 'Withdrawals', icon: ArrowUpCircle, color: 'text-red-600' },
+    { type: 'transfer', label: 'Transfers', icon: ArrowLeftRight, color: 'text-blue-600' },
+    { type: 'payment', label: 'Payments', icon: CreditCard, color: 'text-purple-600' },
+  ];
+
+  const toggleTypeFilter = (type: string) => {
+    const newSelected = new Set(selectedTypes);
+    if (newSelected.has(type)) {
+      newSelected.delete(type);
+    } else {
+      newSelected.add(type);
+    }
+    setSelectedTypes(newSelected);
+  };
+
+  const clearAllFilters = () => {
+    setSelectedTypes(new Set());
+    setShowFavoritesOnly(false);
+    setSearchQuery("");
+  };
+
   // Filter and sort transactions
   const filteredTransactions = transactions
     .filter(t => {
@@ -103,7 +132,10 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
       // Favorites filter
       const matchesFavorites = showFavoritesOnly ? favorites.has(t.id) : true;
       
-      return matchesSearch && matchesFavorites;
+      // Type filter
+      const matchesType = selectedTypes.size === 0 || selectedTypes.has(t.type);
+      
+      return matchesSearch && matchesFavorites && matchesType;
     })
     .sort((a, b) => {
       // Sort favorites to the top when filter is off
@@ -117,6 +149,7 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
     });
 
   const favoriteCount = transactions.filter(t => favorites.has(t.id)).length;
+  const activeFiltersCount = selectedTypes.size + (showFavoritesOnly ? 1 : 0);
 
   const handleTransactionClick = (transaction: any) => {
     setSelectedTransaction(transaction);
@@ -170,17 +203,51 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
         </div>
       </div>
 
+      {/* Transaction Type Filter Chips */}
+      <div className="mb-4 space-y-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          {transactionTypeFilters.map(({ type, label, icon: Icon, color }) => {
+            const isActive = selectedTypes.has(type);
+            return (
+              <Badge
+                key={type}
+                variant={isActive ? "default" : "outline"}
+                className={`cursor-pointer transition-all hover:scale-105 ${
+                  isActive ? 'shadow-md' : ''
+                }`}
+                onClick={() => toggleTypeFilter(type)}
+              >
+                <Icon className={`h-3 w-3 mr-1 ${isActive ? '' : color}`} />
+                {label}
+              </Badge>
+            );
+          })}
+          
+          {activeFiltersCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="h-7 text-xs"
+            >
+              Clear all ({activeFiltersCount})
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* Active filters indicator */}
-      {showFavoritesOnly && (
+      {(showFavoritesOnly || selectedTypes.size > 0) && (
         <div className="mb-4 flex items-center gap-2 p-3 bg-primary/5 border border-primary/20 rounded-lg animate-fade-in">
-          <Heart className="h-4 w-4 text-primary fill-current shrink-0" />
+          <Filter className="h-4 w-4 text-primary shrink-0" />
           <p className="text-sm text-muted-foreground flex-1">
-            Showing <span className="font-medium text-foreground">{filteredTransactions.length}</span> favorited transaction{filteredTransactions.length !== 1 ? 's' : ''}
+            Showing <span className="font-medium text-foreground">{filteredTransactions.length}</span> filtered transaction{filteredTransactions.length !== 1 ? 's' : ''}
+            {showFavoritesOnly && <span className="ml-1">(favorites only)</span>}
           </p>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowFavoritesOnly(false)}
+            onClick={clearAllFilters}
             className="h-7 px-2 hover:bg-primary/10"
           >
             <X className="h-3 w-3" />
@@ -204,24 +271,24 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
         <div className="text-center py-8 sm:py-12 animate-fade-in">
           <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
           <h3 className="text-base sm:text-lg font-medium mb-2">
-            {showFavoritesOnly ? 'No favorite transactions' : 'No transactions found'}
+            No transactions found
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            {showFavoritesOnly 
-              ? "Swipe right on transactions to add them to favorites"
+            {activeFiltersCount > 0
+              ? "Try adjusting your filters"
               : searchQuery 
                 ? "Try adjusting your search" 
                 : "Your transactions will appear here"
             }
           </p>
-          {showFavoritesOnly && (
+          {activeFiltersCount > 0 && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowFavoritesOnly(false)}
+              onClick={clearAllFilters}
               className="mt-2"
             >
-              Show All Transactions
+              Clear All Filters
             </Button>
           )}
         </div>
