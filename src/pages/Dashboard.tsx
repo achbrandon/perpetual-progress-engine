@@ -67,17 +67,25 @@ const Dashboard = () => {
       return;
     }
 
-    // For all other users, check account status first
-    const { data: application } = await supabase
-      .from("account_applications")
-      .select("status")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
+    // For all other users, check profile status first
     const { data: profileData } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
+      .maybeSingle();
+
+    // If user can transact and is verified, allow access
+    if (profileData?.can_transact && profileData?.qr_verified) {
+      setUser(user);
+      setProfile(profileData);
+      return;
+    }
+
+    // Check account application status only if can't transact yet
+    const { data: application } = await supabase
+      .from("account_applications")
+      .select("status")
+      .eq("user_id", user.id)
       .maybeSingle();
 
     // If account is pending approval
@@ -90,22 +98,23 @@ const Dashboard = () => {
       return;
     }
 
-    // If account is approved but QR not verified (edge case)
+    // If account is approved but QR not verified
     if (application?.status === 'approved' && !profileData?.qr_verified) {
       navigate("/verify-qr");
       return;
     }
 
-    // If QR verified but account not approved (shouldn't happen)
-    if (profileData?.qr_verified && application?.status !== 'approved') {
-      toast.info(
-        "🔍 Your verification is complete. Waiting for approval.",
+    // If rejected
+    if (application?.status === 'rejected') {
+      toast.error(
+        "Your account application was rejected. Please contact support.",
         { duration: 6000 }
       );
       navigate("/");
       return;
     }
 
+    // Default: allow access if no blocking issues
     setUser(user);
     setProfile(profileData);
   };
