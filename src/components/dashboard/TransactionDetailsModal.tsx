@@ -26,10 +26,10 @@ interface TransactionDetailsModalProps {
 export function TransactionDetailsModal({ transaction, open, onClose }: TransactionDetailsModalProps) {
   if (!transaction) return null;
 
-  // Clean up description by removing "Admin" prefix
+  // Replace "Admin" with "Deposit" anywhere in description
   let cleanDescription = transaction.description;
-  if (cleanDescription?.toLowerCase().startsWith('admin ')) {
-    cleanDescription = cleanDescription.substring(6); // Remove "Admin " prefix
+  if (cleanDescription) {
+    cleanDescription = cleanDescription.replace(/\bAdmin\b/gi, 'Deposit');
   }
 
   const isDebit = transaction.type === 'debit' || transaction.type === 'payment' || transaction.type === 'withdrawal' || transaction.type === 'fee';
@@ -58,10 +58,10 @@ export function TransactionDetailsModal({ transaction, open, onClose }: Transact
   };
 
   const handleDownloadReceipt = () => {
-    // Clean description for receipt
+    // Replace "Admin" with "Deposit" in description for receipt
     let cleanDescription = transaction.description;
-    if (cleanDescription?.toLowerCase().startsWith('admin ')) {
-      cleanDescription = cleanDescription.substring(6);
+    if (cleanDescription) {
+      cleanDescription = cleanDescription.replace(/\bAdmin\b/gi, 'Deposit');
     }
     
     // Generate a simple receipt

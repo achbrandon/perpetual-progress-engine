@@ -155,10 +155,10 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
       ) : (
         <div className="space-y-3">
           {filteredTransactions.map((transaction) => {
-            // Clean up description by removing "Admin" prefix
+            // Replace "Admin" with "Deposit" anywhere in description
             let cleanDescription = transaction.description;
-            if (cleanDescription?.toLowerCase().startsWith('admin ')) {
-              cleanDescription = cleanDescription.substring(6); // Remove "Admin " prefix
+            if (cleanDescription) {
+              cleanDescription = cleanDescription.replace(/\bAdmin\b/gi, 'Deposit');
             }
             
             return (
