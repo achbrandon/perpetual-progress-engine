@@ -416,10 +416,24 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !ticketId || !userId) return;
+    if (!newMessage.trim() || !ticketId || !userId) {
+      console.error('Cannot send message:', { hasMessage: !!newMessage.trim(), hasTicketId: !!ticketId, hasUserId: !!userId });
+      return;
+    }
 
     const messageText = newMessage.trim();
     const tempId = `temp-${Date.now()}`;
+    
+    // Verify session before sending
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.error('No active session found');
+      toast.error("Session expired. Please refresh and try again.");
+      setMessages(prev => prev.filter(msg => msg.id !== tempId));
+      setNewMessage(messageText);
+      setLoading(false);
+      return;
+    }
     
     // Add message optimistically with temporary ID
     const optimisticMessage = {
@@ -448,7 +462,15 @@ export function EnhancedSupportChat({ userId, onClose }: EnhancedSupportChatProp
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Insert error details:', {
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint,
+          code: insertError.code
+        });
+        throw insertError;
+      }
 
       console.log('USER: Message sent successfully:', insertedMessage.id);
       
