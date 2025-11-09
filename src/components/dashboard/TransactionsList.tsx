@@ -7,7 +7,11 @@ import {
   Search,
   Filter,
   Download,
-  AlertCircle
+  AlertCircle,
+  ArrowLeftRight,
+  Wallet,
+  CreditCard,
+  Receipt
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -49,16 +53,46 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
   }, [onRefresh]);
 
   const getTransactionIcon = (type: string) => {
-    const isDebit = type === 'debit' || type === 'payment' || type === 'withdrawal' || type === 'fee';
-    return isDebit ? (
-      <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-        <ArrowUpRight className="h-5 w-5 text-red-600 dark:text-red-400" />
-      </div>
-    ) : (
-      <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-        <ArrowDownLeft className="h-5 w-5 text-green-600 dark:text-green-400" />
-      </div>
-    );
+    switch (type.toLowerCase()) {
+      case 'deposit':
+      case 'credit':
+        return (
+          <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+            <Wallet className="h-5 w-5 text-green-600 dark:text-green-400" />
+          </div>
+        );
+      case 'withdrawal':
+      case 'debit':
+        return (
+          <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+            <ArrowUpRight className="h-5 w-5 text-red-600 dark:text-red-400" />
+          </div>
+        );
+      case 'transfer':
+        return (
+          <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+            <ArrowLeftRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+        );
+      case 'payment':
+        return (
+          <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+            <CreditCard className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          </div>
+        );
+      case 'fee':
+        return (
+          <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
+            <Receipt className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+          </div>
+        );
+      default:
+        return (
+          <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-900/20 flex items-center justify-center">
+            <ArrowDownLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+          </div>
+        );
+    }
   };
 
   const getStatusBadge = (status: string) => {
