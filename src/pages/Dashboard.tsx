@@ -32,6 +32,42 @@ const Dashboard = () => {
   useEffect(() => {
     checkAuth();
     fetchData();
+
+    // Subscribe to real-time updates for accounts and transactions
+    const accountsChannel = supabase
+      .channel('accounts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'accounts'
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    const transactionsChannel = supabase
+      .channel('transactions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'transactions'
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(accountsChannel);
+      supabase.removeChannel(transactionsChannel);
+    };
   }, []);
 
   const checkAuth = async () => {

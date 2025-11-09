@@ -106,23 +106,37 @@ export function TransferModal({ onClose, onSuccess }: TransferModalProps) {
       const fromAcc = accounts.find(a => a.id === fromAccount);
       const toAcc = accounts.find(a => a.id === toAccount);
 
-      await supabase.from("transactions").insert([
-        {
-          user_id: user.id,
-          account_id: fromAccount,
-          type: "debit",
-          amount: transferAmount,
-          description: `Transfer to ${toAcc?.account_type}`,
-          status: "completed"
-        },
-        {
-          user_id: user.id,
-          account_id: toAccount,
-          type: "credit",
-          amount: transferAmount,
-          description: `Transfer from ${fromAcc?.account_type}`,
-          status: "completed"
-        }
+      // Update account balances
+      const fromBalance = parseFloat(fromAcc?.balance || '0');
+      const toBalance = parseFloat(toAcc?.balance || '0');
+
+      await Promise.all([
+        supabase
+          .from("accounts")
+          .update({ balance: fromBalance - transferAmount })
+          .eq("id", fromAccount),
+        supabase
+          .from("accounts")
+          .update({ balance: toBalance + transferAmount })
+          .eq("id", toAccount),
+        supabase.from("transactions").insert([
+          {
+            user_id: user.id,
+            account_id: fromAccount,
+            type: "debit",
+            amount: transferAmount,
+            description: `Transfer to ${toAcc?.account_type}`,
+            status: "completed"
+          },
+          {
+            user_id: user.id,
+            account_id: toAccount,
+            type: "credit",
+            amount: transferAmount,
+            description: `Transfer from ${fromAcc?.account_type}`,
+            status: "completed"
+          }
+        ])
       ]);
 
       setTimeout(() => {
