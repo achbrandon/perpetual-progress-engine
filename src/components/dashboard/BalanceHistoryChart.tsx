@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 
 interface BalanceDataPoint {
   date: string;
@@ -21,6 +22,15 @@ interface Account {
   account_number: string;
 }
 
+interface Transaction {
+  id: string;
+  amount: number;
+  type: string;
+  description: string;
+  created_at: string;
+  account_id: string;
+}
+
 type DateRange = '7' | '30' | '90' | 'all';
 
 export const BalanceHistoryChart = () => {
@@ -29,6 +39,9 @@ export const BalanceHistoryChart = () => {
   const [selectedAccount, setSelectedAccount] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange>('30');
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [dayTransactions, setDayTransactions] = useState<Transaction[]>([]);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
 
   useEffect(() => {
     fetchAccounts();
@@ -192,6 +205,42 @@ export const BalanceHistoryChart = () => {
     }
   };
 
+  const handlePointClick = async (data: any) => {
+    if (!data || !data.activePayload || !data.activePayload[0]) return;
+    
+    const pointData = data.activePayload[0].payload;
+    const clickedDate = pointData.date;
+    setSelectedDate(clickedDate);
+    
+    // Fetch all transactions for this specific date
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const dateObj = new Date(clickedDate);
+    const startOfDay = new Date(dateObj.setHours(0, 0, 0, 0)).toISOString();
+    const endOfDay = new Date(dateObj.setHours(23, 59, 59, 999)).toISOString();
+
+    let query = supabase
+      .from("transactions")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("status", "completed")
+      .gte("created_at", startOfDay)
+      .lte("created_at", endOfDay)
+      .order("created_at", { ascending: false });
+
+    if (selectedAccount !== "all") {
+      query = query.eq("account_id", selectedAccount);
+    }
+
+    const { data: transactions } = await query;
+    
+    if (transactions) {
+      setDayTransactions(transactions);
+      setShowTransactionModal(true);
+    }
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -263,7 +312,7 @@ export const BalanceHistoryChart = () => {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
+            <LineChart data={chartData} onClick={handlePointClick}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis 
                 dataKey="date" 
@@ -349,7 +398,7 @@ export const BalanceHistoryChart = () => {
                   if (hasMultiple) {
                     // Multiple transaction types on same day - show composite dot
                     return (
-                      <g>
+                      <g style={{ cursor: 'pointer' }}>
                         <circle cx={cx} cy={cy} r={6} fill="hsl(var(--background))" stroke="hsl(var(--primary))" strokeWidth={2} />
                         {payload.hasAdminDeposit && <circle cx={cx - 2} cy={cy - 2} r={2} fill="#16a34a" />}
                         {payload.hasAdminWithdrawal && <circle cx={cx + 2} cy={cy - 2} r={2} fill="#f97316" />}
@@ -357,21 +406,74 @@ export const BalanceHistoryChart = () => {
                       </g>
                     );
                   } else if (payload.hasAdminDeposit) {
-                    return <circle cx={cx} cy={cy} r={5} fill="#16a34a" stroke="hsl(var(--primary))" strokeWidth={2} />;
+                    return <circle cx={cx} cy={cy} r={5} fill="#16a34a" stroke="hsl(var(--primary))" strokeWidth={2} style={{ cursor: 'pointer' }} />;
                   } else if (payload.hasAdminWithdrawal) {
-                    return <circle cx={cx} cy={cy} r={5} fill="#f97316" stroke="hsl(var(--primary))" strokeWidth={2} />;
+                    return <circle cx={cx} cy={cy} r={5} fill="#f97316" stroke="hsl(var(--primary))" strokeWidth={2} style={{ cursor: 'pointer' }} />;
                   } else if (payload.hasUserTransaction) {
-                    return <circle cx={cx} cy={cy} r={5} fill="#3b82f6" stroke="hsl(var(--primary))" strokeWidth={2} />;
+                    return <circle cx={cx} cy={cy} r={5} fill="#3b82f6" stroke="hsl(var(--primary))" strokeWidth={2} style={{ cursor: 'pointer' }} />;
                   }
-                  return <circle cx={cx} cy={cy} r={4} fill="hsl(var(--primary))" />;
+                  return <circle cx={cx} cy={cy} r={4} fill="hsl(var(--primary))" style={{ cursor: 'pointer' }} />;
                 }}
-                activeDot={{ r: 8 }}
+                activeDot={{ r: 8, cursor: 'pointer' }}
                 name="Balance"
               />
             </LineChart>
           </ResponsiveContainer>
         )}
       </CardContent>
+
+      <Dialog open={showTransactionModal} onOpenChange={setShowTransactionModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Transactions on {selectedDate}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {dayTransactions.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No transactions found</p>
+            ) : (
+              dayTransactions.map((transaction) => {
+                const account = accounts.find(a => a.id === transaction.account_id);
+                const isCredit = transaction.type === "credit";
+                const isAdminTransaction = transaction.description?.toLowerCase().includes('admin');
+                
+                return (
+                  <div
+                    key={transaction.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-full ${isCredit ? 'bg-green-100' : 'bg-orange-100'}`}>
+                        {isCredit ? (
+                          <ArrowDownCircle className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <ArrowUpCircle className="h-5 w-5 text-orange-600" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">{transaction.description}</p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span>{account?.account_type} - {account?.account_number.slice(-4)}</span>
+                          {isAdminTransaction && (
+                            <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">
+                              Admin
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(transaction.created_at).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`text-lg font-semibold ${isCredit ? 'text-green-600' : 'text-orange-600'}`}>
+                      {isCredit ? '+' : '-'}{formatCurrency(parseFloat(String(transaction.amount)))}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
