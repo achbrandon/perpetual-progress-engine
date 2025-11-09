@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, DollarSign, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { useCountUp } from "@/hooks/useCountUp";
 
 interface TransactionsStatsSummaryProps {
   transactions: any[];
@@ -25,6 +26,11 @@ export function TransactionsStatsSummary({ transactions }: TransactionsStatsSumm
 
   const netChange = stats.income - stats.expenses;
   const isPositive = netChange >= 0;
+
+  // Animated counters
+  const animatedIncome = useCountUp({ end: stats.income, duration: 1500 });
+  const animatedExpenses = useCountUp({ end: stats.expenses, duration: 1500 });
+  const animatedNetChange = useCountUp({ end: netChange, duration: 1500 });
 
   // Format currency with compact notation for very large numbers
   const formatCurrency = (amount: number) => {
@@ -63,7 +69,7 @@ export function TransactionsStatsSummary({ transactions }: TransactionsStatsSumm
               <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Income</p>
             </div>
             <p className="text-xl sm:text-2xl font-bold text-green-700 dark:text-green-400 mt-2 break-words">
-              {formatCurrency(stats.income)}
+              {formatCurrency(animatedIncome)}
             </p>
             <div className="flex items-center gap-1 mt-2">
               <ArrowUpRight className="h-3 w-3 text-green-600 dark:text-green-500 shrink-0" />
@@ -86,7 +92,7 @@ export function TransactionsStatsSummary({ transactions }: TransactionsStatsSumm
               <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Expenses</p>
             </div>
             <p className="text-xl sm:text-2xl font-bold text-red-700 dark:text-red-400 mt-2 break-words">
-              {formatCurrency(stats.expenses)}
+              {formatCurrency(animatedExpenses)}
             </p>
             <div className="flex items-center gap-1 mt-2">
               <ArrowDownRight className="h-3 w-3 text-red-600 dark:text-red-500 shrink-0" />
@@ -125,7 +131,7 @@ export function TransactionsStatsSummary({ transactions }: TransactionsStatsSumm
                 ? 'text-blue-700 dark:text-blue-400' 
                 : 'text-orange-700 dark:text-orange-400'
             }`}>
-              {isPositive ? '+' : ''}{formatCurrency(netChange)}
+              {isPositive ? '+' : ''}{formatCurrency(animatedNetChange)}
             </p>
             <div className="flex items-center gap-1 mt-2">
               {isPositive ? (
