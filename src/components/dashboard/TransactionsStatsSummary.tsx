@@ -19,6 +19,20 @@ export function TransactionsStatsSummary({ transactions }: TransactionsStatsSumm
     localStorage.setItem('statsCollapsed', isCollapsed.toString());
   }, [isCollapsed]);
 
+  // Haptic feedback function
+  const triggerHaptic = () => {
+    // Check if vibration API is supported
+    if ('vibrate' in navigator) {
+      // Light haptic feedback (10ms vibration)
+      navigator.vibrate(10);
+    }
+  };
+
+  const handleToggle = () => {
+    triggerHaptic();
+    setIsCollapsed(!isCollapsed);
+  };
+
   // Calculate statistics
   const stats = transactions.reduce(
     (acc, transaction) => {
@@ -74,7 +88,7 @@ export function TransactionsStatsSummary({ transactions }: TransactionsStatsSumm
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => setIsCollapsed(!isCollapsed)}
+        onClick={handleToggle}
         className="w-full flex items-center justify-between mb-2 sm:hidden hover:bg-accent/50"
       >
         <span className="text-sm font-medium">Transaction Statistics</span>
