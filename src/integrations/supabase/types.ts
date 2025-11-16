@@ -567,11 +567,64 @@ export type Database = {
           },
         ]
       }
+      joint_account_documents: {
+        Row: {
+          created_at: string | null
+          document_type: string
+          id: string
+          joint_request_id: string
+          sent_to_email: string | null
+          shipped_to_address: string | null
+          signature_date: string | null
+          signed_document_url: string | null
+          status: string
+          tracking_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_type: string
+          id?: string
+          joint_request_id: string
+          sent_to_email?: string | null
+          shipped_to_address?: string | null
+          signature_date?: string | null
+          signed_document_url?: string | null
+          status?: string
+          tracking_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_type?: string
+          id?: string
+          joint_request_id?: string
+          sent_to_email?: string | null
+          shipped_to_address?: string | null
+          signature_date?: string | null
+          signed_document_url?: string | null
+          status?: string
+          tracking_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "joint_account_documents_joint_request_id_fkey"
+            columns: ["joint_request_id"]
+            isOneToOne: false
+            referencedRelation: "joint_account_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       joint_account_requests: {
         Row: {
           account_id: string
+          activation_date: string | null
+          agreement_sent: boolean | null
           created_at: string | null
           deposit_amount: number
+          documents_verified: boolean | null
           id: string
           otp_verified: boolean | null
           partner_address: string
@@ -589,8 +642,11 @@ export type Database = {
         }
         Insert: {
           account_id: string
+          activation_date?: string | null
+          agreement_sent?: boolean | null
           created_at?: string | null
           deposit_amount: number
+          documents_verified?: boolean | null
           id?: string
           otp_verified?: boolean | null
           partner_address: string
@@ -608,8 +664,11 @@ export type Database = {
         }
         Update: {
           account_id?: string
+          activation_date?: string | null
+          agreement_sent?: boolean | null
           created_at?: string | null
           deposit_amount?: number
+          documents_verified?: boolean | null
           id?: string
           otp_verified?: boolean | null
           partner_address?: string
