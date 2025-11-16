@@ -1201,6 +1201,7 @@ export type Database = {
           auto_complete_at: string | null
           created_at: string | null
           crypto_currency: string | null
+          crypto_network: string | null
           description: string | null
           id: string
           proof_of_payment_url: string | null
@@ -1216,6 +1217,7 @@ export type Database = {
           auto_complete_at?: string | null
           created_at?: string | null
           crypto_currency?: string | null
+          crypto_network?: string | null
           description?: string | null
           id?: string
           proof_of_payment_url?: string | null
@@ -1231,6 +1233,7 @@ export type Database = {
           auto_complete_at?: string | null
           created_at?: string | null
           crypto_currency?: string | null
+          crypto_network?: string | null
           description?: string | null
           id?: string
           proof_of_payment_url?: string | null
