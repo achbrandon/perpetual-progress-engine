@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { createNotification, NotificationTemplates } from "@/lib/notifications";
 
 export function CreateTransactionForm({ onSuccess }: { onSuccess: () => void }) {
   const [users, setUsers] = useState<any[]>([]);
@@ -167,6 +168,32 @@ export function CreateTransactionForm({ onSuccess }: { onSuccess: () => void }) 
           .eq("id", formData.account_id);
 
         if (balanceError) throw balanceError;
+
+        // Send notification to user
+        const accountData = await supabase
+          .from("accounts")
+          .select("account_number")
+          .eq("id", formData.account_id)
+          .single();
+
+        if (accountData.data) {
+          if (selectedType.transactionType === "credit") {
+            const notification = NotificationTemplates.depositReceived(
+              amount,
+              accountData.data.account_number
+            );
+            await createNotification({
+              userId: selectedUser,
+              ...notification,
+            });
+          } else if (selectedType.transactionType === "debit") {
+            const notification = NotificationTemplates.withdrawalProcessed(amount);
+            await createNotification({
+              userId: selectedUser,
+              ...notification,
+            });
+          }
+        }
       }
 
       toast.success(

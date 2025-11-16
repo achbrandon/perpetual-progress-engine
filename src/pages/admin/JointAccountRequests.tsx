@@ -9,6 +9,7 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle, XCircle, Clock, AlertCircle, Shield, Eye, FileText, Package } from "lucide-react";
+import { createNotification, NotificationTemplates } from "@/lib/notifications";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
@@ -173,13 +174,12 @@ export default function JointAccountRequests() {
 
       if (error) throw error;
 
-      // Create notification for the user
+      // Create notification for the user using template
       if (request) {
-        await supabase.from("alerts").insert({
-          user_id: request.requester_user_id,
-          title: "Joint Account Request Approved",
-          message: `Your joint account request with ${request.partner_full_name} has been approved! You can now proceed with the next steps.`,
-          type: "success",
+        const notification = NotificationTemplates.jointAccountApproved(request.partner_full_name);
+        await createNotification({
+          userId: request.requester_user_id,
+          ...notification,
         });
       }
 
@@ -214,13 +214,12 @@ export default function JointAccountRequests() {
 
       if (error) throw error;
 
-      // Create notification for the user
+      // Create notification for the user using template
       if (request) {
-        await supabase.from("alerts").insert({
-          user_id: request.requester_user_id,
-          title: "Joint Account Request Rejected",
-          message: `Your joint account request with ${request.partner_full_name} has been rejected. Please contact support for more information.`,
-          type: "error",
+        const notification = NotificationTemplates.jointAccountRejected(request.partner_full_name);
+        await createNotification({
+          userId: request.requester_user_id,
+          ...notification,
         });
       }
 
