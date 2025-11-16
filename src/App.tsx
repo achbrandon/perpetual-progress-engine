@@ -151,6 +151,7 @@ function AppRoutes() {
       <Route path="/dashboard/joint-account-status" element={<JointAccountStatus />} />
       <Route path="/dashboard/request-account" element={<RequestAccount />} />
       <Route path="/dashboard/analytics" element={<Analytics />} />
+      <Route path="/dashboard/support" element={<Support />} />
       <Route path="/dashboard/login-history" element={<LoginHistory />} />
       <Route path="/dashboard/linked-accounts" element={<LinkedAccounts />} />
       
