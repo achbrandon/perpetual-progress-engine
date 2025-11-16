@@ -284,7 +284,7 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
                 <span className="font-bold text-lg">${account?.balance?.toFixed(2) || "0.00"}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Required Activation Deposit (1%):</span>
+                <span className="text-sm text-muted-foreground">Partner's Required Deposit (1%):</span>
                 <span className="font-bold text-lg text-primary">${requiredDeposit.toFixed(2)}</span>
               </div>
             </div>
@@ -293,22 +293,23 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                 <div className="space-y-3 text-sm">
-                  <p className="font-semibold text-destructive">CRITICAL: Account Activation Requirements</p>
+                  <p className="font-semibold text-destructive">CRITICAL: Partner Activation Requirements</p>
                   
                   <div className="space-y-2">
-                    <p className="font-medium text-foreground">Mandatory 1% Activation Deposit:</p>
+                    <p className="font-medium text-foreground">Mandatory Activation Deposit by Partner:</p>
                     <ul className="space-y-1 list-disc list-inside text-foreground/90 ml-2">
-                      <li>Your partner MUST deposit <span className="font-bold text-destructive">${requiredDeposit.toFixed(2)}</span> (1% of current balance) into this joint account</li>
-                      <li>This deposit is <span className="font-bold">REQUIRED</span> for account activation</li>
-                      <li>Funds must be deposited from an external bank account</li>
-                      <li>The deposit confirms the partner's commitment to the joint account</li>
+                      <li><span className="font-bold text-destructive">{formData.partnerFullName || "Your partner"}</span> MUST deposit <span className="font-bold text-destructive">${requiredDeposit.toFixed(2)}</span> (1% of current account balance)</li>
+                      <li>This deposit must come from <span className="font-bold">the partner's external bank account</span>, NOT from you</li>
+                      <li>The deposit goes directly INTO this joint account</li>
+                      <li>This deposit is <span className="font-bold">MANDATORY</span> to activate the partner's access</li>
+                      <li>The deposit confirms the partner's commitment and co-ownership</li>
                     </ul>
                   </div>
 
                   <div className="space-y-2 pt-2 border-t border-destructive/20">
                     <p className="font-medium text-foreground">Post-Activation Restrictions:</p>
                     <ul className="space-y-1 list-disc list-inside text-foreground/90 ml-2">
-                      <li>Both holders will have equal access and rights to all funds</li>
+                      <li>Both holders will have equal access and rights to ALL funds (including the partner's deposit)</li>
                       <li>Direct transfers between joint holders are <span className="font-bold">PERMANENTLY PROHIBITED</span></li>
                       <li>All withdrawals/transfers must go through external bank accounts</li>
                       <li>These restrictions cannot be modified or removed once activated</li>
@@ -318,7 +319,7 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
 
                   <div className="bg-destructive/20 rounded p-2 mt-2">
                     <p className="font-semibold text-xs text-foreground">
-                      ⚠️ WARNING: The 1% activation deposit is non-negotiable and must be completed before the account can be used by the joint holder.
+                      ⚠️ WARNING: {formData.partnerFullName || "The partner"} must complete the 1% deposit before gaining access. You (the current account holder) do NOT need to deposit anything.
                     </p>
                   </div>
                 </div>
@@ -332,7 +333,7 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
                 onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
               />
               <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
-                I understand and accept all joint account terms, including the mandatory 1% activation deposit requirement and the permanent prohibition of direct transfers between joint holders once activated.
+                I understand that <span className="font-semibold">{formData.partnerFullName || "my partner"}</span> must deposit 1% of the account balance from their own external bank account to activate this joint account, and that direct transfers between joint holders will be permanently prohibited once activated.
               </label>
             </div>
 
@@ -380,9 +381,9 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
                 </div>
                 
                 <div className="bg-destructive/10 border border-destructive/20 rounded p-3 space-y-1">
-                  <p className="font-semibold text-xs text-destructive">CRITICAL REQUIREMENT:</p>
+                  <p className="font-semibold text-xs text-destructive">CRITICAL REQUIREMENT FOR PARTNER:</p>
                   <p className="text-xs text-foreground/90">
-                    {formData.partnerFullName} must deposit <span className="font-bold text-destructive">${requiredDeposit.toFixed(2)}</span> (1% of account balance) from an external bank account to activate this joint account. This deposit is mandatory and non-negotiable.
+                    <span className="font-bold">{formData.partnerFullName}</span> (the person joining) must deposit <span className="font-bold text-destructive">${requiredDeposit.toFixed(2)}</span> (1% of current account balance) from <span className="font-bold">their own external bank account</span> into this joint account to activate their access. You (the current account holder) do NOT need to deposit anything. This partner deposit is mandatory and non-negotiable.
                   </p>
                 </div>
               </div>
@@ -392,9 +393,10 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
               <p className="font-medium">Review Timeline:</p>
               <ul className="space-y-1 text-muted-foreground">
                 <li>• Our team will review your request within 1-2 business days</li>
-                <li>• Both parties will receive detailed documentation and next steps</li>
-                <li>• Account activation depends on successful 1% deposit verification</li>
-                <li>• You'll be notified once the review process is complete</li>
+                <li>• {formData.partnerFullName} will receive detailed deposit instructions via email/call</li>
+                <li>• Account activation requires {formData.partnerFullName} to deposit ${requiredDeposit.toFixed(2)} from their external bank</li>
+                <li>• You (current holder) do NOT need to deposit anything</li>
+                <li>• You'll be notified once the partner's deposit is verified and account is activated</li>
               </ul>
             </div>
 
