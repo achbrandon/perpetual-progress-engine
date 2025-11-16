@@ -462,6 +462,8 @@ export default function LinkedAccounts() {
         onClose={() => setOtpModalOpen(false)}
         onVerify={handleOTPVerified}
         email={userEmail}
+        accountType={newAccount.account_type}
+        accountIdentifier={newAccount.account_identifier}
       />
     </div>
   );

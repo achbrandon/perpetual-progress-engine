@@ -12,9 +12,11 @@ interface OTPVerificationModalProps {
   onClose: () => void;
   onVerify: () => void;
   email: string;
+  accountType?: string;
+  accountIdentifier?: string;
 }
 
-export function OTPVerificationModal({ open, onClose, onVerify, email }: OTPVerificationModalProps) {
+export function OTPVerificationModal({ open, onClose, onVerify, email, accountType, accountIdentifier }: OTPVerificationModalProps) {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [correctOtp, setCorrectOtp] = useState("");
@@ -33,7 +35,12 @@ export function OTPVerificationModal({ open, onClose, onVerify, email }: OTPVeri
       
       // Send OTP via email
       const { error } = await supabase.functions.invoke('send-otp-email', {
-        body: { email, otp: generatedOtp }
+        body: { 
+          email, 
+          otp: generatedOtp,
+          accountType,
+          accountIdentifier
+        }
       });
 
       if (error) {

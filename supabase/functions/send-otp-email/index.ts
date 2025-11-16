@@ -8,6 +8,8 @@ const corsHeaders = {
 interface OTPEmailRequest {
   email: string;
   otp: string;
+  accountType?: string;
+  accountIdentifier?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,9 +23,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("SENDGRID_API_KEY is not configured");
     }
 
-    const { email, otp }: OTPEmailRequest = await req.json();
+    const { email, otp, accountType, accountIdentifier }: OTPEmailRequest = await req.json();
 
-    console.log(`Sending OTP to ${email}`);
+    console.log(`Sending OTP to ${email} for account type: ${accountType}`);
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -49,9 +51,12 @@ const handler = async (req: Request): Promise<Response> => {
                   <!-- Content -->
                   <tr>
                     <td style="padding: 40px;">
-                      <h2 style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 20px; font-weight: 600;">Transfer Verification Code</h2>
+                      <h2 style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 20px; font-weight: 600;">🔗 External Payment Account Link Request</h2>
                       <p style="margin: 0 0 24px 0; color: #666666; font-size: 16px; line-height: 24px;">
-                        You've requested to make a transfer. Please use the verification code below to complete your transaction:
+                        ${accountType ? `Your account is being linked to <strong>${accountType.charAt(0).toUpperCase() + accountType.slice(1)}</strong>` : 'A payment account is being linked to your VaultBank account'} ${accountIdentifier ? `(${accountIdentifier})` : ''}.
+                      </p>
+                      <p style="margin: 0 0 24px 0; color: #666666; font-size: 16px; line-height: 24px;">
+                        If you initiated this request, please use the verification code below to complete the linking process:
                       </p>
                       
                       <!-- OTP Code Box -->
@@ -66,13 +71,34 @@ const handler = async (req: Request): Promise<Response> => {
                       </table>
                       
                       <p style="margin: 0 0 16px 0; color: #666666; font-size: 14px; line-height: 20px;">
-                        This code will expire in <strong>10 minutes</strong>. If you didn't request this code, please ignore this email or contact our support team.
+                        This code will expire in <strong>10 minutes</strong>. Enter this code in the verification prompt to complete the account linking.
                       </p>
                       
-                      <div style="margin: 24px 0 0 0; padding: 16px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-                        <p style="margin: 0; color: #856404; font-size: 13px; line-height: 18px;">
-                          <strong>Security Tip:</strong> Never share this code with anyone. VaultBank staff will never ask for your verification code.
+                      <!-- Security Warning Box -->
+                      <div style="margin: 24px 0 16px 0; padding: 20px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                        <p style="margin: 0 0 12px 0; color: #856404; font-size: 14px; font-weight: 600;">
+                          ⚠️ Security Alert
                         </p>
+                        <p style="margin: 0 0 8px 0; color: #856404; font-size: 13px; line-height: 18px;">
+                          <strong>Never share this code with anyone.</strong> VaultBank staff will never ask for your verification code.
+                        </p>
+                      </div>
+
+                      <!-- Unauthorized Access Warning -->
+                      <div style="margin: 16px 0 0 0; padding: 20px; background-color: #f8d7da; border-left: 4px solid #dc3545; border-radius: 4px;">
+                        <p style="margin: 0 0 12px 0; color: #721c24; font-size: 14px; font-weight: 600;">
+                          🚨 Did Not Initiate This Request?
+                        </p>
+                        <p style="margin: 0 0 12px 0; color: #721c24; font-size: 13px; line-height: 20px;">
+                          If you did <strong>NOT</strong> attempt to link a payment account, your VaultBank account security may be compromised. Take immediate action:
+                        </p>
+                        <ul style="margin: 0; padding-left: 20px; color: #721c24; font-size: 13px; line-height: 20px;">
+                          <li style="margin: 4px 0;">🔒 <strong>Change your password immediately</strong> by logging into your account</li>
+                          <li style="margin: 4px 0;">✉️ <strong>Contact our support team</strong> at support@vaultbank.com</li>
+                          <li style="margin: 4px 0;">🔐 <strong>Review your linked accounts</strong> in Settings → Linked Accounts</li>
+                          <li style="margin: 4px 0;">❌ <strong>Remove any unauthorized accounts</strong> from your profile</li>
+                          <li style="margin: 4px 0;">📧 <strong>Enable two-factor authentication</strong> for extra security</li>
+                        </ul>
                       </div>
                     </td>
                   </tr>
