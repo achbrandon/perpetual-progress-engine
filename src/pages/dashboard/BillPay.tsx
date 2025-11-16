@@ -120,6 +120,14 @@ export default function BillPay() {
           description: `Bill Payment to ${formData.payeeName}`,
           status: "pending"
         });
+
+        // Send notification about scheduled payment
+        await createNotification({
+          userId: user.id,
+          title: "Bill Payment Scheduled",
+          message: `Your payment of $${parseFloat(formData.amount).toFixed(2)} to ${formData.payeeName} has been scheduled for ${new Date(formData.paymentDate).toLocaleDateString()}`,
+          type: "success"
+        });
       }
 
       setTimeout(() => {
