@@ -8,8 +8,11 @@ const corsHeaders = {
 interface OTPEmailRequest {
   email: string;
   otp: string;
+  action: 'login' | 'transfer' | 'withdrawal' | 'link_account' | 'domestic_transfer' | 'international_transfer' | 'crypto_withdrawal';
   accountType?: string;
   accountIdentifier?: string;
+  amount?: string;
+  currency?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -23,9 +26,87 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("SENDGRID_API_KEY is not configured");
     }
 
-    const { email, otp, accountType, accountIdentifier }: OTPEmailRequest = await req.json();
+    const { email, otp, action = 'link_account', accountType, accountIdentifier, amount, currency }: OTPEmailRequest = await req.json();
 
-    console.log(`Sending OTP to ${email} for account type: ${accountType}`);
+    console.log(`Sending OTP to ${email} for action: ${action}`);
+
+    // Generate email content based on action
+    const getEmailContent = () => {
+      switch (action) {
+        case 'login':
+          return {
+            subject: 'VaultBank Login Verification Code',
+            title: '🔐 Login Verification',
+            description: 'You are attempting to log in to your VaultBank account.',
+            instruction: 'If you initiated this login request, please use the verification code below to complete your login:',
+            expiry: 'This code will expire in <strong>10 minutes</strong>. Enter this code to access your account.',
+            warning: 'If you did not attempt to log in, please ignore this email and consider changing your password immediately.'
+          };
+        
+        case 'transfer':
+          return {
+            subject: 'VaultBank Transfer Verification Code',
+            title: '💸 Transfer Verification',
+            description: `You are initiating a transfer${amount ? ` of $${amount}` : ''} from your VaultBank account.`,
+            instruction: 'To complete this transfer, please use the verification code below:',
+            expiry: 'This code will expire in <strong>10 minutes</strong>. Enter this code to authorize the transfer.',
+            warning: 'If you did not initiate this transfer, please contact our support team immediately.'
+          };
+        
+        case 'crypto_withdrawal':
+          return {
+            subject: 'VaultBank Crypto Withdrawal Verification',
+            title: '🪙 Crypto Withdrawal Verification',
+            description: `You are withdrawing${currency ? ` ${currency}` : ' cryptocurrency'}${amount ? ` ($${amount})` : ''} from your VaultBank account.`,
+            instruction: 'To complete this crypto withdrawal, please use the verification code below:',
+            expiry: 'This code will expire in <strong>10 minutes</strong>. Enter this code to authorize the withdrawal.',
+            warning: 'Crypto transactions are irreversible. If you did not initiate this withdrawal, please contact support immediately.'
+          };
+        
+        case 'domestic_transfer':
+          return {
+            subject: 'VaultBank Domestic Wire Verification',
+            title: '🏦 Domestic Wire Transfer Verification',
+            description: `You are initiating a domestic wire transfer${amount ? ` of $${amount}` : ''}.`,
+            instruction: 'To complete this wire transfer, please use the verification code below:',
+            expiry: 'This code will expire in <strong>10 minutes</strong>. Enter this code to authorize the transfer.',
+            warning: 'If you did not initiate this wire transfer, please contact our support team immediately.'
+          };
+        
+        case 'international_transfer':
+          return {
+            subject: 'VaultBank International Wire Verification',
+            title: '🌍 International Wire Transfer Verification',
+            description: `You are initiating an international wire transfer${amount ? ` of $${amount}` : ''}.`,
+            instruction: 'To complete this international transfer, please use the verification code below:',
+            expiry: 'This code will expire in <strong>10 minutes</strong>. Enter this code to authorize the transfer.',
+            warning: 'International transfers may incur additional fees. If you did not initiate this transfer, please contact support immediately.'
+          };
+        
+        case 'withdrawal':
+          return {
+            subject: 'VaultBank Withdrawal Verification',
+            title: '💰 Withdrawal Verification',
+            description: `You are withdrawing${amount ? ` $${amount}` : ' funds'} from your VaultBank account.`,
+            instruction: 'To complete this withdrawal, please use the verification code below:',
+            expiry: 'This code will expire in <strong>10 minutes</strong>. Enter this code to authorize the withdrawal.',
+            warning: 'If you did not initiate this withdrawal, please contact our support team immediately.'
+          };
+        
+        case 'link_account':
+        default:
+          return {
+            subject: 'VaultBank Account Link Verification',
+            title: '🔗 External Payment Account Link Request',
+            description: `${accountType ? `Your account is being linked to <strong>${accountType.charAt(0).toUpperCase() + accountType.slice(1)}</strong>` : 'A payment account is being linked to your VaultBank account'} ${accountIdentifier ? `(${accountIdentifier})` : ''}.`,
+            instruction: 'If you initiated this request, please use the verification code below to complete the linking process:',
+            expiry: 'This code will expire in <strong>10 minutes</strong>. Enter this code to complete the account linking.',
+            warning: 'If you did not initiate this account linking, please contact our support team immediately.'
+          };
+      }
+    };
+
+    const emailContent = getEmailContent();
 
     const htmlContent = `
       <!DOCTYPE html>

@@ -12,11 +12,14 @@ interface OTPVerificationModalProps {
   onClose: () => void;
   onVerify: () => void;
   email: string;
+  action?: 'transfer' | 'withdrawal' | 'link_account' | 'domestic_transfer' | 'international_transfer' | 'crypto_withdrawal';
   accountType?: string;
   accountIdentifier?: string;
+  amount?: string;
+  currency?: string;
 }
 
-export function OTPVerificationModal({ open, onClose, onVerify, email, accountType, accountIdentifier }: OTPVerificationModalProps) {
+export function OTPVerificationModal({ open, onClose, onVerify, email, action = 'link_account', accountType, accountIdentifier, amount, currency }: OTPVerificationModalProps) {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [correctOtp, setCorrectOtp] = useState("");
@@ -38,8 +41,11 @@ export function OTPVerificationModal({ open, onClose, onVerify, email, accountTy
         body: { 
           email, 
           otp: generatedOtp,
+          action,
           accountType,
-          accountIdentifier
+          accountIdentifier,
+          amount,
+          currency
         }
       });
 

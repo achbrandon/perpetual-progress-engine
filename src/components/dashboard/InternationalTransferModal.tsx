@@ -389,6 +389,8 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
           onClose={() => setShowOTP(false)}
           onVerify={handleOTPVerified}
           email={profile?.email || "your email"}
+          action="international_transfer"
+          amount={amount}
         />
       )}
 

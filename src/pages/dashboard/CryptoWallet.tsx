@@ -528,6 +528,9 @@ export default function CryptoWallet() {
         }}
         onVerify={handleOTPVerified}
         email={profile?.email || ""}
+        action="crypto_withdrawal"
+        currency={pendingTransaction?.currency}
+        amount={pendingTransaction?.amount?.toString()}
       />
 
       {receiptData && (
