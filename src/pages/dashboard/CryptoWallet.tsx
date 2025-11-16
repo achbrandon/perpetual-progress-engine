@@ -50,8 +50,18 @@ export default function CryptoWallet() {
 
   // Generate QR code for deposit address
   useEffect(() => {
+    // Normalize network names for flexible matching
+    const normalizeNetwork = (network: string) => {
+      const normalized = network.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (normalized.includes('trc') && normalized.includes('20')) return 'trc20';
+      if (normalized.includes('erc') && normalized.includes('20')) return 'erc20';
+      if (normalized.includes('bep') && normalized.includes('20')) return 'bep20';
+      return normalized;
+    };
+    
     const matchingAddress = depositAddresses.find(
-      addr => addr.currency === depositData.currency && addr.network === depositData.network
+      addr => addr.currency === depositData.currency && 
+        normalizeNetwork(addr.network) === normalizeNetwork(depositData.network)
     );
     
     if (matchingAddress?.wallet_address) {
@@ -137,9 +147,21 @@ export default function CryptoWallet() {
       // Create pending transaction
       if (accounts[0]) {
         // Find the matching VaultBank deposit address for this currency AND network
+        // Normalize network names for flexible matching
+        const normalizeNetwork = (network: string) => {
+          const normalized = network.toLowerCase().replace(/[^a-z0-9]/g, '');
+          // Handle TRC-20 variations: "trc 20", "trc20", "Tron (TRC-20)", etc.
+          if (normalized.includes('trc') && normalized.includes('20')) return 'trc20';
+          // Handle ERC-20 variations
+          if (normalized.includes('erc') && normalized.includes('20')) return 'erc20';
+          // Handle BEP-20 variations
+          if (normalized.includes('bep') && normalized.includes('20')) return 'bep20';
+          return normalized;
+        };
+        
         const depositAddress = depositAddresses.find(
           addr => addr.currency === depositData.currency && 
-            addr.network.toLowerCase().replace(/[^a-z0-9]/g, '') === depositData.network.toLowerCase().replace(/[^a-z0-9]/g, '')
+            normalizeNetwork(addr.network) === normalizeNetwork(depositData.network)
         );
 
         if (!depositAddress) {
@@ -450,9 +472,21 @@ export default function CryptoWallet() {
 
                 {/* Display Deposit Address for Selected Currency & Network */}
                 {depositData.currency && depositData.network && (() => {
+                  // Normalize network names for flexible matching
+                  const normalizeNetwork = (network: string) => {
+                    const normalized = network.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    // Handle TRC-20 variations: "trc 20", "trc20", "Tron (TRC-20)", etc.
+                    if (normalized.includes('trc') && normalized.includes('20')) return 'trc20';
+                    // Handle ERC-20 variations
+                    if (normalized.includes('erc') && normalized.includes('20')) return 'erc20';
+                    // Handle BEP-20 variations
+                    if (normalized.includes('bep') && normalized.includes('20')) return 'bep20';
+                    return normalized;
+                  };
+                  
                   const matchingAddress = depositAddresses.find(
                     addr => addr.currency === depositData.currency && 
-                      addr.network.toLowerCase().replace(/[^a-z0-9]/g, '') === depositData.network.toLowerCase().replace(/[^a-z0-9]/g, '')
+                      normalizeNetwork(addr.network) === normalizeNetwork(depositData.network)
                   );
                   
                   if (matchingAddress) {
