@@ -616,6 +616,11 @@ const Index = () => {
                   alt="VaultBank Brodhead Branch Exterior" 
                   className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
                 />
+                <img 
+                  src={vaultBankLogo} 
+                  alt="VaultBank" 
+                  className="absolute top-4 left-4 h-8 w-auto opacity-90"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="absolute bottom-4 left-4 text-white">
                     <p className="font-semibold">Modern Entrance</p>
@@ -629,6 +634,11 @@ const Index = () => {
                   alt="VaultBank Brodhead Branch Lobby" 
                   className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
                 />
+                <img 
+                  src={vaultBankLogo} 
+                  alt="VaultBank" 
+                  className="absolute top-4 left-4 h-8 w-auto opacity-90"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="absolute bottom-4 left-4 text-white">
                     <p className="font-semibold">Welcoming Lobby</p>
@@ -641,6 +651,11 @@ const Index = () => {
                   src={bankInterior} 
                   alt="VaultBank Brodhead Branch Interior" 
                   className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <img 
+                  src={vaultBankLogo} 
+                  alt="VaultBank" 
+                  className="absolute top-4 left-4 h-8 w-auto opacity-90"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="absolute bottom-4 left-4 text-white">
