@@ -13,6 +13,7 @@ import { OTPVerificationModal } from "@/components/dashboard/OTPVerificationModa
 import { CryptoReceipt } from "@/components/dashboard/CryptoReceipt";
 import { createNotification, NotificationTemplates } from "@/lib/notifications";
 import bankLogo from "@/assets/vaultbank-logo.png";
+import QRCode from "qrcode";
 
 export default function CryptoWallet() {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export default function CryptoWallet() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
+  const [depositQrCode, setDepositQrCode] = useState<string>("");
 
   const [depositData, setDepositData] = useState({
     currency: "BTC",
@@ -45,6 +47,26 @@ export default function CryptoWallet() {
   useEffect(() => {
     checkAuth();
   }, []);
+
+  // Generate QR code for deposit address
+  useEffect(() => {
+    const matchingAddress = depositAddresses.find(
+      addr => addr.currency === depositData.currency && addr.network === depositData.network
+    );
+    
+    if (matchingAddress?.wallet_address) {
+      QRCode.toDataURL(matchingAddress.wallet_address, {
+        width: 200,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      }).then(setDepositQrCode).catch(console.error);
+    } else {
+      setDepositQrCode("");
+    }
+  }, [depositData.currency, depositData.network, depositAddresses]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -438,13 +460,21 @@ export default function CryptoWallet() {
                           <Wallet className="h-4 w-4 text-primary" />
                           VaultBank Deposit Address
                         </h3>
-                        <div className="space-y-2">
+                        <div className="space-y-4">
                           <div className="flex items-center justify-between mb-2">
                             <span className="font-medium text-sm">{matchingAddress.currency}</span>
                             <span className="text-xs text-muted-foreground px-2 py-1 bg-background rounded border">
                               {matchingAddress.network}
                             </span>
                           </div>
+                          
+                          {/* QR Code */}
+                          {depositQrCode && (
+                            <div className="flex justify-center p-4 bg-background rounded-lg border">
+                              <img src={depositQrCode} alt="Wallet Address QR Code" className="w-48 h-48" />
+                            </div>
+                          )}
+                          
                           <div className="flex items-center gap-2">
                             <code className="flex-1 text-xs bg-background p-3 rounded border break-all font-mono">
                               {matchingAddress.wallet_address}

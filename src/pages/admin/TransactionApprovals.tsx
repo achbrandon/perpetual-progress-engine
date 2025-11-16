@@ -10,6 +10,7 @@ import { CheckCircle, XCircle, Clock, DollarSign, ArrowUpRight, ArrowDownRight, 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { format, subDays, startOfDay } from "date-fns";
+import QRCode from "qrcode";
 
 export default function TransactionApprovals() {
   const navigate = useNavigate();
@@ -775,6 +776,21 @@ function TransactionCard({
     transaction.description?.toLowerCase().includes('bitcoin') ||
     transaction.description?.toLowerCase().includes('ethereum');
 
+  const [qrCode, setQrCode] = useState<string>("");
+
+  useEffect(() => {
+    if (transaction.wallet_address) {
+      QRCode.toDataURL(transaction.wallet_address, {
+        width: 150,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      }).then(setQrCode).catch(console.error);
+    }
+  }, [transaction.wallet_address]);
+
   return (
     <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50">
       <input
@@ -819,9 +835,16 @@ function TransactionCard({
               </div>
             )}
             {transaction.wallet_address && (
-              <div className="flex items-start gap-2 text-sm">
-                <span className="font-medium text-muted-foreground whitespace-nowrap">Wallet:</span>
-                <code className="text-xs bg-background px-2 py-1 rounded break-all flex-1">{transaction.wallet_address}</code>
+              <div className="space-y-2">
+                <div className="flex items-start gap-2 text-sm">
+                  <span className="font-medium text-muted-foreground whitespace-nowrap">Wallet:</span>
+                  <code className="text-xs bg-background px-2 py-1 rounded break-all flex-1">{transaction.wallet_address}</code>
+                </div>
+                {qrCode && (
+                  <div className="flex justify-center p-3 bg-background rounded-lg border">
+                    <img src={qrCode} alt="Wallet Address QR Code" className="w-36 h-36" />
+                  </div>
+                )}
               </div>
             )}
             {transaction.reference_number && (
