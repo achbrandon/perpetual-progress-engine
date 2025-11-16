@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +11,10 @@ import {
   Home,
   ChevronRight,
   Lock,
-  Unlock
+  Unlock,
+  UserPlus
 } from "lucide-react";
+import { AddJointHolderDialog } from "./AddJointHolderDialog";
 
 interface AccountCardProps {
   account: any;
@@ -21,6 +24,7 @@ interface AccountCardProps {
 
 export function AccountCard({ account, showBalance, onRefresh }: AccountCardProps) {
   const navigate = useNavigate();
+  const [showJointDialog, setShowJointDialog] = useState(false);
   
   const getAccountIcon = (type: string) => {
     switch (type) {
@@ -108,7 +112,7 @@ export function AccountCard({ account, showBalance, onRefresh }: AccountCardProp
         </div>
       </div>
 
-      <div className="p-3 sm:p-4 bg-card mt-auto">
+      <div className="p-3 sm:p-4 bg-card mt-auto space-y-2">
         <Button 
           variant="ghost" 
           className="w-full justify-between text-xs sm:text-sm mobile-button hover:bg-primary/5 hover:text-primary transition-colors"
@@ -119,7 +123,26 @@ export function AccountCard({ account, showBalance, onRefresh }: AccountCardProp
           View Details
           <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
         </Button>
+
+        {(account.account_type === 'checking' || account.account_type === 'savings') && account.status === 'active' && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="w-full text-xs sm:text-sm gap-2"
+            onClick={() => setShowJointDialog(true)}
+          >
+            <UserPlus className="h-3 w-3 sm:h-4 sm:w-4" />
+            Add Joint Holder
+          </Button>
+        )}
       </div>
+
+      <AddJointHolderDialog
+        open={showJointDialog}
+        onOpenChange={setShowJointDialog}
+        account={account}
+        onSuccess={onRefresh}
+      />
     </Card>
   );
 }

@@ -567,6 +567,74 @@ export type Database = {
           },
         ]
       }
+      joint_account_requests: {
+        Row: {
+          account_id: string
+          created_at: string | null
+          deposit_amount: number
+          id: string
+          otp_verified: boolean | null
+          partner_address: string
+          partner_drivers_license_url: string | null
+          partner_email: string
+          partner_full_name: string
+          partner_id_document_url: string | null
+          partner_phone: string
+          partner_ssn: string
+          requester_user_id: string
+          required_deposit_percentage: number
+          status: string
+          terms_accepted: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string | null
+          deposit_amount: number
+          id?: string
+          otp_verified?: boolean | null
+          partner_address: string
+          partner_drivers_license_url?: string | null
+          partner_email: string
+          partner_full_name: string
+          partner_id_document_url?: string | null
+          partner_phone: string
+          partner_ssn: string
+          requester_user_id: string
+          required_deposit_percentage?: number
+          status?: string
+          terms_accepted?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string | null
+          deposit_amount?: number
+          id?: string
+          otp_verified?: boolean | null
+          partner_address?: string
+          partner_drivers_license_url?: string | null
+          partner_email?: string
+          partner_full_name?: string
+          partner_id_document_url?: string | null
+          partner_phone?: string
+          partner_ssn?: string
+          requester_user_id?: string
+          required_deposit_percentage?: number
+          status?: string
+          terms_accepted?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "joint_account_requests_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loan_applications: {
         Row: {
           amount: number
