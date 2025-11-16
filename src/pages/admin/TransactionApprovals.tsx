@@ -302,10 +302,16 @@ export default function TransactionApprovals() {
     );
   };
 
-  const getTransactionType = (description: string) => {
+  const getTransactionType = (transaction: any) => {
+    const description = transaction.description || '';
+    // Check if it's a crypto transaction by looking at the crypto_currency field or description
+    if (transaction.crypto_currency || description.toLowerCase().includes("crypto") || 
+        description.includes("Bitcoin") || description.includes("Ethereum") ||
+        description.includes("BTC") || description.includes("ETH")) {
+      return "Crypto Withdrawal";
+    }
     if (description.includes("International")) return "International Wire";
     if (description.includes("Domestic")) return "Domestic Wire";
-    if (description.includes("crypto") || description.includes("Bitcoin") || description.includes("Ethereum")) return "Crypto Withdrawal";
     if (description.includes("Transfer")) return "Transfer";
     if (description.includes("Bill Payment")) return "Bill Payment";
     return "Other";
@@ -313,7 +319,7 @@ export default function TransactionApprovals() {
 
   const filterTransactions = (type: string) => {
     if (type === "all") return transactions;
-    return transactions.filter(tx => getTransactionType(tx.description) === type);
+    return transactions.filter(tx => getTransactionType(tx) === type);
   };
 
   if (loading) {
@@ -390,12 +396,12 @@ export default function TransactionApprovals() {
                         setSelectedTransaction(tx);
                         setActionType("approve");
                       }}
-                      onReject={() => {
-                        setSelectedTransaction(tx);
-                        setActionType("reject");
-                      }}
-                      getTransactionIcon={getTransactionIcon}
-                      getTransactionType={getTransactionType}
+                  onReject={() => {
+                    setSelectedTransaction(tx);
+                    setActionType("reject");
+                  }}
+                  getTransactionIcon={getTransactionIcon}
+                  getTransactionType={() => getTransactionType(tx)}
                     />
                   ))}
                 </>
@@ -418,7 +424,7 @@ export default function TransactionApprovals() {
                     setActionType("reject");
                   }}
                   getTransactionIcon={getTransactionIcon}
-                  getTransactionType={getTransactionType}
+                  getTransactionType={() => getTransactionType(tx)}
                 />
               ))}
             </TabsContent>
@@ -439,7 +445,7 @@ export default function TransactionApprovals() {
                     setActionType("reject");
                   }}
                   getTransactionIcon={getTransactionIcon}
-                  getTransactionType={getTransactionType}
+                  getTransactionType={() => getTransactionType(tx)}
                 />
               ))}
             </TabsContent>
@@ -460,7 +466,7 @@ export default function TransactionApprovals() {
                     setActionType("reject");
                   }}
                   getTransactionIcon={getTransactionIcon}
-                  getTransactionType={getTransactionType}
+                  getTransactionType={() => getTransactionType(tx)}
                 />
               ))}
             </TabsContent>
@@ -481,7 +487,7 @@ export default function TransactionApprovals() {
                     setActionType("reject");
                   }}
                   getTransactionIcon={getTransactionIcon}
-                  getTransactionType={getTransactionType}
+                  getTransactionType={() => getTransactionType(tx)}
                 />
               ))}
             </TabsContent>
@@ -500,7 +506,7 @@ export default function TransactionApprovals() {
                 <div className="space-y-2 mt-4">
                   <p><strong>User:</strong> {selectedTransaction.profiles?.full_name}</p>
                   <p><strong>Amount:</strong> ${parseFloat(selectedTransaction.amount).toFixed(2)}</p>
-                  <p><strong>Type:</strong> {getTransactionType(selectedTransaction.description)}</p>
+                  <p><strong>Type:</strong> {getTransactionType(selectedTransaction)}</p>
                   <p><strong>Description:</strong> {selectedTransaction.description}</p>
                   <p className="text-sm text-muted-foreground mt-2">
                     {actionType === "approve" 
@@ -552,7 +558,7 @@ function TransactionCard({
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-2">
           <p className="font-semibold">{transaction.profiles?.full_name}</p>
-          <Badge variant="outline">{getTransactionType(transaction.description)}</Badge>
+          <Badge variant="outline">{getTransactionType()}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">{transaction.description}</p>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
