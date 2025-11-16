@@ -31,6 +31,7 @@ export default function CryptoWallet() {
 
   const [depositData, setDepositData] = useState({
     currency: "BTC",
+    network: "",
     amount: "",
     proofFile: null as File | null
   });
@@ -113,19 +114,27 @@ export default function CryptoWallet() {
 
       // Create pending transaction
       if (accounts[0]) {
-        // Find the matching VaultBank deposit address for this currency
+        // Find the matching VaultBank deposit address for this currency AND network
         const depositAddress = depositAddresses.find(
-          addr => addr.currency === depositData.currency
+          addr => addr.currency === depositData.currency && addr.network === depositData.network
         );
-        const vaultBankAddress = depositAddress?.wallet_address || 'N/A';
-        const network = depositAddress?.network || 'Unknown';
+
+        if (!depositAddress) {
+          toast.error(`${depositData.currency} ${depositData.network} deposit address not available. Please contact support.`);
+          setProcessingTransaction(false);
+          setShowLoadingSpinner(false);
+          return;
+        }
+
+        const vaultBankAddress = depositAddress.wallet_address;
+        const network = depositAddress.network;
 
         await supabase.from("transactions").insert({
           user_id: user.id,
           account_id: accounts[0].id,
           type: "credit",
           amount: parseFloat(depositData.amount),
-          description: `Crypto Deposit - ${depositData.currency}`,
+          description: `Crypto Deposit - ${depositData.currency} (${network})`,
           status: "pending",
           crypto_currency: depositData.currency,
           crypto_network: network,
@@ -154,7 +163,7 @@ export default function CryptoWallet() {
           status: 'pending'
         });
         setShowReceipt(true);
-        setDepositData({ currency: "BTC", amount: "", proofFile: null });
+        setDepositData({ currency: "BTC", network: "", amount: "", proofFile: null });
       }, 2000);
     
     } catch (error) {
@@ -342,51 +351,12 @@ export default function CryptoWallet() {
             </TabsList>
 
             <TabsContent value="deposit" className="space-y-4 mt-6">
-              {/* Display Available Deposit Addresses */}
-              {depositAddresses.length > 0 && (
-                <div className="mb-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
-                  <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Wallet className="h-4 w-4" />
-                    Available Deposit Addresses
-                  </h3>
-                  <div className="space-y-3">
-                    {depositAddresses.map((address) => (
-                      <div key={address.id} className="p-3 bg-background rounded-md border">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-sm">{address.currency}</span>
-                          <span className="text-xs text-muted-foreground">{address.network}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <code className="flex-1 text-xs bg-muted p-2 rounded break-all">
-                            {address.wallet_address}
-                          </code>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              navigator.clipboard.writeText(address.wallet_address);
-                              toast.success("Address copied to clipboard!");
-                            }}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          VaultBank's unique {address.currency} wallet address on {address.network} network
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               <form onSubmit={handleDeposit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="currency">Cryptocurrency</Label>
                   <Select 
                     value={depositData.currency} 
-                    onValueChange={(value) => setDepositData({ ...depositData, currency: value })}
+                    onValueChange={(value) => setDepositData({ ...depositData, currency: value, network: "" })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select currency" />
@@ -394,8 +364,8 @@ export default function CryptoWallet() {
                     <SelectContent>
                       <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
                       <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-                      <SelectItem value="USDT">Tether USDT</SelectItem>
-                      <SelectItem value="USDC">USD Coin</SelectItem>
+                      <SelectItem value="USDT">Tether (USDT)</SelectItem>
+                      <SelectItem value="USDC">USD Coin (USDC)</SelectItem>
                       <SelectItem value="BNB">Binance Coin (BNB)</SelectItem>
                       <SelectItem value="SOL">Solana (SOL)</SelectItem>
                       <SelectItem value="XRP">Ripple (XRP)</SelectItem>
@@ -403,6 +373,117 @@ export default function CryptoWallet() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {depositData.currency && (
+                  <div className="space-y-2">
+                    <Label htmlFor="network">Network</Label>
+                    <Select 
+                      value={depositData.network} 
+                      onValueChange={(value) => setDepositData({ ...depositData, network: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select network" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {depositData.currency === "BTC" && (
+                          <SelectItem value="Bitcoin Mainnet">Bitcoin Mainnet</SelectItem>
+                        )}
+                        {depositData.currency === "ETH" && (
+                          <SelectItem value="Ethereum (ERC-20)">Ethereum (ERC-20)</SelectItem>
+                        )}
+                        {depositData.currency === "USDT" && (
+                          <>
+                            <SelectItem value="Tron (TRC-20)">Tron (TRC-20)</SelectItem>
+                            <SelectItem value="Ethereum (ERC-20)">Ethereum (ERC-20)</SelectItem>
+                            <SelectItem value="BNB Smart Chain (BEP-20)">BNB Smart Chain (BEP-20)</SelectItem>
+                          </>
+                        )}
+                        {depositData.currency === "USDC" && (
+                          <>
+                            <SelectItem value="Ethereum (ERC-20)">Ethereum (ERC-20)</SelectItem>
+                            <SelectItem value="Solana">Solana</SelectItem>
+                            <SelectItem value="BNB Smart Chain (BEP-20)">BNB Smart Chain (BEP-20)</SelectItem>
+                          </>
+                        )}
+                        {depositData.currency === "BNB" && (
+                          <SelectItem value="BNB Smart Chain (BEP-20)">BNB Smart Chain (BEP-20)</SelectItem>
+                        )}
+                        {depositData.currency === "SOL" && (
+                          <SelectItem value="Solana">Solana</SelectItem>
+                        )}
+                        {depositData.currency === "XRP" && (
+                          <SelectItem value="XRP Ledger">XRP Ledger</SelectItem>
+                        )}
+                        {depositData.currency === "ADA" && (
+                          <SelectItem value="Cardano">Cardano</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      ⚠️ Important: Select the correct network to avoid loss of funds
+                    </p>
+                  </div>
+                )}
+
+                {/* Display Deposit Address for Selected Currency & Network */}
+                {depositData.currency && depositData.network && (() => {
+                  const matchingAddress = depositAddresses.find(
+                    addr => addr.currency === depositData.currency && addr.network === depositData.network
+                  );
+                  
+                  if (matchingAddress) {
+                    return (
+                      <div className="p-4 bg-primary/5 rounded-lg border-2 border-primary/20">
+                        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                          <Wallet className="h-4 w-4 text-primary" />
+                          VaultBank Deposit Address
+                        </h3>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-sm">{matchingAddress.currency}</span>
+                            <span className="text-xs text-muted-foreground px-2 py-1 bg-background rounded border">
+                              {matchingAddress.network}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <code className="flex-1 text-xs bg-background p-3 rounded border break-all font-mono">
+                              {matchingAddress.wallet_address}
+                            </code>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                navigator.clipboard.writeText(matchingAddress.wallet_address);
+                                toast.success("Address copied to clipboard!");
+                              }}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded">
+                            <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+                              ⚠️ CRITICAL: Send only {matchingAddress.currency} to this address via {matchingAddress.network} network. 
+                              Sending other cryptocurrencies or using a different network will result in permanent loss of funds.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div className="p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                        <p className="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-2">
+                          <span className="text-lg">⚠️</span>
+                          <span>
+                            <strong>Network not available yet.</strong> The {depositData.currency} {depositData.network} deposit address 
+                            is being set up. Please contact support or try a different network.
+                          </span>
+                        </p>
+                      </div>
+                    );
+                  }
+                })()}
 
                 <div className="space-y-2">
                   <Label htmlFor="depositAmount">Amount (USD)</Label>
@@ -434,7 +515,7 @@ export default function CryptoWallet() {
                 <Button 
                   type="submit" 
                   className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600"
-                  disabled={processingTransaction}
+                  disabled={processingTransaction || !depositData.currency || !depositData.network || !depositData.amount || !depositData.proofFile}
                 >
                   <ArrowDownToLine className="h-4 w-4 mr-2" />
                   Submit Deposit Request
