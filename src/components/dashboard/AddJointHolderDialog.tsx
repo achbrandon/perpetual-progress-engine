@@ -114,7 +114,7 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
           partner_id_document_url: idDocUrl,
           partner_drivers_license_url: licenseUrl,
           deposit_amount: requiredDeposit,
-          required_deposit_percentage: 0.01,
+          required_deposit_percentage: 1.0,
           status: 'pending'
         })
         .select()
