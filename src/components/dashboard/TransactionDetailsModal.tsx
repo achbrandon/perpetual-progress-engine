@@ -64,30 +64,243 @@ export function TransactionDetailsModal({ transaction, open, onClose }: Transact
       cleanDescription = cleanDescription.replace(/\bAdmin\b/gi, 'Deposit');
     }
     
-    // Generate a simple receipt
-    const receiptContent = `
-VaultBank Transaction Receipt
-================================
+    const formattedDate = new Date(transaction.created_at).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const formattedTime = new Date(transaction.created_at).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    
+    // Generate a professional HTML receipt
+    const receiptHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VaultBank Transaction Receipt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .receipt-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .amount-section {
+            background: #f8f9fa;
+            padding: 40px;
+            text-align: center;
+            border-bottom: 3px solid #e9ecef;
+        }
+        .amount-label {
+            font-size: 14px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .amount {
+            font-size: 48px;
+            font-weight: 700;
+            color: ${isDebit ? '#dc3545' : '#28a745'};
+            margin: 0;
+        }
+        .details-section {
+            padding: 40px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .detail-value {
+            color: #212529;
+            text-align: right;
+            font-weight: 500;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 3px solid #e9ecef;
+        }
+        .footer p {
+            color: #6c757d;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .footer strong {
+            color: #495057;
+        }
+        .icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+        }
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .receipt-container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="header">
+            <h1>🏦 VaultBank</h1>
+            <p>Transaction Receipt</p>
+        </div>
+        
+        <div class="amount-section">
+            <div class="amount-label">Amount</div>
+            <div class="amount">${isDebit ? '-' : '+'}$${Math.abs(parseFloat(transaction.amount)).toFixed(2)}</div>
+        </div>
+        
+        <div class="details-section">
+            <div class="detail-row">
+                <div class="detail-label">
+                    <span class="icon">#</span>
+                    Transaction ID
+                </div>
+                <div class="detail-value">${transaction.id}</div>
+            </div>
+            
+            <div class="detail-row">
+                <div class="detail-label">
+                    <span class="icon">📅</span>
+                    Date & Time
+                </div>
+                <div class="detail-value">${formattedDate}<br/>${formattedTime}</div>
+            </div>
+            
+            <div class="detail-row">
+                <div class="detail-label">
+                    <span class="icon">📄</span>
+                    Type
+                </div>
+                <div class="detail-value">${transaction.type.toUpperCase()}</div>
+            </div>
+            
+            <div class="detail-row">
+                <div class="detail-label">
+                    <span class="icon">✓</span>
+                    Status
+                </div>
+                <div class="detail-value">
+                    <span class="status-badge status-${transaction.status}">${transaction.status.toUpperCase()}</span>
+                </div>
+            </div>
+            
+            <div class="detail-row">
+                <div class="detail-label">Description</div>
+                <div class="detail-value">${cleanDescription || 'N/A'}</div>
+            </div>
+            
+            ${transaction.category ? `
+            <div class="detail-row">
+                <div class="detail-label">Category</div>
+                <div class="detail-value">${transaction.category}</div>
+            </div>
+            ` : ''}
+            
+            ${transaction.merchant ? `
+            <div class="detail-row">
+                <div class="detail-label">Merchant</div>
+                <div class="detail-value">${transaction.merchant}</div>
+            </div>
+            ` : ''}
+            
+            ${transaction.reference_number ? `
+            <div class="detail-row">
+                <div class="detail-label">Reference Number</div>
+                <div class="detail-value">${transaction.reference_number}</div>
+            </div>
+            ` : ''}
+        </div>
+        
+        <div class="footer">
+            <p><strong>VaultBank - Secure Banking Solutions</strong></p>
+            <p>This is an official transaction receipt.</p>
+            <p>For support, contact us at info@vaulteonline.com</p>
+            <p style="margin-top: 16px; font-size: 12px;">Generated on ${new Date().toLocaleString()}</p>
+        </div>
+    </div>
+</body>
+</html>`;
 
-Transaction ID: ${transaction.id}
-Date: ${new Date(transaction.created_at).toLocaleString()}
-Type: ${transaction.type.toUpperCase()}
-Amount: $${Math.abs(parseFloat(transaction.amount)).toFixed(2)}
-Description: ${cleanDescription}
-Status: ${transaction.status.toUpperCase()}
-
-${transaction.category ? `Category: ${transaction.category}` : ''}
-${transaction.merchant ? `Merchant: ${transaction.merchant}` : ''}
-${transaction.reference_number ? `Reference: ${transaction.reference_number}` : ''}
-
-Thank you for banking with VaultBank!
-    `.trim();
-
-    const blob = new Blob([receiptContent], { type: 'text/plain' });
+    const blob = new Blob([receiptHTML], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `transaction-${transaction.id}.txt`;
+    a.download = `transaction-${transaction.id}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
