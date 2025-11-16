@@ -318,24 +318,24 @@ export default function NotificationBar() {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md flex flex-col">
-        <SheetHeader>
+      <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
+        <SheetHeader className="px-4 pt-4 pb-3 border-b">
           <div className="flex items-center justify-between">
-            <SheetTitle>Notifications</SheetTitle>
+            <SheetTitle className="text-lg font-semibold">Notifications</SheetTitle>
             {unreadCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={markAllAsRead}
-                className="text-sm"
+                className="text-xs h-8"
               >
-                Mark all as read
+                Mark all read
               </Button>
             )}
           </div>
         </SheetHeader>
 
-        <div className="space-y-3 mt-4">
+        <div className="px-4 py-3 space-y-3 border-b">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -343,19 +343,19 @@ export default function NotificationBar() {
               placeholder="Search notifications..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="pl-9 h-9"
             />
           </div>
 
           {/* Date Range Filter */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full justify-start text-left font-normal">
-                <Calendar className="mr-2 h-4 w-4" />
+              <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal h-9 text-xs">
+                <Calendar className="mr-2 h-3.5 w-3.5" />
                 {dateRange.from ? (
                   dateRange.to ? (
                     <>
-                      {format(dateRange.from, "MMM dd, yyyy")} - {format(dateRange.to, "MMM dd, yyyy")}
+                      {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd")}
                     </>
                   ) : (
                     format(dateRange.from, "MMM dd, yyyy")
@@ -377,7 +377,7 @@ export default function NotificationBar() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setDateRange({ from: undefined, to: undefined })}
-                  className="w-full"
+                  className="w-full text-xs"
                 >
                   Clear dates
                 </Button>
@@ -385,8 +385,8 @@ export default function NotificationBar() {
             </PopoverContent>
           </Popover>
 
-          {/* Category Multi-Select */}
-          <div className="flex flex-wrap gap-2">
+          {/* Category Multi-Select - Mobile Optimized */}
+          <div className="flex flex-wrap gap-1.5">
             {Object.entries(NOTIFICATION_CATEGORIES).map(([key, config]) => {
               const category = key as NotificationCategory;
               const isSelected = selectedCategories.includes(category) || selectedCategories.includes('all');
@@ -399,12 +399,13 @@ export default function NotificationBar() {
                   variant={isSelected ? "default" : "outline"}
                   size="sm"
                   onClick={() => toggleCategory(category)}
-                  className="text-xs"
+                  className="text-[10px] h-7 px-2"
                 >
                   <CategoryIcon className="w-3 h-3 mr-1" />
-                  {config.label}
+                  <span className="hidden sm:inline">{config.label}</span>
+                  <span className="sm:hidden">{key === 'all' ? 'All' : key.charAt(0).toUpperCase()}</span>
                   {count > 0 && (
-                    <Badge variant="destructive" className="ml-1 h-4 w-4 p-0 text-[10px]">
+                    <Badge variant="destructive" className="ml-1 h-3.5 w-3.5 p-0 text-[9px] leading-none flex items-center justify-center">
                       {count}
                     </Badge>
                   )}

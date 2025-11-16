@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { TransferReceipt } from "./TransferReceipt";
 import { OTPVerificationModal } from "./OTPVerificationModal";
 import { Globe } from "lucide-react";
+import { createNotification, NotificationTemplates } from "@/lib/notifications";
 import bankLogo from "@/assets/vaultbank-logo.png";
 
 interface InternationalTransferModalProps {

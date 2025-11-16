@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TransferReceipt } from "./TransferReceipt";
 import { OTPVerificationModal } from "./OTPVerificationModal";
+import { createNotification, NotificationTemplates } from "@/lib/notifications";
 import bankLogo from "@/assets/vaultbank-logo.png";
 
 interface TransferModalProps {
@@ -138,6 +139,16 @@ export function TransferModal({ onClose, onSuccess }: TransferModalProps) {
           }
         ])
       ]);
+
+      // Send notification
+      const notification = NotificationTemplates.transferCompleted(
+        transferAmount,
+        toAcc?.account_type || 'account'
+      );
+      await createNotification({
+        userId: user.id,
+        ...notification,
+      });
 
       setTimeout(() => {
         setShowLoadingSpinner(false);
