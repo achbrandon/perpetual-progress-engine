@@ -359,3 +359,29 @@
   );
   background-size: 1000px 100%;
 }
+
+/* Mobile-Optimized Spending Insights */
+@layer utilities {
+  .chart-mobile-container {
+    @apply w-full overflow-hidden;
+  }
+
+  .insight-card-mobile {
+    @apply rounded-xl p-4 backdrop-blur-sm;
+  }
+
+  .category-icon-mobile {
+    @apply h-10 w-10 rounded-full flex items-center justify-center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  @media (max-width: 640px) {
+    .recharts-wrapper {
+      @apply mx-auto;
+    }
+    
+    .recharts-surface {
+      @apply mx-auto;
+    }
+  }
+}
