@@ -329,7 +329,6 @@ export default function BillPay() {
                     type="date"
                     value={formData.paymentDate}
                     onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
-                    min={new Date().toISOString().split('T')[0]}
                     required
                   />
                 </div>
