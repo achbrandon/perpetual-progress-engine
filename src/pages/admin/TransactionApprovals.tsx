@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Clock, DollarSign, ArrowUpRight, ArrowDownRight, ExternalLink, Image, TrendingUp, BarChart3 } from "lucide-react";
+import { CheckCircle, XCircle, Clock, DollarSign, ArrowUpRight, ArrowDownRight, ExternalLink, Image, TrendingUp, BarChart3, Bitcoin } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { format, subDays, startOfDay } from "date-fns";
@@ -799,36 +799,48 @@ function TransactionCard({
           <span>{new Date(transaction.created_at).toLocaleString()}</span>
         </div>
         {isCryptoTransaction && (
-          <div className="mt-2 p-3 bg-muted/50 rounded-md space-y-1">
+          <div className="mt-2 p-3 bg-gradient-to-r from-orange-500/10 to-yellow-500/10 rounded-md border border-orange-200 dark:border-orange-800 space-y-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Bitcoin className="h-4 w-4 text-orange-500" />
+              <span className="font-semibold text-sm">Crypto Transaction Details</span>
+            </div>
             {transaction.crypto_currency && (
               <div className="flex items-center gap-2 text-sm">
-                <span className="font-medium">Cryptocurrency:</span>
-                <Badge variant="secondary">{transaction.crypto_currency}</Badge>
+                <span className="font-medium text-muted-foreground">Currency:</span>
+                <Badge variant="secondary" className="font-mono">{transaction.crypto_currency}</Badge>
+              </div>
+            )}
+            {transaction.crypto_network && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-medium text-muted-foreground">Network:</span>
+                <Badge variant="outline" className="font-mono border-orange-300 text-orange-600 dark:border-orange-700 dark:text-orange-400">
+                  {transaction.crypto_network}
+                </Badge>
               </div>
             )}
             {transaction.wallet_address && (
               <div className="flex items-start gap-2 text-sm">
-                <span className="font-medium whitespace-nowrap">Wallet Address:</span>
-                <code className="text-xs bg-background px-2 py-1 rounded break-all">{transaction.wallet_address}</code>
+                <span className="font-medium text-muted-foreground whitespace-nowrap">Wallet:</span>
+                <code className="text-xs bg-background px-2 py-1 rounded break-all flex-1">{transaction.wallet_address}</code>
               </div>
             )}
             {transaction.reference_number && (
               <div className="flex items-center gap-2 text-sm">
-                <span className="font-medium">Reference:</span>
-                <span className="text-muted-foreground">{transaction.reference_number}</span>
+                <span className="font-medium text-muted-foreground">Reference:</span>
+                <span className="text-foreground font-mono text-xs">{transaction.reference_number}</span>
               </div>
             )}
             {transaction.proof_of_payment_url && transaction.type === 'credit' && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="font-medium">Proof of Payment:</span>
+              <div className="flex items-center gap-2 text-sm pt-2 border-t border-orange-200 dark:border-orange-800">
+                <span className="font-medium text-muted-foreground">Proof:</span>
                 <Button
                   variant="link"
                   size="sm"
-                  className="h-auto p-0 text-primary hover:text-primary/80"
+                  className="h-auto p-0 text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
                   onClick={() => window.open(transaction.proof_of_payment_url, '_blank')}
                 >
                   <Image className="h-3 w-3 mr-1" />
-                  View Image
+                  View Payment Proof
                   <ExternalLink className="h-3 w-3 ml-1" />
                 </Button>
               </div>

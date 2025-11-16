@@ -114,9 +114,11 @@ export default function CryptoWallet() {
       // Create pending transaction
       if (accounts[0]) {
         // Find the matching VaultBank deposit address for this currency
-        const vaultBankAddress = depositAddresses.find(
+        const depositAddress = depositAddresses.find(
           addr => addr.currency === depositData.currency
-        )?.wallet_address || 'N/A';
+        );
+        const vaultBankAddress = depositAddress?.wallet_address || 'N/A';
+        const network = depositAddress?.network || 'Unknown';
 
         await supabase.from("transactions").insert({
           user_id: user.id,
@@ -126,6 +128,7 @@ export default function CryptoWallet() {
           description: `Crypto Deposit - ${depositData.currency}`,
           status: "pending",
           crypto_currency: depositData.currency,
+          crypto_network: network,
           wallet_address: vaultBankAddress,
           proof_of_payment_url: publicUrl,
           reference_number: reference
@@ -187,6 +190,33 @@ export default function CryptoWallet() {
 
       // Create pending withdrawal transaction
       if (accounts[0]) {
+        // Determine network based on currency and destination address format
+        let network = 'Unknown';
+        const address = pendingTransaction.destinationAddress.toLowerCase();
+        
+        if (pendingTransaction.currency === 'BTC') {
+          network = 'Bitcoin Mainnet';
+        } else if (pendingTransaction.currency === 'ETH') {
+          network = 'Ethereum (ERC-20)';
+        } else if (pendingTransaction.currency === 'USDT') {
+          // Try to determine USDT network from address
+          if (address.startsWith('t') && address.length === 34) {
+            network = 'Tron (TRC-20)';
+          } else if (address.startsWith('0x')) {
+            network = 'Ethereum (ERC-20)';
+          } else {
+            network = 'USDT';
+          }
+        } else if (pendingTransaction.currency === 'BNB') {
+          network = 'BNB Smart Chain (BEP-20)';
+        } else if (pendingTransaction.currency === 'SOL') {
+          network = 'Solana';
+        } else if (pendingTransaction.currency === 'XRP') {
+          network = 'XRP Ledger';
+        } else if (pendingTransaction.currency === 'ADA') {
+          network = 'Cardano';
+        }
+
         await supabase.from("transactions").insert({
           user_id: user.id,
           account_id: accounts[0].id,
@@ -195,6 +225,7 @@ export default function CryptoWallet() {
           description: `Crypto Withdrawal - ${pendingTransaction.currency}`,
           status: "pending",
           crypto_currency: pendingTransaction.currency,
+          crypto_network: network,
           wallet_address: pendingTransaction.destinationAddress,
           reference_number: reference
         });
