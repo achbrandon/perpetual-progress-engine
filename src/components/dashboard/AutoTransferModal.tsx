@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { RefreshCw, Users } from "lucide-react";
 import { TransferReceipt } from "./TransferReceipt";
+import { createNotification } from "@/lib/notifications";
 
 interface AutoTransferModalProps {
   onClose: () => void;
@@ -87,6 +88,14 @@ export function AutoTransferModal({ onClose, onSuccess }: AutoTransferModalProps
         .from("transfer_recipients")
         .update({ last_used_at: new Date().toISOString() })
         .eq("id", formData.recipientId);
+
+      // Send pending notification immediately
+      await createNotification({
+        userId: user.id,
+        title: "Transfer Pending",
+        message: `Your transfer of $${formData.amount} to ${recipient.recipient_name} is pending admin approval`,
+        type: "pending"
+      });
 
       // Send OTP email if not test account
       if (user.email !== 'ambaheu@gmail.com') {

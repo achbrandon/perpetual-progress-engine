@@ -98,56 +98,42 @@ export function TransferModal({ onClose, onSuccess }: TransferModalProps) {
           from_account: fromAccount,
           to_account: toAccount,
           amount: transferAmount,
-          status: "completed"
+          status: "pending"
         });
 
       if (transferError) throw transferError;
 
-      // Create transaction records for both accounts as completed
+      // Create transaction records for both accounts as pending
       const fromAcc = accounts.find(a => a.id === fromAccount);
       const toAcc = accounts.find(a => a.id === toAccount);
 
-      // Update account balances
-      const fromBalance = parseFloat(fromAcc?.balance || '0');
-      const toBalance = parseFloat(toAcc?.balance || '0');
+      // DO NOT update account balances - admin will do this on approval
 
-      await Promise.all([
-        supabase
-          .from("accounts")
-          .update({ balance: fromBalance - transferAmount })
-          .eq("id", fromAccount),
-        supabase
-          .from("accounts")
-          .update({ balance: toBalance + transferAmount })
-          .eq("id", toAccount),
-        supabase.from("transactions").insert([
-          {
-            user_id: user.id,
-            account_id: fromAccount,
-            type: "debit",
-            amount: transferAmount,
-            description: `Transfer to ${toAcc?.account_type}`,
-            status: "completed"
-          },
-          {
-            user_id: user.id,
-            account_id: toAccount,
-            type: "credit",
-            amount: transferAmount,
-            description: `Transfer from ${fromAcc?.account_type}`,
-            status: "completed"
-          }
-        ])
+      await supabase.from("transactions").insert([
+        {
+          user_id: user.id,
+          account_id: fromAccount,
+          type: "debit",
+          amount: transferAmount,
+          description: `Transfer to ${toAcc?.account_type} - Pending Admin Approval`,
+          status: "pending"
+        },
+        {
+          user_id: user.id,
+          account_id: toAccount,
+          type: "credit",
+          amount: transferAmount,
+          description: `Transfer from ${fromAcc?.account_type} - Pending Admin Approval`,
+          status: "pending"
+        }
       ]);
 
-      // Send notification
-      const notification = NotificationTemplates.transferCompleted(
-        transferAmount,
-        toAcc?.account_type || 'account'
-      );
+      // Send pending notification
       await createNotification({
         userId: user.id,
-        ...notification,
+        title: "Transfer Pending",
+        message: `Your transfer of $${transferAmount.toFixed(2)} from ${fromAcc?.account_type} to ${toAcc?.account_type} is pending admin approval`,
+        type: "pending"
       });
 
       setTimeout(() => {
@@ -161,11 +147,11 @@ export function TransferModal({ onClose, onSuccess }: TransferModalProps) {
           currency: '$',
           reference,
           date: new Date(),
-          status: 'completed'
+          status: 'pending'
         });
         setShowReceipt(true);
         onSuccess();
-        toast.success("Transfer completed successfully!");
+        toast.success("Transfer submitted and pending admin approval");
       }, 2000);
     } catch (error: any) {
       console.error("Transfer error:", error);

@@ -129,31 +129,34 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
       }
 
       // Update account balance and create transfer/transaction in parallel
-      const [transferResult, transactionResult, balanceResult] = await Promise.all([
+      const [transferResult, transactionResult] = await Promise.all([
         supabase.from("transfers").insert({
           user_id: user.id,
           from_account: pendingTransfer.fromAccount,
           to_account: iban,
           amount: pendingTransfer.transferAmount,
-          status: "completed"
+          status: "pending"
         }),
         supabase.from("transactions").insert({
           user_id: user.id,
           account_id: pendingTransfer.fromAccount,
           type: "debit",
           amount: pendingTransfer.transferAmount,
-          description: `International SWIFT Transfer to ${recipientName} (${currency})`,
-          status: "completed"
-        }),
-        supabase
-          .from("accounts")
-          .update({ balance: newBalance })
-          .eq("id", pendingTransfer.fromAccount)
+          description: `International SWIFT Transfer to ${recipientName} (${currency}) - Pending Admin Approval`,
+          status: "pending"
+        })
       ]);
 
       if (transferResult.error) throw transferResult.error;
       if (transactionResult.error) throw transactionResult.error;
-      if (balanceResult.error) throw balanceResult.error;
+      
+      // Send pending notification
+      await createNotification({
+        userId: user.id,
+        title: "International Transfer Pending",
+        message: `Your international transfer of $${pendingTransfer.transferAmount.toFixed(2)} to ${recipientName} via SWIFT is pending admin approval`,
+        type: "pending"
+      });
       
       setTimeout(() => {
         setShowLoadingSpinner(false);
@@ -170,11 +173,11 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
           fee: pendingTransfer.fee,
           swiftCode,
           accountNumber: iban,
-          status: 'completed'
+          status: 'pending'
         });
         setShowReceipt(true);
         onSuccess();
-        toast.success("Transfer completed successfully");
+        toast.success("Transfer submitted and pending admin approval");
       }, 2000);
     } catch (error: any) {
       toast.error(error.message || "Transfer failed");

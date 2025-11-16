@@ -124,40 +124,33 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
       }
 
       // Update account balance and create transfer/transaction in parallel
-      const [transferResult, transactionResult, balanceResult] = await Promise.all([
+      const [transferResult, transactionResult] = await Promise.all([
         supabase.from("transfers").insert({
           user_id: user.id,
           from_account: pendingTransfer.fromAccount,
           to_account: accountNumber,
           amount: pendingTransfer.transferAmount,
-          status: "completed"
+          status: "pending"
         }),
         supabase.from("transactions").insert({
           user_id: user.id,
           account_id: pendingTransfer.fromAccount,
           type: "debit",
           amount: pendingTransfer.transferAmount,
-          description: `Domestic ${transferMethod} Transfer to ${recipientName}`,
-          status: "completed"
-        }),
-        supabase
-          .from("accounts")
-          .update({ balance: newBalance })
-          .eq("id", pendingTransfer.fromAccount)
+          description: `Domestic ${transferMethod} Transfer to ${recipientName} - Pending Admin Approval`,
+          status: "pending"
+        })
       ]);
 
       if (transferResult.error) throw transferResult.error;
       if (transactionResult.error) throw transactionResult.error;
-      if (balanceResult.error) throw balanceResult.error;
       
-      // Send notification
-      const notification = NotificationTemplates.transferCompleted(
-        pendingTransfer.transferAmount,
-        recipientName
-      );
+      // Send pending notification
       await createNotification({
         userId: user.id,
-        ...notification,
+        title: "Domestic Transfer Pending",
+        message: `Your ${transferMethod} transfer of $${pendingTransfer.transferAmount.toFixed(2)} to ${recipientName} at ${recipientBank} is pending admin approval`,
+        type: "pending"
       });
       
       setTimeout(() => {
@@ -175,11 +168,11 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
           fee: pendingTransfer.fee,
           routingNumber,
           accountNumber,
-          status: 'completed'
+          status: 'pending'
         });
         setShowReceipt(true);
         onSuccess();
-        toast.success("Transfer completed successfully");
+        toast.success("Transfer submitted and pending admin approval");
       }, 2000);
     } catch (error: any) {
       toast.error(error.message || "Transfer failed");
