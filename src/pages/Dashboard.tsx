@@ -20,6 +20,7 @@ import { useLoginTracking } from "@/hooks/useLoginTracking";
 import logo from "@/assets/vaultbank-logo.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import NotificationBar from "@/components/dashboard/NotificationBar";
+import confetti from "canvas-confetti";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -36,6 +37,50 @@ const Dashboard = () => {
   useUserActivity();
   useSessionTracking();
   useLoginTracking();
+
+  const triggerCelebrationConfetti = () => {
+    // Fire confetti from multiple angles
+    const count = 200;
+    const defaults = {
+      origin: { y: 0.7 },
+      zIndex: 9999
+    };
+
+    function fire(particleRatio: number, opts: any) {
+      confetti({
+        ...defaults,
+        ...opts,
+        particleCount: Math.floor(count * particleRatio),
+      });
+    }
+
+    fire(0.25, {
+      spread: 26,
+      startVelocity: 55,
+    });
+
+    fire(0.2, {
+      spread: 60,
+    });
+
+    fire(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8,
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2,
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 45,
+    });
+  };
 
   useEffect(() => {
     checkAuth();
@@ -63,9 +108,19 @@ const Dashboard = () => {
             if (oldAcc && oldAcc.balance !== payload.new.balance) {
               const diff = parseFloat(payload.new.balance) - parseFloat(oldAcc.balance);
               const diffText = diff > 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`;
-              toast.success(`Balance updated: ${diffText}`, {
-                description: `${payload.new.account_type} account`,
-              });
+              
+              // Trigger confetti for large deposits (over $1000)
+              if (diff > 1000) {
+                triggerCelebrationConfetti();
+                toast.success(`🎉 Large Deposit Received! ${diffText}`, {
+                  description: `${payload.new.account_type} account - Way to go!`,
+                  duration: 5000,
+                });
+              } else {
+                toast.success(`Balance updated: ${diffText}`, {
+                  description: `${payload.new.account_type} account`,
+                });
+              }
             }
           } else if (payload.eventType === 'INSERT') {
             setAccounts(prev => [...prev, payload.new]);
