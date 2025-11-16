@@ -77,6 +77,7 @@ export default function LinkedAccounts() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
   const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [newAccount, setNewAccount] = useState({
     account_type: "",
@@ -141,7 +142,30 @@ export default function LinkedAccounts() {
       return;
     }
 
-    setOtpModalOpen(true);
+    // Check for duplicate accounts
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: existingAccounts, error } = await supabase
+        .from("external_payment_accounts")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("account_type", newAccount.account_type)
+        .eq("account_identifier", newAccount.account_identifier);
+
+      if (error) throw error;
+
+      if (existingAccounts && existingAccounts.length > 0) {
+        toast.error("This account has already been linked to your profile");
+        return;
+      }
+
+      setOtpModalOpen(true);
+    } catch (error) {
+      console.error("Error checking for duplicate accounts:", error);
+      toast.error("Failed to verify account. Please try again.");
+    }
   };
 
   const handleOTPVerified = async () => {
@@ -176,11 +200,12 @@ export default function LinkedAccounts() {
         console.error("Error creating notification:", notificationError);
       }
 
-      toast.success("Account linked successfully! Pending verification.");
-      toast.info("Check your notification bar for updates on verification status.");
       setAddingNew(false);
       setNewAccount({ account_type: "", account_identifier: "", account_name: "", account_number: "" });
       fetchAccounts();
+      
+      // Show review dialog
+      setReviewDialogOpen(true);
     } catch (error) {
       console.error("Error adding account:", error);
       toast.error("Failed to link account");
@@ -478,6 +503,34 @@ export default function LinkedAccounts() {
         accountType={newAccount.account_type}
         accountIdentifier={newAccount.account_identifier}
       />
+
+      <AlertDialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-yellow-500" />
+              Account Under Review - Pending
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Your payment account has been successfully added and is now under review. 
+              Our team will verify your account within 1-2 business days.
+              <br /><br />
+              You will receive:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>A notification in your notification bar</li>
+                <li>An email confirmation once the review is complete</li>
+              </ul>
+              <br />
+              <strong>Check your notification bar now to track the verification status.</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setReviewDialogOpen(false)}>
+              Okay, Got It!
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
