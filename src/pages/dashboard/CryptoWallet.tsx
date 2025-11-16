@@ -344,7 +344,7 @@ export default function CryptoWallet() {
                           </Button>
                         </div>
                         <p className="text-xs text-muted-foreground mt-2">
-                          Send {address.currency} to this address, then submit proof of payment below
+                          VaultBank's unique {address.currency} wallet address on {address.network} network
                         </p>
                       </div>
                     ))}
