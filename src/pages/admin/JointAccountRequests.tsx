@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
+import { notifyApproved, notifyRejected, notifyUnderReview, notifyActivated } from "@/lib/jointAccountNotifications";
 
 interface JointAccountRequest {
   id: string;
@@ -181,11 +182,18 @@ export default function JointAccountRequests() {
           userId: request.requester_user_id,
           ...notification,
         });
+
+        // Send automated notifications to both parties
+        try {
+          await notifyApproved(requestId);
+        } catch (notifError) {
+          console.error('Failed to send automated notification:', notifError);
+        }
       }
 
       toast({
         title: "Request Approved",
-        description: "Joint account request has been approved and user notified",
+        description: "Joint account request has been approved. Both parties have been notified.",
       });
 
       fetchRequests();
@@ -221,11 +229,18 @@ export default function JointAccountRequests() {
           userId: request.requester_user_id,
           ...notification,
         });
+
+        // Send automated notifications to both parties
+        try {
+          await notifyRejected(requestId);
+        } catch (notifError) {
+          console.error('Failed to send automated notification:', notifError);
+        }
       }
 
       toast({
         title: "Request Rejected",
-        description: "Joint account request has been rejected and user notified",
+        description: "Joint account request has been rejected. Both parties have been notified.",
       });
 
       fetchRequests();

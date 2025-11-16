@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { createNotification } from "@/lib/notifications";
+import { notifyRequestSubmitted, notifyOtpVerified } from "@/lib/jointAccountNotifications";
 
 interface AddJointHolderDialogProps {
   open: boolean;
@@ -139,10 +140,18 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
         type: "pending",
       });
 
+      // Send automated notifications to both parties
+      try {
+        await notifyRequestSubmitted(request.id);
+      } catch (notifError) {
+        console.error('Failed to send automated notification:', notifError);
+        // Don't fail the request if notification fails
+      }
+
       setStep("success");
       toast({
         title: "Request submitted",
-        description: "Your joint account request is now pending review",
+        description: "Your joint account request is now pending review. Both parties will receive notifications throughout the process.",
       });
     } catch (error: any) {
       toast({
