@@ -132,12 +132,12 @@ const handler = async (req: Request): Promise<Response> => {
                   <!-- Content -->
                   <tr>
                     <td style="padding: 40px;">
-                      <h2 style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 20px; font-weight: 600;">🔗 External Payment Account Link Request</h2>
+                      <h2 style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 20px; font-weight: 600;">${emailContent.title}</h2>
                       <p style="margin: 0 0 24px 0; color: #666666; font-size: 16px; line-height: 24px;">
-                        ${accountType ? `Your account is being linked to <strong>${accountType.charAt(0).toUpperCase() + accountType.slice(1)}</strong>` : 'A payment account is being linked to your VaultBank account'} ${accountIdentifier ? `(${accountIdentifier})` : ''}.
+                        ${emailContent.description}
                       </p>
                       <p style="margin: 0 0 24px 0; color: #666666; font-size: 16px; line-height: 24px;">
-                        If you initiated this request, please use the verification code below to complete the linking process:
+                        ${emailContent.instruction}
                       </p>
                       
                       <!-- OTP Code Box -->
@@ -152,7 +152,7 @@ const handler = async (req: Request): Promise<Response> => {
                       </table>
                       
                       <p style="margin: 0 0 16px 0; color: #666666; font-size: 14px; line-height: 20px;">
-                        This code will expire in <strong>10 minutes</strong>. Enter this code in the verification prompt to complete the account linking.
+                        ${emailContent.expiry}
                       </p>
                       
                       <!-- Security Warning Box -->
@@ -171,7 +171,7 @@ const handler = async (req: Request): Promise<Response> => {
                           🚨 Did Not Initiate This Request?
                         </p>
                         <p style="margin: 0 0 12px 0; color: #721c24; font-size: 13px; line-height: 20px;">
-                          If you did <strong>NOT</strong> attempt to link a payment account, your VaultBank account security may be compromised. Take immediate action:
+                          ${emailContent.warning}
                         </p>
                         <ul style="margin: 0; padding-left: 20px; color: #721c24; font-size: 13px; line-height: 20px;">
                           <li style="margin: 4px 0;">🔒 <strong>Change your password immediately</strong> by logging into your account</li>
@@ -223,7 +223,7 @@ const handler = async (req: Request): Promise<Response> => {
           email: "info@vaulteonline.com",
           name: "VaultBank Security"
         },
-        subject: "Your VaultBank Transfer Verification Code",
+        subject: emailContent.subject,
         content: [
           {
             type: "text/plain",
