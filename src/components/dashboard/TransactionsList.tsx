@@ -153,8 +153,12 @@ export function TransactionsList({ transactions, onRefresh }: TransactionsListPr
       // Favorites filter
       const matchesFavorites = showFavoritesOnly ? favorites.has(t.id) : true;
       
-      // Type filter
-      const matchesType = selectedTypes.size === 0 || selectedTypes.has(t.type);
+      // Type filter - map credit/debit to deposit/withdrawal for filtering
+      let transactionType = t.type;
+      if (t.type === 'credit') transactionType = 'deposit';
+      if (t.type === 'debit') transactionType = 'withdrawal';
+      
+      const matchesType = selectedTypes.size === 0 || selectedTypes.has(transactionType);
       
       // Amount range filter
       const amount = Math.abs(parseFloat(t.amount));
