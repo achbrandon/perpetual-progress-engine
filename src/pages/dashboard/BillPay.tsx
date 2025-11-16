@@ -118,7 +118,8 @@ export default function BillPay() {
           type: "debit",
           amount: parseFloat(formData.amount),
           description: `Bill Payment to ${formData.payeeName}`,
-          status: "pending"
+          status: "pending",
+          created_at: formData.paymentDate
         });
 
         // Send notification about scheduled payment
