@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from "sonner";
 import { FileText, Plus, Calendar, DollarSign, Trash2, Edit, Pause, Play } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { createNotification, NotificationTemplates } from "@/lib/notifications";
 import bankLogo from "@/assets/vaultbank-logo.png";
 
 export default function BillPay() {

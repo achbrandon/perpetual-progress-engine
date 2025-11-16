@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { User, Lock, Bell, Shield, Smartphone } from "lucide-react";
 import { ProfilePictureUpload } from "@/components/dashboard/ProfilePictureUpload";
+import { createNotification, NotificationTemplates } from "@/lib/notifications";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -58,6 +59,14 @@ export default function Settings() {
         .eq("id", user.id);
 
       if (error) throw error;
+      
+      // Send notification about profile update
+      const notification = NotificationTemplates.profileUpdated();
+      await createNotification({
+        userId: user.id,
+        ...notification,
+      });
+      
       toast.success("Profile updated successfully");
       fetchProfile(user.id);
     } catch (error) {

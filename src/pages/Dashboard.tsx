@@ -15,6 +15,7 @@ import { BalanceHistoryChart } from "@/components/dashboard/BalanceHistoryChart"
 import { EnhancedSupportChat } from "@/components/dashboard/EnhancedSupportChat";
 import { useUserActivity } from "@/hooks/useUserActivity";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
+import { useLoginTracking } from "@/hooks/useLoginTracking";
 import logo from "@/assets/vaultbank-logo.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import NotificationBar from "@/components/dashboard/NotificationBar";
@@ -33,6 +34,7 @@ const Dashboard = () => {
   // Track user activity
   useUserActivity();
   useSessionTracking();
+  useLoginTracking();
 
   useEffect(() => {
     checkAuth();

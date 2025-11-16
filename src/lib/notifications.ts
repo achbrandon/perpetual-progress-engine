@@ -165,6 +165,12 @@ export const NotificationTemplates = {
     type: "error" as NotificationType,
   }),
 
+  profileUpdated: () => ({
+    title: "Profile Updated",
+    message: "Your profile information has been successfully updated.",
+    type: "success" as NotificationType,
+  }),
+
   // Security
   loginDetected: (location: string, device: string) => ({
     title: "New Login Detected",

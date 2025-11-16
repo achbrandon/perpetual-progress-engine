@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Bitcoin, ArrowDownToLine, ArrowUpFromLine, Copy, Wallet } from "lucide-react";
 import { OTPVerificationModal } from "@/components/dashboard/OTPVerificationModal";
 import { CryptoReceipt } from "@/components/dashboard/CryptoReceipt";
+import { createNotification, NotificationTemplates } from "@/lib/notifications";
 import bankLogo from "@/assets/vaultbank-logo.png";
 
 export default function CryptoWallet() {

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TransferReceipt } from "./TransferReceipt";
 import { OTPVerificationModal } from "./OTPVerificationModal";
+import { createNotification, NotificationTemplates } from "@/lib/notifications";
 import bankLogo from "@/assets/vaultbank-logo.png";
 
 interface DomesticTransferModalProps {
@@ -148,6 +149,16 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
       if (transferResult.error) throw transferResult.error;
       if (transactionResult.error) throw transactionResult.error;
       if (balanceResult.error) throw balanceResult.error;
+      
+      // Send notification
+      const notification = NotificationTemplates.transferCompleted(
+        pendingTransfer.transferAmount,
+        recipientName
+      );
+      await createNotification({
+        userId: user.id,
+        ...notification,
+      });
       
       setTimeout(() => {
         setShowLoadingSpinner(false);
