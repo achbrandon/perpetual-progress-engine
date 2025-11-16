@@ -610,43 +610,41 @@ const Index = () => {
             
             {/* Image Grid */}
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="md:col-span-2 group relative overflow-hidden rounded-lg shadow-lg">
+              <div className="group relative overflow-hidden rounded-lg shadow-lg">
                 <img 
                   src={bankExterior} 
                   alt="VaultBank Brodhead Branch Exterior" 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="absolute bottom-4 left-4 text-white">
-                    <p className="font-semibold text-lg">Modern Banking Facility</p>
+                    <p className="font-semibold">Modern Entrance</p>
                   </div>
                 </div>
               </div>
               
-              <div className="md:col-span-1 flex flex-col gap-6">
-                <div className="group relative overflow-hidden rounded-lg shadow-lg">
-                  <img 
-                    src={bankLobby} 
-                    alt="VaultBank Brodhead Branch Lobby" 
-                    className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <p className="font-semibold">Welcoming Lobby</p>
-                    </div>
+              <div className="group relative overflow-hidden rounded-lg shadow-lg">
+                <img 
+                  src={bankLobby} 
+                  alt="VaultBank Brodhead Branch Lobby" 
+                  className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <p className="font-semibold">Welcoming Lobby</p>
                   </div>
                 </div>
-                
-                <div className="group relative overflow-hidden rounded-lg shadow-lg">
-                  <img 
-                    src={bankInterior} 
-                    alt="VaultBank Brodhead Branch Interior" 
-                    className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <p className="font-semibold">Comfortable Banking</p>
-                    </div>
+              </div>
+              
+              <div className="group relative overflow-hidden rounded-lg shadow-lg">
+                <img 
+                  src={bankInterior} 
+                  alt="VaultBank Brodhead Branch Interior" 
+                  className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <p className="font-semibold">Comfortable Banking</p>
                   </div>
                 </div>
               </div>
