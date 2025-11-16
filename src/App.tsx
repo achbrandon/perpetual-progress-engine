@@ -57,6 +57,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/Users";
 import AdminApplications from "./pages/admin/Applications";
 import AdminTransactions from "./pages/admin/Transactions";
+import TransactionApprovals from "./pages/admin/TransactionApprovals";
 import AdminSupportPage from "./pages/admin/Support";
 import AdminEmailSystem from "./pages/admin/EmailSystem";
 import AdminWalletSettings from "./pages/admin/WalletSettings";
@@ -159,6 +160,7 @@ function AppRoutes() {
         <Route path="joint-accounts" element={<JointAccountRequests />} />
         <Route path="documents" element={<DocumentsView />} />
         <Route path="transactions" element={<AdminTransactions />} />
+        <Route path="transaction-approvals" element={<TransactionApprovals />} />
         <Route path="support" element={<AdminSupportPage />} />
         <Route path="live-support" element={<LiveSupport />} />
         <Route path="email" element={<AdminEmailSystem />} />

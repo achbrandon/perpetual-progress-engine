@@ -13,7 +13,8 @@ import {
   Shield,
   Wrench,
   UserPlus,
-  Bell
+  Bell,
+  CheckCircle
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
@@ -68,6 +69,11 @@ const menuItems = [
     title: "Transactions",
     url: "/admin/transactions",
     icon: CreditCard,
+  },
+  {
+    title: "Transaction Approvals",
+    url: "/admin/transaction-approvals",
+    icon: CheckCircle,
   },
   {
     title: "Live Support",
