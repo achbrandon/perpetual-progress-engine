@@ -204,8 +204,10 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
           partnerName: formData.partnerFullName,
           accountNumber: account.account_number,
           accountBalance: account.balance,
-          requiredDeposit: requiredDeposit,
+          depositAmount: requiredDeposit,
+          requiredDepositPercentage: 0.009,
           accountType: account.account_type,
+          requestId: requestId,
         },
       });
 
