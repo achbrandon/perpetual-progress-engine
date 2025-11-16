@@ -110,6 +110,39 @@ export default function AdminTransactions() {
 
   const handleApproveTransfer = async (transfer: any) => {
     try {
+      // Get account details for the notification
+      const { data: fromAccount } = await supabase
+        .from("accounts")
+        .select("account_type, balance")
+        .eq("id", transfer.from_account)
+        .single();
+
+      const { data: toAccount } = await supabase
+        .from("accounts")
+        .select("account_type, balance")
+        .eq("id", transfer.to_account)
+        .single();
+
+      // Update balances if internal transfer
+      if (fromAccount && toAccount) {
+        const fromBalance = parseFloat(String(fromAccount.balance || 0));
+        const toBalance = parseFloat(String(toAccount.balance || 0));
+        const newFromBalance = fromBalance - transfer.amount;
+        const newToBalance = toBalance + transfer.amount;
+
+        await Promise.all([
+          supabase
+            .from("accounts")
+            .update({ balance: newFromBalance })
+            .eq("id", transfer.from_account),
+          supabase
+            .from("accounts")
+            .update({ balance: newToBalance })
+            .eq("id", transfer.to_account)
+        ]);
+      }
+
+      // Update transfer status
       const { error } = await supabase
         .from("transfers")
         .update({ 
@@ -120,11 +153,65 @@ export default function AdminTransactions() {
 
       if (error) throw error;
 
+      // Update related transactions
+      await supabase
+        .from("transactions")
+        .update({ status: "completed" })
+        .eq("user_id", transfer.user_id)
+        .eq("created_at", transfer.created_at)
+        .eq("status", "pending");
+
+      // Send notification to user
+      await createNotification({
+        userId: transfer.user_id,
+        title: "Transfer Approved",
+        message: `Your transfer of $${transfer.amount.toFixed(2)} has been approved and completed successfully`,
+        type: "success"
+      });
+
       toast.success("Transfer approved successfully");
       fetchData();
     } catch (error) {
       console.error("Error approving transfer:", error);
       toast.error("Failed to approve transfer");
+    }
+  };
+
+  const handleRejectTransfer = async (transfer: any, reason?: string) => {
+    try {
+      // Update transfer status
+      const { error } = await supabase
+        .from("transfers")
+        .update({ status: "failed" })
+        .eq("id", transfer.id);
+
+      if (error) throw error;
+
+      // Update related transactions
+      await supabase
+        .from("transactions")
+        .update({ status: "failed" })
+        .eq("user_id", transfer.user_id)
+        .eq("created_at", transfer.created_at)
+        .eq("status", "pending");
+
+      // Send notification to user with reason
+      const rejectionMessage = reason 
+        ? `Your transfer of $${transfer.amount.toFixed(2)} was rejected. Reason: ${reason}`
+        : `Your transfer of $${transfer.amount.toFixed(2)} was rejected. Please contact support for more information`;
+
+      await createNotification({
+        userId: transfer.user_id,
+        title: "Transfer Rejected",
+        message: rejectionMessage,
+        type: "error"
+      });
+
+      toast.success("Transfer rejected");
+      fetchData();
+    } catch (error) {
+      console.error("Error rejecting transfer:", error);
+      toast.error("Failed to reject transfer");
     }
   };
 

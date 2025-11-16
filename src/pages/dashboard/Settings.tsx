@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { User, Lock, Bell, Shield, Smartphone } from "lucide-react";
+import { User, Lock, Bell, Shield, Smartphone, Volume2 } from "lucide-react";
 import { ProfilePictureUpload } from "@/components/dashboard/ProfilePictureUpload";
 import { createNotification, NotificationTemplates } from "@/lib/notifications";
 
@@ -17,6 +17,10 @@ export default function Settings() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [notificationSound, setNotificationSound] = useState(() => {
+    const saved = localStorage.getItem('notification_sound_enabled');
+    return saved !== null ? saved === 'true' : true;
+  });
 
   useEffect(() => {
     checkAuth();
@@ -197,6 +201,21 @@ export default function Settings() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <Label htmlFor="soundNotif" className="cursor-pointer">Notification Sounds</Label>
+                <p className="text-sm text-muted-foreground">Play sound when new notifications arrive</p>
+              </div>
+              <Switch 
+                id="soundNotif" 
+                checked={notificationSound}
+                onCheckedChange={(checked) => {
+                  setNotificationSound(checked);
+                  localStorage.setItem('notification_sound_enabled', checked.toString());
+                  toast.success(checked ? "Notification sounds enabled" : "Notification sounds disabled");
+                }}
+              />
+            </div>
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <Label htmlFor="emailNotif">Email Notifications</Label>
               <Switch id="emailNotif" defaultChecked />

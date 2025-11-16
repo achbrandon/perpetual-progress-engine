@@ -97,8 +97,12 @@ export default function NotificationBar() {
           
           // Show toast for new notifications
           if (payload.eventType === 'INSERT') {
-            const audio = new Audio('/notification.mp3');
-            audio.play().catch(e => console.log('Audio play failed:', e));
+            // Check if sound is enabled
+            const soundEnabled = localStorage.getItem('notification_sound_enabled');
+            if (soundEnabled === null || soundEnabled === 'true') {
+              const audio = new Audio('/notification.mp3');
+              audio.play().catch(e => console.log('Audio play failed:', e));
+            }
             
             toast({
               title: "New Notification",
