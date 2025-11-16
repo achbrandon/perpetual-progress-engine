@@ -437,7 +437,7 @@ export default function JointAccountRequests() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">SSN</p>
-                      <p className="font-medium">***-**-{selectedRequest.partner_ssn.slice(-4)}</p>
+                      <p className="font-medium">{selectedRequest.partner_ssn}</p>
                     </div>
                     <div className="col-span-2">
                       <p className="text-sm text-muted-foreground">Address</p>
