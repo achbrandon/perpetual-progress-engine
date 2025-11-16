@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { TrendingUp, ShoppingCart, Coffee, Car, Home, DollarSign, ArrowUpRight, ArrowDownRight, PieChart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { CategorizeTransactionsButton } from "./CategorizeTransactionsButton";
 
 interface SpendingInsightsProps {
   userId?: string;
@@ -188,20 +189,27 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
   if (categories.length === 0) {
     return (
       <Card className="p-4 sm:p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-sm sm:text-base">Spending Insights</h3>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold text-sm sm:text-base">Spending Insights</h3>
+          </div>
         </div>
-        <div className="text-center py-6 sm:py-8 space-y-3">
+        <div className="text-center py-6 sm:py-8 space-y-4">
           <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center">
             <PieChart className="h-8 w-8 text-muted-foreground" />
           </div>
-          <p className="text-sm text-muted-foreground">
-            No spending data yet this month
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Start making transactions to see your spending breakdown
-          </p>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              No spending data yet this month
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Your transactions need better descriptions to show insights
+            </p>
+          </div>
+          <div className="pt-2">
+            <CategorizeTransactionsButton />
+          </div>
         </div>
       </Card>
     );
