@@ -503,6 +503,11 @@ function TransactionCard({
   getTransactionIcon, 
   getTransactionType 
 }: any) {
+  const isCryptoTransaction = transaction.crypto_currency || 
+    transaction.description?.toLowerCase().includes('crypto') ||
+    transaction.description?.toLowerCase().includes('bitcoin') ||
+    transaction.description?.toLowerCase().includes('ethereum');
+
   return (
     <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50">
       <input
@@ -526,6 +531,28 @@ function TransactionCard({
           <span>{transaction.accounts?.account_type} - ****{transaction.accounts?.account_number?.slice(-4)}</span>
           <span>{new Date(transaction.created_at).toLocaleString()}</span>
         </div>
+        {isCryptoTransaction && (
+          <div className="mt-2 p-3 bg-muted/50 rounded-md space-y-1">
+            {transaction.crypto_currency && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-medium">Cryptocurrency:</span>
+                <Badge variant="secondary">{transaction.crypto_currency}</Badge>
+              </div>
+            )}
+            {transaction.wallet_address && (
+              <div className="flex items-start gap-2 text-sm">
+                <span className="font-medium whitespace-nowrap">Wallet Address:</span>
+                <code className="text-xs bg-background px-2 py-1 rounded break-all">{transaction.wallet_address}</code>
+              </div>
+            )}
+            {transaction.reference_number && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-medium">Reference:</span>
+                <span className="text-muted-foreground">{transaction.reference_number}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex gap-2">
         <Button size="sm" variant="default" onClick={onApprove}>

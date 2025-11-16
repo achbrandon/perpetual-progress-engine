@@ -113,6 +113,11 @@ export default function CryptoWallet() {
 
       // Create pending transaction
       if (accounts[0]) {
+        // Find the matching VaultBank deposit address for this currency
+        const vaultBankAddress = depositAddresses.find(
+          addr => addr.currency === depositData.currency
+        )?.wallet_address || 'N/A';
+
         await supabase.from("transactions").insert({
           user_id: user.id,
           account_id: accounts[0].id,
@@ -121,6 +126,7 @@ export default function CryptoWallet() {
           description: `Crypto Deposit - ${depositData.currency}`,
           status: "pending",
           crypto_currency: depositData.currency,
+          wallet_address: vaultBankAddress,
           proof_of_payment_url: publicUrl,
           reference_number: reference
         });
@@ -193,7 +199,7 @@ export default function CryptoWallet() {
           description: `Crypto Withdrawal - ${pendingTransaction.currency}`,
           status: "pending",
           crypto_currency: pendingTransaction.currency,
-          destination_wallet_address: pendingTransaction.destinationAddress,
+          wallet_address: pendingTransaction.destinationAddress,
           reference_number: reference
         });
 

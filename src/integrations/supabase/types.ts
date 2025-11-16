@@ -1200,33 +1200,45 @@ export type Database = {
           amount: number
           auto_complete_at: string | null
           created_at: string | null
+          crypto_currency: string | null
           description: string | null
           id: string
+          proof_of_payment_url: string | null
+          reference_number: string | null
           status: string | null
           type: string
           user_id: string
+          wallet_address: string | null
         }
         Insert: {
           account_id?: string | null
           amount: number
           auto_complete_at?: string | null
           created_at?: string | null
+          crypto_currency?: string | null
           description?: string | null
           id?: string
+          proof_of_payment_url?: string | null
+          reference_number?: string | null
           status?: string | null
           type: string
           user_id: string
+          wallet_address?: string | null
         }
         Update: {
           account_id?: string | null
           amount?: number
           auto_complete_at?: string | null
           created_at?: string | null
+          crypto_currency?: string | null
           description?: string | null
           id?: string
+          proof_of_payment_url?: string | null
+          reference_number?: string | null
           status?: string | null
           type?: string
           user_id?: string
+          wallet_address?: string | null
         }
         Relationships: [
           {
