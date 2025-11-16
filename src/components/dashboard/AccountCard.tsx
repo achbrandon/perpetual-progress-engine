@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,18 @@ interface AccountCardProps {
 export function AccountCard({ account, showBalance, onRefresh }: AccountCardProps) {
   const navigate = useNavigate();
   const [showJointDialog, setShowJointDialog] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const previousBalance = useRef(account.balance);
+  
+  // Trigger animation when balance changes
+  useEffect(() => {
+    if (previousBalance.current !== account.balance) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 600);
+      previousBalance.current = account.balance;
+      return () => clearTimeout(timer);
+    }
+  }, [account.balance]);
   
   const getAccountIcon = (type: string) => {
     switch (type) {
@@ -93,7 +105,7 @@ export function AccountCard({ account, showBalance, onRefresh }: AccountCardProp
               <p className="text-xs opacity-80 mb-1">
                 {isDebitAccount ? 'Balance' : 'Available Balance'}
               </p>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-bold">
+              <p className={`text-xl sm:text-2xl lg:text-3xl font-bold transition-all ${isAnimating ? 'animate-balance-update' : ''}`}>
                 {showBalance 
                   ? `${isDebitAccount ? '-' : ''}$${parseFloat(account.available_balance || account.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}` 
                   : '••••••'}
