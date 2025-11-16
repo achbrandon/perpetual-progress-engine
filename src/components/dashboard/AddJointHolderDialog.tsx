@@ -16,7 +16,7 @@ interface AddJointHolderDialogProps {
   onSuccess: () => void;
 }
 
-type Step = "form" | "review" | "otp" | "success";
+type Step = "form" | "review" | "success";
 
 export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }: AddJointHolderDialogProps) {
   const { toast } = useToast();
@@ -36,7 +36,7 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
     driversLicense: null as File | null,
   });
 
-  const requiredDeposit = (account?.balance || 0) * 0.009; // 0.9%
+  const requiredDeposit = (account?.balance || 0) * 0.01; // 1% for activation
 
   const handleFileUpload = async (file: File, type: "id" | "license") => {
     try {
@@ -77,7 +77,7 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
     setStep("review");
   };
 
-  const handleConfirmAndRequestOTP = async () => {
+  const handleConfirmAndSubmit = async () => {
     if (!termsAccepted) {
       toast({
         title: "Terms required",
@@ -114,7 +114,8 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
           partner_id_document_url: idDocUrl,
           partner_drivers_license_url: licenseUrl,
           deposit_amount: requiredDeposit,
-          terms_accepted: termsAccepted,
+          required_deposit_percentage: 0.01,
+          status: 'pending'
         })
         .select()
         .single();
@@ -122,18 +123,16 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
       if (requestError) throw requestError;
       setRequestId(request.id);
 
-      // Send OTP
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.functions.invoke("send-otp-email", {
-          body: { userId: user.id },
-        });
-      }
+      // Create admin notification
+      await supabase.from("admin_notifications").insert({
+        notification_type: "joint_account_request",
+        message: `New joint account holder request from ${formData.partnerFullName}`,
+      });
 
-      setStep("otp");
+      setStep("success");
       toast({
-        title: "OTP sent",
-        description: "Please check your email for the verification code",
+        title: "Request submitted",
+        description: "Your joint account request is now pending review",
       });
     } catch (error: any) {
       toast({
@@ -146,93 +145,6 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
     }
   };
 
-  const handleVerifyOTP = async () => {
-    if (otpCode.length !== 6) {
-      toast({
-        title: "Invalid OTP",
-        description: "Please enter a 6-digit code",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Verify OTP
-      const { data: otpRecord } = await supabase
-        .from("otp_codes")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("code", otpCode)
-        .gt("expires_at", new Date().toISOString())
-        .single();
-
-      if (!otpRecord) {
-        throw new Error("Invalid or expired OTP");
-      }
-
-      // Update request as verified
-      await supabase
-        .from("joint_account_requests")
-        .update({ otp_verified: true })
-        .eq("id", requestId);
-
-      // Delete used OTP
-      await supabase.from("otp_codes").delete().eq("id", otpRecord.id);
-
-      // Create admin notification
-      await supabase.from("admin_notifications").insert({
-        notification_type: "joint_account_request",
-        message: `New joint account holder request from ${formData.partnerFullName}`,
-      });
-
-      // Send emails to both parties
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, email")
-        .eq("id", user.id)
-        .single();
-
-      const { data: emailResponse, error: emailError } = await supabase.functions.invoke("send-joint-account-emails", {
-        body: {
-          accountHolderEmail: profile?.email || user.email,
-          accountHolderName: profile?.full_name || "Account Holder",
-          partnerEmail: formData.partnerEmail,
-          partnerName: formData.partnerFullName,
-          accountNumber: account.account_number,
-          accountBalance: account.balance,
-          depositAmount: requiredDeposit,
-          requiredDepositPercentage: 0.009,
-          accountType: account.account_type,
-          requestId: requestId,
-        },
-      });
-
-      if (emailError) {
-        console.error("Email sending error:", emailError);
-        toast({
-          title: "Email notification failed",
-          description: "Request created but email notifications could not be sent. Please contact support.",
-          variant: "destructive",
-        });
-      } else {
-        console.log("Emails sent successfully:", emailResponse);
-      }
-
-      setStep("success");
-    } catch (error: any) {
-      toast({
-        title: "Verification failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleClose = () => {
     setStep("form");
@@ -261,8 +173,7 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
           <DialogTitle className="text-xl font-bold">
             {step === "form" && "Add Joint Account Holder"}
             {step === "review" && "Review & Confirm"}
-            {step === "otp" && "Verify with OTP"}
-            {step === "success" && "Request Submitted"}
+            {step === "success" && "Request Pending"}
           </DialogTitle>
         </DialogHeader>
 
@@ -369,11 +280,11 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
           <div className="space-y-6 py-4">
             <div className="bg-muted/50 rounded-lg p-4 space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Account Balance:</span>
+                <span className="text-sm text-muted-foreground">Current Account Balance:</span>
                 <span className="font-bold text-lg">${account?.balance?.toFixed(2) || "0.00"}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Required Deposit (0.9%):</span>
+                <span className="text-sm text-muted-foreground">Required Activation Deposit (1%):</span>
                 <span className="font-bold text-lg text-primary">${requiredDeposit.toFixed(2)}</span>
               </div>
             </div>
@@ -381,17 +292,35 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-3">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                <div className="space-y-2 text-sm">
-                  <p className="font-semibold text-destructive">IMPORTANT: Joint Account Terms</p>
-                  <p className="text-foreground/90">
-                    Once your partner deposits <span className="font-bold">${requiredDeposit.toFixed(2)}</span> and this joint account is activated:
-                  </p>
-                  <ul className="space-y-1 list-disc list-inside text-foreground/80 ml-2">
-                    <li>Both account holders will have equal rights</li>
-                    <li>Direct transfers between joint holders are <span className="font-bold">NOT permitted</span></li>
-                    <li>All transfers must go through external accounts</li>
-                    <li>This restriction cannot be changed once activated</li>
-                  </ul>
+                <div className="space-y-3 text-sm">
+                  <p className="font-semibold text-destructive">CRITICAL: Account Activation Requirements</p>
+                  
+                  <div className="space-y-2">
+                    <p className="font-medium text-foreground">Mandatory 1% Activation Deposit:</p>
+                    <ul className="space-y-1 list-disc list-inside text-foreground/90 ml-2">
+                      <li>Your partner MUST deposit <span className="font-bold text-destructive">${requiredDeposit.toFixed(2)}</span> (1% of current balance) into this joint account</li>
+                      <li>This deposit is <span className="font-bold">REQUIRED</span> for account activation</li>
+                      <li>Funds must be deposited from an external bank account</li>
+                      <li>The deposit confirms the partner's commitment to the joint account</li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-destructive/20">
+                    <p className="font-medium text-foreground">Post-Activation Restrictions:</p>
+                    <ul className="space-y-1 list-disc list-inside text-foreground/90 ml-2">
+                      <li>Both holders will have equal access and rights to all funds</li>
+                      <li>Direct transfers between joint holders are <span className="font-bold">PERMANENTLY PROHIBITED</span></li>
+                      <li>All withdrawals/transfers must go through external bank accounts</li>
+                      <li>These restrictions cannot be modified or removed once activated</li>
+                      <li>Account closure requires consent from both parties</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-destructive/20 rounded p-2 mt-2">
+                    <p className="font-semibold text-xs text-foreground">
+                      ⚠️ WARNING: The 1% activation deposit is non-negotiable and must be completed before the account can be used by the joint holder.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -403,7 +332,7 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
                 onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
               />
               <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
-                I understand and accept the joint account terms. I acknowledge that direct transfers between joint holders will be prohibited once activated.
+                I understand and accept all joint account terms, including the mandatory 1% activation deposit requirement and the permanent prohibition of direct transfers between joint holders once activated.
               </label>
             </div>
 
@@ -412,50 +341,13 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
                 Back
               </Button>
               <Button 
-                onClick={handleConfirmAndRequestOTP} 
+                onClick={handleConfirmAndSubmit} 
                 disabled={!termsAccepted || loading}
                 className="flex-1"
               >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm & Get OTP"}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Request"}
               </Button>
             </div>
-          </div>
-        )}
-
-        {step === "otp" && (
-          <div className="space-y-6 py-4">
-            <div className="text-center space-y-3">
-              <div className="bg-primary/10 rounded-lg p-4 space-y-2">
-                <p className="text-sm font-medium">
-                  Verification Code Sent
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  We've sent a 6-digit verification code to <span className="font-semibold">your account email</span> to confirm this joint account holder request.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-center">
-              <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                </InputOTPGroup>
-              </InputOTP>
-            </div>
-
-            <Button 
-              onClick={handleVerifyOTP} 
-              disabled={otpCode.length !== 6 || loading}
-              className="w-full"
-              size="lg"
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify & Submit"}
-            </Button>
           </div>
         )}
 
@@ -466,31 +358,43 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
                 <CheckCircle2 className="h-8 w-8 text-primary" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Request Submitted Successfully!</h3>
-                <p className="text-sm text-muted-foreground max-w-sm">
-                  Your joint account holder request for <span className="font-medium">{formData.partnerFullName}</span> has been submitted and is pending admin approval.
+                <h3 className="text-lg font-semibold">Request Pending Review</h3>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  Your joint account holder request for <span className="font-medium">{formData.partnerFullName}</span> has been submitted and is now <span className="font-semibold text-primary">PENDING</span>.
                 </p>
               </div>
             </div>
 
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
+            <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 space-y-3">
               <h4 className="font-medium text-sm flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-                Confirmation Emails Sent
+                <AlertTriangle className="h-4 w-4 text-primary" />
+                What Happens Next
               </h4>
-              <div className="text-xs text-muted-foreground space-y-1 pl-6">
-                <p>✉️ <strong>To you:</strong> Complete terms, conditions, and documentation</p>
-                <p>✉️ <strong>To {formData.partnerFullName}:</strong> Welcome letter with deposit instructions and account terms</p>
+              <div className="text-sm text-foreground/90 space-y-3">
+                <div className="space-y-2">
+                  <p className="font-medium">You will receive further instructions via:</p>
+                  <ul className="space-y-1 list-disc list-inside ml-2 text-foreground/80">
+                    <li><strong>Email</strong> - Check your inbox for detailed instructions</li>
+                    <li><strong>Phone Call</strong> - One of our representatives will contact you</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-destructive/10 border border-destructive/20 rounded p-3 space-y-1">
+                  <p className="font-semibold text-xs text-destructive">CRITICAL REQUIREMENT:</p>
+                  <p className="text-xs text-foreground/90">
+                    {formData.partnerFullName} must deposit <span className="font-bold text-destructive">${requiredDeposit.toFixed(2)}</span> (1% of account balance) from an external bank account to activate this joint account. This deposit is mandatory and non-negotiable.
+                  </p>
+                </div>
               </div>
             </div>
 
             <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
-              <p className="font-medium">What happens next?</p>
+              <p className="font-medium">Review Timeline:</p>
               <ul className="space-y-1 text-muted-foreground">
-                <li>• Both parties have received detailed documentation via email</li>
-                <li>• Admin will review the request within 1-2 business days</li>
-                <li>• {formData.partnerFullName} must deposit ${requiredDeposit.toFixed(2)} to activate</li>
-                <li>• You'll receive confirmation once the account is fully activated</li>
+                <li>• Our team will review your request within 1-2 business days</li>
+                <li>• Both parties will receive detailed documentation and next steps</li>
+                <li>• Account activation depends on successful 1% deposit verification</li>
+                <li>• You'll be notified once the review process is complete</li>
               </ul>
             </div>
 
