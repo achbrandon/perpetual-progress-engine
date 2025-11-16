@@ -261,7 +261,7 @@ export default function BillPay() {
                     <SelectContent>
                       {accounts.map((account) => (
                         <SelectItem key={account.id} value={account.id}>
-                          {account.account_name} - ${parseFloat(account.available_balance).toFixed(2)}
+                          {account.account_type} - ${parseFloat(account.balance || 0).toFixed(2)}
                         </SelectItem>
                       ))}
                     </SelectContent>
