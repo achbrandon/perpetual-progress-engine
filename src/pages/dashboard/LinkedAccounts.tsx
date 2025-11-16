@@ -18,12 +18,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { OTPVerificationModal } from "@/components/dashboard/OTPVerificationModal";
 
 interface LinkedAccount {
   id: string;
   account_type: string;
   account_identifier: string;
   account_name: string | null;
+  account_number: string | null;
   is_verified: boolean;
   verification_status: string;
   created_at: string;
@@ -34,25 +36,37 @@ const accountTypeInfo = {
     label: "PayPal",
     placeholder: "email@example.com",
     inputLabel: "PayPal Email",
-    description: "Enter the email address associated with your PayPal account"
+    description: "Enter the email address associated with your PayPal account",
+    icon: "💳",
+    color: "bg-blue-500",
+    textColor: "text-blue-600"
   },
   cashapp: {
     label: "Cash App",
     placeholder: "$username",
     inputLabel: "Cash App Username",
-    description: "Enter your Cash App $cashtag (e.g., $JohnDoe)"
+    description: "Enter your Cash App $cashtag (e.g., $JohnDoe). Must match your account name.",
+    icon: "💵",
+    color: "bg-green-500",
+    textColor: "text-green-600"
   },
   venmo: {
     label: "Venmo",
     placeholder: "@username",
     inputLabel: "Venmo Username",
-    description: "Enter your Venmo username (e.g., @JohnDoe)"
+    description: "Enter your Venmo username (e.g., @JohnDoe)",
+    icon: "💰",
+    color: "bg-blue-400",
+    textColor: "text-blue-500"
   },
   zelle: {
     label: "Zelle",
     placeholder: "email@example.com or phone",
     inputLabel: "Zelle Email or Phone",
-    description: "Enter the email or phone number linked to your Zelle account"
+    description: "Enter the email or phone number linked to your Zelle account",
+    icon: "🏦",
+    color: "bg-purple-500",
+    textColor: "text-purple-600"
   }
 };
 
@@ -62,15 +76,26 @@ export default function LinkedAccounts() {
   const [addingNew, setAddingNew] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const [newAccount, setNewAccount] = useState({
     account_type: "",
     account_identifier: "",
-    account_name: ""
+    account_name: "",
+    account_number: ""
   });
 
   useEffect(() => {
     fetchAccounts();
+    fetchUserEmail();
   }, []);
+
+  const fetchUserEmail = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email) {
+      setUserEmail(user.email);
+    }
+  };
 
   const fetchAccounts = async () => {
     try {
@@ -93,12 +118,33 @@ export default function LinkedAccounts() {
     }
   };
 
+  const validateCashAppName = () => {
+    if (newAccount.account_type === "cashapp") {
+      const cashTag = newAccount.account_identifier.toLowerCase();
+      const accountName = newAccount.account_name.toLowerCase();
+      
+      if (!cashTag.includes(accountName.split(' ')[0]) && !cashTag.includes(accountName.split(' ')[1] || '')) {
+        toast.error("Your Cash App $cashtag must match your account name");
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleAddAccount = async () => {
-    if (!newAccount.account_type || !newAccount.account_identifier) {
+    if (!newAccount.account_type || !newAccount.account_identifier || !newAccount.account_name || !newAccount.account_number) {
       toast.error("Please fill in all required fields");
       return;
     }
 
+    if (!validateCashAppName()) {
+      return;
+    }
+
+    setOtpModalOpen(true);
+  };
+
+  const handleOTPVerified = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -109,7 +155,8 @@ export default function LinkedAccounts() {
           user_id: user.id,
           account_type: newAccount.account_type,
           account_identifier: newAccount.account_identifier,
-          account_name: newAccount.account_name || null,
+          account_name: newAccount.account_name,
+          account_number: newAccount.account_number,
           verification_status: "pending",
           is_verified: false
         });
@@ -117,8 +164,9 @@ export default function LinkedAccounts() {
       if (error) throw error;
 
       toast.success("Account linked successfully! Pending verification.");
+      toast.info("You will receive a notification after your account is reviewed via email.");
       setAddingNew(false);
-      setNewAccount({ account_type: "", account_identifier: "", account_name: "" });
+      setNewAccount({ account_type: "", account_identifier: "", account_name: "", account_number: "" });
       fetchAccounts();
     } catch (error) {
       console.error("Error adding account:", error);
@@ -228,7 +276,10 @@ export default function LinkedAccounts() {
                 <SelectContent>
                   {Object.entries(accountTypeInfo).map(([key, info]) => (
                     <SelectItem key={key} value={key}>
-                      {info.label}
+                      <span className="flex items-center gap-2">
+                        <span>{info.icon}</span>
+                        <span>{info.label}</span>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -243,6 +294,20 @@ export default function LinkedAccounts() {
             {newAccount.account_type && (
               <>
                 <div className="space-y-2">
+                  <Label>Account Name *</Label>
+                  <Input
+                    placeholder="John Doe"
+                    value={newAccount.account_name}
+                    onChange={(e) =>
+                      setNewAccount({ ...newAccount, account_name: e.target.value })
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This should match the name on your {accountTypeInfo[newAccount.account_type as keyof typeof accountTypeInfo].label} account
+                  </p>
+                </div>
+
+                <div className="space-y-2">
                   <Label>
                     {accountTypeInfo[newAccount.account_type as keyof typeof accountTypeInfo].inputLabel} *
                   </Label>
@@ -256,12 +321,12 @@ export default function LinkedAccounts() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Account Name (Optional)</Label>
+                  <Label>Account Number *</Label>
                   <Input
-                    placeholder="e.g., My Personal PayPal"
-                    value={newAccount.account_name}
+                    placeholder="Enter your account number"
+                    value={newAccount.account_number}
                     onChange={(e) =>
-                      setNewAccount({ ...newAccount, account_name: e.target.value })
+                      setNewAccount({ ...newAccount, account_number: e.target.value })
                     }
                   />
                 </div>
@@ -270,13 +335,13 @@ export default function LinkedAccounts() {
 
             <div className="flex gap-2">
               <Button onClick={handleAddAccount} className="flex-1">
-                Link Account
+                Verify & Link Account
               </Button>
               <Button
                 variant="outline"
                 onClick={() => {
                   setAddingNew(false);
-                  setNewAccount({ account_type: "", account_identifier: "", account_name: "" });
+                  setNewAccount({ account_type: "", account_identifier: "", account_name: "", account_number: "" });
                 }}
                 className="flex-1"
               >
@@ -303,28 +368,39 @@ export default function LinkedAccounts() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {accounts.map((account) => (
-            <Card key={account.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">
-                      {accountTypeInfo[account.account_type as keyof typeof accountTypeInfo]?.label || account.account_type}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {account.account_name || "Unnamed Account"}
-                    </p>
+          {accounts.map((account) => {
+            const accountInfo = accountTypeInfo[account.account_type as keyof typeof accountTypeInfo];
+            return (
+              <Card key={account.id} className="overflow-hidden">
+                <div className={`h-2 ${accountInfo?.color || 'bg-gray-500'}`} />
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <span className="text-2xl">{accountInfo?.icon}</span>
+                        {accountInfo?.label || account.account_type}
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        {account.account_name || "Unnamed Account"}
+                      </p>
+                    </div>
+                    {getStatusBadge(account.verification_status, account.is_verified)}
                   </div>
-                  {getStatusBadge(account.verification_status, account.is_verified)}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Account Identifier</p>
-                  <p className="font-mono text-sm">{account.account_identifier}</p>
-                </div>
-                
-                <div className="flex gap-2">
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Account Identifier</p>
+                      <p className="font-mono text-sm">{account.account_identifier}</p>
+                    </div>
+                    {account.account_number && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Account Number</p>
+                        <p className="font-mono text-sm">••••{account.account_number.slice(-4)}</p>
+                      </div>
+                    )}
+                  </div>
+                  
                   <Button
                     variant="destructive"
                     size="sm"
@@ -337,26 +413,29 @@ export default function LinkedAccounts() {
                     <Trash2 className="h-4 w-4 mr-2" />
                     Unlink Account
                   </Button>
-                </div>
 
-                {account.verification_status === "pending" && (
-                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                    <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                      Your account is pending verification. This may take 1-2 business days.
-                    </p>
-                  </div>
-                )}
+                  {account.verification_status === "pending" && (
+                    <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                      <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">
+                        ⏳ Pending Review
+                      </p>
+                      <p className="text-xs text-yellow-600/80 dark:text-yellow-400/80 mt-1">
+                        Your account is being reviewed. You will receive a notification via email once the review is complete. This may take 1-2 business days.
+                      </p>
+                    </div>
+                  )}
 
-                {account.verification_status === "failed" && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                    <p className="text-sm text-red-600 dark:text-red-400">
-                      Verification failed. Please contact support or try linking again.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                  {account.verification_status === "failed" && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <p className="text-sm text-red-600 dark:text-red-400">
+                        Verification failed. Please contact support or try linking again.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -377,6 +456,13 @@ export default function LinkedAccounts() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <OTPVerificationModal
+        open={otpModalOpen}
+        onClose={() => setOtpModalOpen(false)}
+        onVerify={handleOTPVerified}
+        email={userEmail}
+      />
     </div>
   );
 }
