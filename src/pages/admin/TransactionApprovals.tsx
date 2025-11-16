@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Clock, DollarSign, ArrowUpRight, ArrowDownRight, ExternalLink, Image } from "lucide-react";
+import { CheckCircle, XCircle, Clock, DollarSign, ArrowUpRight, ArrowDownRight, ExternalLink, Image, TrendingUp, BarChart3 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { format, subDays, startOfDay } from "date-fns";
 
 export default function TransactionApprovals() {
   const navigate = useNavigate();
@@ -322,6 +324,78 @@ export default function TransactionApprovals() {
     return transactions.filter(tx => getTransactionType(tx) === type);
   };
 
+  // Calculate crypto analytics
+  const cryptoAnalytics = useMemo(() => {
+    const cryptoTxs = transactions.filter(tx => 
+      tx.crypto_currency || 
+      tx.description?.toLowerCase().includes("crypto") ||
+      tx.description?.includes("Bitcoin") || 
+      tx.description?.includes("Ethereum")
+    );
+
+    // Calculate totals
+    const totalVolume = cryptoTxs.reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
+    const totalCount = cryptoTxs.length;
+    const deposits = cryptoTxs.filter(tx => tx.type === 'credit');
+    const withdrawals = cryptoTxs.filter(tx => tx.type === 'debit');
+    
+    // Calculate daily volumes for last 7 days
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = startOfDay(subDays(new Date(), 6 - i));
+      return {
+        date: format(date, 'MM/dd'),
+        fullDate: date,
+        deposits: 0,
+        withdrawals: 0,
+        total: 0,
+        count: 0
+      };
+    });
+
+    cryptoTxs.forEach(tx => {
+      const txDate = startOfDay(new Date(tx.created_at));
+      const dayData = last7Days.find(d => d.fullDate.getTime() === txDate.getTime());
+      if (dayData) {
+        const amount = parseFloat(tx.amount);
+        if (tx.type === 'credit') {
+          dayData.deposits += amount;
+        } else {
+          dayData.withdrawals += amount;
+        }
+        dayData.total += amount;
+        dayData.count += 1;
+      }
+    });
+
+    // Calculate by currency
+    const byCurrency = cryptoTxs.reduce((acc: any, tx) => {
+      const currency = tx.crypto_currency || 'Unknown';
+      if (!acc[currency]) {
+        acc[currency] = { volume: 0, count: 0 };
+      }
+      acc[currency].volume += parseFloat(tx.amount);
+      acc[currency].count += 1;
+      return acc;
+    }, {});
+
+    const currencyData = Object.entries(byCurrency).map(([currency, data]: [string, any]) => ({
+      currency,
+      volume: data.volume,
+      count: data.count
+    }));
+
+    return {
+      totalVolume,
+      totalCount,
+      depositsCount: deposits.length,
+      withdrawalsCount: withdrawals.length,
+      depositsVolume: deposits.reduce((sum, tx) => sum + parseFloat(tx.amount), 0),
+      withdrawalsVolume: withdrawals.reduce((sum, tx) => sum + parseFloat(tx.amount), 0),
+      dailyData: last7Days,
+      currencyData
+    };
+  }, [transactions]);
+
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
@@ -450,25 +524,180 @@ export default function TransactionApprovals() {
               ))}
             </TabsContent>
 
-            <TabsContent value="crypto" className="space-y-3">
-              {filterTransactions("Crypto Withdrawal").map((tx) => (
-                <TransactionCard
-                  key={tx.id}
-                  transaction={tx}
-                  isSelected={selectedTransactions.includes(tx.id)}
-                  onToggleSelect={() => toggleSelectTransaction(tx.id)}
-                  onApprove={() => {
-                    setSelectedTransaction(tx);
-                    setActionType("approve");
-                  }}
-                  onReject={() => {
-                    setSelectedTransaction(tx);
-                    setActionType("reject");
-                  }}
-                  getTransactionIcon={getTransactionIcon}
-                  getTransactionType={() => getTransactionType(tx)}
-                />
-              ))}
+            <TabsContent value="crypto" className="space-y-4">
+              {/* Crypto Analytics Section */}
+              <div className="grid gap-4 md:grid-cols-4 mb-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Volume</CardTitle>
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">${cryptoAnalytics.totalVolume.toFixed(2)}</div>
+                    <p className="text-xs text-muted-foreground">{cryptoAnalytics.totalCount} transactions</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Deposits</CardTitle>
+                    <ArrowDownRight className="h-4 w-4 text-green-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">${cryptoAnalytics.depositsVolume.toFixed(2)}</div>
+                    <p className="text-xs text-muted-foreground">{cryptoAnalytics.depositsCount} deposits</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Withdrawals</CardTitle>
+                    <ArrowUpRight className="h-4 w-4 text-red-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">${cryptoAnalytics.withdrawalsVolume.toFixed(2)}</div>
+                    <p className="text-xs text-muted-foreground">{cryptoAnalytics.withdrawalsCount} withdrawals</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Avg Transaction</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      ${cryptoAnalytics.totalCount > 0 ? (cryptoAnalytics.totalVolume / cryptoAnalytics.totalCount).toFixed(2) : '0.00'}
+                    </div>
+                    <p className="text-xs text-muted-foreground">per transaction</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Charts Section */}
+              <div className="grid gap-4 md:grid-cols-2 mb-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      7-Day Volume Trend
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <AreaChart data={cryptoAnalytics.dailyData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip 
+                          formatter={(value: any) => `$${parseFloat(value).toFixed(2)}`}
+                          labelStyle={{ color: 'hsl(var(--foreground))' }}
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--background))', 
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px'
+                          }}
+                        />
+                        <Legend />
+                        <Area 
+                          type="monotone" 
+                          dataKey="deposits" 
+                          stackId="1"
+                          stroke="hsl(142, 76%, 36%)" 
+                          fill="hsl(142, 76%, 36%, 0.6)" 
+                          name="Deposits"
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="withdrawals" 
+                          stackId="2"
+                          stroke="hsl(0, 84%, 60%)" 
+                          fill="hsl(0, 84%, 60%, 0.6)" 
+                          name="Withdrawals"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Transaction Count by Day
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={cryptoAnalytics.dailyData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip 
+                          labelStyle={{ color: 'hsl(var(--foreground))' }}
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--background))', 
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px'
+                          }}
+                        />
+                        <Bar dataKey="count" fill="hsl(var(--primary))" name="Transactions" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {cryptoAnalytics.currencyData.length > 0 && (
+                  <Card className="md:col-span-2">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        Volume by Currency
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={cryptoAnalytics.currencyData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="currency" />
+                          <YAxis />
+                          <Tooltip 
+                            formatter={(value: any) => `$${parseFloat(value).toFixed(2)}`}
+                            labelStyle={{ color: 'hsl(var(--foreground))' }}
+                            contentStyle={{ 
+                              backgroundColor: 'hsl(var(--background))', 
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Legend />
+                          <Bar dataKey="volume" fill="hsl(var(--primary))" name="Total Volume ($)" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* Transaction List */}
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Pending Transactions</h3>
+                {filterTransactions("Crypto Withdrawal").map((tx) => (
+                  <TransactionCard
+                    key={tx.id}
+                    transaction={tx}
+                    isSelected={selectedTransactions.includes(tx.id)}
+                    onToggleSelect={() => toggleSelectTransaction(tx.id)}
+                    onApprove={() => {
+                      setSelectedTransaction(tx);
+                      setActionType("approve");
+                    }}
+                    onReject={() => {
+                      setSelectedTransaction(tx);
+                      setActionType("reject");
+                    }}
+                    getTransactionIcon={getTransactionIcon}
+                    getTransactionType={() => getTransactionType(tx)}
+                  />
+                ))}
+              </div>
             </TabsContent>
 
             <TabsContent value="transfer" className="space-y-3">
