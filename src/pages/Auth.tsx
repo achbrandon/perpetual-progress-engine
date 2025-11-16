@@ -33,6 +33,7 @@ const Auth = () => {
   const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
   const [signInPin, setSignInPin] = useState("");
+  const [rememberMe, setRememberMe] = useState(true); // Default to true for better UX
 
   // Sign Up form
   const [signUpEmail, setSignUpEmail] = useState("");
@@ -41,6 +42,12 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
+    // Load remember me preference
+    const savedRememberMe = localStorage.getItem('vaultbank_remember_me');
+    if (savedRememberMe === 'true') {
+      setRememberMe(true);
+    }
+    
     // Check if user is already logged in and redirect to dashboard
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user && !isRedirecting.current) {
@@ -144,6 +151,13 @@ const Auth = () => {
     const minSpinnerTime = new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
+      // Store remember me preference before signing in
+      if (rememberMe) {
+        localStorage.setItem('vaultbank_remember_me', 'true');
+      } else {
+        localStorage.removeItem('vaultbank_remember_me');
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: signInEmail,
         password: signInPassword,
@@ -330,6 +344,13 @@ const Auth = () => {
 
       // Mark authentication as complete
       sessionStorage.setItem('auth_verification_completed', 'true');
+      
+      // Store remember me preference
+      if (rememberMe) {
+        localStorage.setItem('vaultbank_remember_me', 'true');
+      } else {
+        localStorage.removeItem('vaultbank_remember_me');
+      }
 
       // Wait for minimum spinner time
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -646,9 +667,13 @@ const Auth = () => {
               </div>
 
               <div className="flex items-center space-x-2">
-                <Checkbox id="remember" />
+                <Checkbox 
+                  id="remember" 
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                />
                 <label htmlFor="remember" className="text-sm cursor-pointer">
-                  Remember me
+                  Remember me for 30 days
                 </label>
               </div>
 
