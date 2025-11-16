@@ -41,12 +41,13 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    // Clear any existing session on mount and clear auth flag
-    sessionStorage.removeItem('auth_verification_completed');
-    
+    // Check if user is already logged in and redirect to dashboard
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        supabase.auth.signOut();
+      if (session?.user && !isRedirecting.current) {
+        // User is already logged in, redirect to dashboard
+        isRedirecting.current = true;
+        navigate("/dashboard", { replace: true });
+        return;
       }
     });
 
@@ -66,7 +67,7 @@ const Auth = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const handleAuthRedirect = async (user: any) => {
     try {
