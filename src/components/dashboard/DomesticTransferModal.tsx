@@ -304,6 +304,8 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
           onClose={() => setShowOTP(false)}
           onVerify={handleOTPVerified}
           email={profile?.email || "your email"}
+          action="domestic_transfer"
+          amount={amount}
         />
       )}
 
