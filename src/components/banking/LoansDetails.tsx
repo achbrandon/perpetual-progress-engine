@@ -325,6 +325,15 @@ export const LoansDetails = () => {
                   Closing costs typically range from 2-5% of the loan amount and include fees for appraisal, title insurance, attorney fees, property taxes, homeowners insurance, and lender origination fees. We'll provide you with a detailed Loan Estimate that outlines all costs upfront.
                 </AccordionContent>
               </AccordionItem>
+
+              <AccordionItem value="item-7">
+                <AccordionTrigger className="text-left text-lg font-semibold">
+                  Can I add a co-borrower or joint holder to my loan account?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Yes, all loan accounts can have joint holders or co-borrowers added. Both parties share equal responsibility for the loan. <span className="font-semibold">Important:</span> To activate a joint loan account, the person joining (partner) must deposit 1% of the current account balance from their own external bank account. This mandatory activation deposit ensures proper account verification and compliance. After activation, direct transfers between joint holders are permanently prohibited.
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
           </div>
         </div>

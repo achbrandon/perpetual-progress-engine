@@ -308,6 +308,15 @@ export const SavingsDetails = ({ onOpenAccount }: SavingsDetailsProps) => {
                 Absolutely! You can set up automatic transfers from your checking account to your savings account on a schedule that works for you—weekly, bi-weekly, or monthly. This "pay yourself first" approach makes saving effortless.
               </AccordionContent>
             </AccordionItem>
+
+            <AccordionItem value="item-7">
+              <AccordionTrigger className="text-left text-lg font-semibold">
+                Can I add a joint holder to my savings account?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                Yes, all savings accounts can have joint holders added. Both account holders have full access and equal rights to the account. <span className="font-semibold">Important:</span> To activate a joint account, the person joining (partner) must deposit 1% of the current account balance from their own external bank account. This mandatory activation deposit ensures proper account verification and compliance. After activation, direct transfers between joint holders are permanently prohibited.
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
         </div>
       </div>

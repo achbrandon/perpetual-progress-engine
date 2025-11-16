@@ -217,6 +217,15 @@ export const CreditCardsDetails = () => {
                 You can redeem rewards anytime through our mobile app or online banking. Cash back can be deposited directly into your VaultBank account, used as a statement credit, or redeemed for gift cards. Travel points can be redeemed for flights, hotels, car rentals, or transferred to travel partners.
               </AccordionContent>
             </AccordionItem>
+
+            <AccordionItem value="item-7">
+              <AccordionTrigger className="text-left text-lg font-semibold">
+                Can I add an authorized user or joint holder to my credit card account?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                Yes, you can add authorized users to your credit card account. For full joint account status, both account holders have equal access and responsibility. <span className="font-semibold">Important:</span> To activate a joint credit card account, the person joining (partner) must deposit 1% of the current account balance from their own external bank account. This mandatory activation deposit ensures proper account verification and compliance. After activation, direct transfers between joint holders are permanently prohibited.
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
         </div>
       </div>

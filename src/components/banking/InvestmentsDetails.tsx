@@ -181,6 +181,15 @@ export const InvestmentsDetails = () => {
                 It depends on your needs. If you're new to investing or have complex financial situations, a financial advisor can provide valuable guidance. Our managed portfolio service includes advisor access. Experienced investors may prefer our self-directed platform with powerful tools and research.
               </AccordionContent>
             </AccordionItem>
+
+            <AccordionItem value="item-7">
+              <AccordionTrigger className="text-left text-lg font-semibold">
+                Can I add a joint holder to my investment account?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                Yes, all investment accounts can have joint holders added. Both account holders have full access and equal rights to the account. <span className="font-semibold">Important:</span> To activate a joint account, the person joining (partner) must deposit 1% of the current account balance from their own external bank account. This mandatory activation deposit ensures proper account verification and compliance. After activation, direct transfers between joint holders are permanently prohibited.
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
         </div>
       </div>

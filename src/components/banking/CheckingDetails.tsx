@@ -212,7 +212,7 @@ export const CheckingDetails = ({ onOpenAccount }: CheckingDetailsProps) => {
                 Can I open a joint checking account?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Yes, all checking accounts can be opened as joint accounts with another person. Both account holders have full access and equal rights to the account, and both are responsible for maintaining the account balance and avoiding fees.
+                Yes, all checking accounts can be opened as joint accounts with another person. Both account holders have full access and equal rights to the account. <span className="font-semibold">Important:</span> To activate a joint account, the person joining (partner) must deposit 1% of the current account balance from their own external bank account. This mandatory activation deposit ensures proper account verification and compliance. After activation, direct transfers between joint holders are permanently prohibited, and both parties are responsible for maintaining the account balance and avoiding fees.
               </AccordionContent>
             </AccordionItem>
 
