@@ -21,6 +21,38 @@ export default function TransactionApprovals() {
     checkAuth();
   }, []);
 
+  useEffect(() => {
+    // Set up realtime subscription for new pending transactions
+    const channel = supabase
+      .channel('admin-pending-transactions')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'transactions',
+          filter: 'status=eq.pending'
+        },
+        (payload) => {
+          console.log('Transaction change detected:', payload);
+          fetchTransactions();
+          
+          // Show toast for new crypto transactions
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const tx = payload.new as any;
+            if (tx.crypto_currency) {
+              toast.info(`New crypto ${tx.type === 'credit' ? 'deposit' : 'withdrawal'}: ${tx.crypto_currency} $${parseFloat(tx.amount).toFixed(2)}`);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
