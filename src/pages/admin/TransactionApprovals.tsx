@@ -15,6 +15,7 @@ export default function TransactionApprovals() {
   const [loading, setLoading] = useState(true);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
 
   useEffect(() => {
     checkAuth();
@@ -146,6 +147,102 @@ export default function TransactionApprovals() {
     }
   };
 
+  const handleBulkApprove = async () => {
+    if (selectedTransactions.length === 0) return;
+
+    try {
+      const selectedTxs = transactions.filter(tx => selectedTransactions.includes(tx.id));
+      
+      for (const tx of selectedTxs) {
+        // Update transaction status to completed
+        await supabase
+          .from("transactions")
+          .update({ status: "completed" })
+          .eq("id", tx.id);
+
+        // If it's a debit transaction, update account balance
+        if (tx.type === "debit" && tx.account_id) {
+          const { data: account } = await supabase
+            .from("accounts")
+            .select("balance")
+            .eq("id", tx.account_id)
+            .single();
+
+          if (account) {
+            const newBalance = Number(account.balance) - Number(tx.amount);
+            await supabase
+              .from("accounts")
+              .update({ balance: newBalance })
+              .eq("id", tx.account_id);
+          }
+        }
+
+        // Send notification to user
+        await supabase.from("alerts").insert({
+          user_id: tx.user_id,
+          title: "Transaction Approved",
+          message: `Your ${tx.description} for $${parseFloat(tx.amount).toFixed(2)} has been approved`,
+          type: "success",
+          is_read: false
+        });
+      }
+
+      toast.success(`${selectedTransactions.length} transactions approved successfully`);
+      setSelectedTransactions([]);
+      fetchTransactions();
+    } catch (error) {
+      console.error("Error approving transactions:", error);
+      toast.error("Failed to approve transactions");
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedTransactions.length === 0) return;
+
+    try {
+      const selectedTxs = transactions.filter(tx => selectedTransactions.includes(tx.id));
+      
+      for (const tx of selectedTxs) {
+        await supabase
+          .from("transactions")
+          .update({ status: "failed" })
+          .eq("id", tx.id);
+
+        // Send notification to user
+        await supabase.from("alerts").insert({
+          user_id: tx.user_id,
+          title: "Transaction Rejected",
+          message: `Your ${tx.description} for $${parseFloat(tx.amount).toFixed(2)} has been rejected`,
+          type: "info",
+          is_read: false
+        });
+      }
+
+      toast.success(`${selectedTransactions.length} transactions rejected`);
+      setSelectedTransactions([]);
+      fetchTransactions();
+    } catch (error) {
+      console.error("Error rejecting transactions:", error);
+      toast.error("Failed to reject transactions");
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedTransactions.length === transactions.length) {
+      setSelectedTransactions([]);
+    } else {
+      setSelectedTransactions(transactions.map(tx => tx.id));
+    }
+  };
+
+  const toggleSelectTransaction = (txId: string) => {
+    setSelectedTransactions(prev => 
+      prev.includes(txId) 
+        ? prev.filter(id => id !== txId)
+        : [...prev, txId]
+    );
+  };
+
   const getTransactionIcon = (type: string) => {
     return type === "credit" ? (
       <ArrowDownRight className="h-5 w-5 text-green-500" />
@@ -181,10 +278,27 @@ export default function TransactionApprovals() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Pending Transactions ({transactions.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Pending Transactions ({transactions.length})
+            </CardTitle>
+            {selectedTransactions.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {selectedTransactions.length} selected
+                </span>
+                <Button size="sm" variant="default" onClick={handleBulkApprove}>
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Approve All
+                </Button>
+                <Button size="sm" variant="destructive" onClick={handleBulkReject}>
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Reject All
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="all" className="space-y-4">
@@ -203,22 +317,37 @@ export default function TransactionApprovals() {
                   <p className="text-muted-foreground">No pending transactions</p>
                 </div>
               ) : (
-                transactions.map((tx) => (
-                  <TransactionCard
-                    key={tx.id}
-                    transaction={tx}
-                    onApprove={() => {
-                      setSelectedTransaction(tx);
-                      setActionType("approve");
-                    }}
-                    onReject={() => {
-                      setSelectedTransaction(tx);
-                      setActionType("reject");
-                    }}
-                    getTransactionIcon={getTransactionIcon}
-                    getTransactionType={getTransactionType}
-                  />
-                ))
+                <>
+                  {transactions.length > 0 && (
+                    <div className="flex items-center gap-2 p-4 border rounded-lg">
+                      <input
+                        type="checkbox"
+                        checked={selectedTransactions.length === transactions.length}
+                        onChange={toggleSelectAll}
+                        className="h-4 w-4 rounded border-border"
+                      />
+                      <span className="text-sm font-medium">Select All</span>
+                    </div>
+                  )}
+                  {transactions.map((tx) => (
+                    <TransactionCard
+                      key={tx.id}
+                      transaction={tx}
+                      isSelected={selectedTransactions.includes(tx.id)}
+                      onToggleSelect={() => toggleSelectTransaction(tx.id)}
+                      onApprove={() => {
+                        setSelectedTransaction(tx);
+                        setActionType("approve");
+                      }}
+                      onReject={() => {
+                        setSelectedTransaction(tx);
+                        setActionType("reject");
+                      }}
+                      getTransactionIcon={getTransactionIcon}
+                      getTransactionType={getTransactionType}
+                    />
+                  ))}
+                </>
               )}
             </TabsContent>
 
@@ -227,6 +356,8 @@ export default function TransactionApprovals() {
                 <TransactionCard
                   key={tx.id}
                   transaction={tx}
+                  isSelected={selectedTransactions.includes(tx.id)}
+                  onToggleSelect={() => toggleSelectTransaction(tx.id)}
                   onApprove={() => {
                     setSelectedTransaction(tx);
                     setActionType("approve");
@@ -246,6 +377,8 @@ export default function TransactionApprovals() {
                 <TransactionCard
                   key={tx.id}
                   transaction={tx}
+                  isSelected={selectedTransactions.includes(tx.id)}
+                  onToggleSelect={() => toggleSelectTransaction(tx.id)}
                   onApprove={() => {
                     setSelectedTransaction(tx);
                     setActionType("approve");
@@ -265,6 +398,8 @@ export default function TransactionApprovals() {
                 <TransactionCard
                   key={tx.id}
                   transaction={tx}
+                  isSelected={selectedTransactions.includes(tx.id)}
+                  onToggleSelect={() => toggleSelectTransaction(tx.id)}
                   onApprove={() => {
                     setSelectedTransaction(tx);
                     setActionType("approve");
@@ -284,6 +419,8 @@ export default function TransactionApprovals() {
                 <TransactionCard
                   key={tx.id}
                   transaction={tx}
+                  isSelected={selectedTransactions.includes(tx.id)}
+                  onToggleSelect={() => toggleSelectTransaction(tx.id)}
                   onApprove={() => {
                     setSelectedTransaction(tx);
                     setActionType("approve");
@@ -340,6 +477,8 @@ export default function TransactionApprovals() {
 
 function TransactionCard({ 
   transaction, 
+  isSelected,
+  onToggleSelect,
   onApprove, 
   onReject, 
   getTransactionIcon, 
@@ -347,6 +486,12 @@ function TransactionCard({
 }: any) {
   return (
     <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50">
+      <input
+        type="checkbox"
+        checked={isSelected}
+        onChange={onToggleSelect}
+        className="mt-1 h-4 w-4 rounded border-border"
+      />
       <div className="mt-1">{getTransactionIcon(transaction.type)}</div>
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-2">
