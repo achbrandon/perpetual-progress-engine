@@ -391,10 +391,15 @@ export function AddJointHolderDialog({ open, onOpenChange, account, onSuccess }:
 
         {step === "otp" && (
           <div className="space-y-6 py-4">
-            <div className="text-center space-y-2">
-              <p className="text-sm text-muted-foreground">
-                We've sent a 6-digit verification code to your email
-              </p>
+            <div className="text-center space-y-3">
+              <div className="bg-primary/10 rounded-lg p-4 space-y-2">
+                <p className="text-sm font-medium">
+                  Verification Code Sent
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  We've sent a 6-digit verification code to <span className="font-semibold">your account email</span> to confirm this joint account holder request.
+                </p>
+              </div>
             </div>
 
             <div className="flex justify-center">
