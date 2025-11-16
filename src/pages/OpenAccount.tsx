@@ -1039,7 +1039,7 @@ const OpenAccount = () => {
                 <h4 className="font-semibold mt-4 mb-2">11. CONTACT INFORMATION</h4>
                 <p className="mb-2">For questions or concerns regarding these terms, please contact:</p>
                 <p className="mb-2">VaultBank Customer Service</p>
-                <p className="mb-2">Email: support@vaultbank.com</p>
+                <p className="mb-2">Email: info@vaulteonline.com</p>
                 <p className="mb-2">Phone: 1-800-VAULT-BANK</p>
                 
                 <p className="mt-4 font-semibold">By checking the box below, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.</p>

@@ -146,7 +146,7 @@ export function TransferReceipt({ open, onClose, transferData }: TransferReceipt
 
             <div className="pt-4 text-center text-sm text-muted-foreground">
               <p>Thank you for banking with VaultBank</p>
-              <p className="mt-2">For support, contact us at support@vaultbank.com</p>
+              <p className="mt-2">For support, contact us at info@vaulteonline.com</p>
             </div>
           </div>
 

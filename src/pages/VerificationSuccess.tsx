@@ -187,7 +187,7 @@ const VerificationSuccess = () => {
           <div className="text-center pt-2">
             <p className="text-xs text-muted-foreground">
               Need assistance?{" "}
-              <a href="mailto:support@vaultbankonline.com" className="text-primary hover:underline font-medium">
+              <a href="mailto:info@vaulteonline.com" className="text-primary hover:underline font-medium">
                 Contact Support
               </a>
             </p>

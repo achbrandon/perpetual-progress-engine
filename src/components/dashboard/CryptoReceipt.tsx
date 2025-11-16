@@ -103,7 +103,7 @@ export function CryptoReceipt({ open, onClose, transactionData }: CryptoReceiptP
 
             <div className="pt-4 text-center text-sm text-muted-foreground">
               <p>Thank you for banking with VaultBank</p>
-              <p className="mt-2">For support, contact us at support@vaultbank.com</p>
+              <p className="mt-2">For support, contact us at info@vaulteonline.com</p>
               <p className="mt-2 text-xs">
                 Processing time: {transactionData.type === 'deposit' ? '1-24 hours' : '1-48 hours'}
               </p>

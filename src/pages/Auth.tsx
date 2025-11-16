@@ -169,7 +169,7 @@ const Auth = () => {
               );
             } else if (application.status === "rejected") {
               toast.error(
-                "❌ Your account application was not approved. Please contact support@vaultbankonline.com for more information.",
+                "❌ Your account application was not approved. Please contact info@vaulteonline.com for more information.",
                 { duration: 10000 }
               );
             } else {
