@@ -62,12 +62,17 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
   useEffect(() => {
     if (userId) {
       console.log("SpendingInsights: Starting analysis for user:", userId);
-      analyzeTransactions();
+      // Use timeout to debounce multiple rapid calls
+      const timer = setTimeout(() => {
+        analyzeTransactions();
+      }, 300);
+      
+      return () => clearTimeout(timer);
     } else {
       console.log("SpendingInsights: No userId provided");
       setLoading(false);
     }
-  }, [userId, transactions]);
+  }, [userId]);
 
   const categorizeTransaction = (description: string, type: string): string => {
     const lowerDesc = description.toLowerCase();
@@ -91,34 +96,50 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
       setLoading(true);
       console.log("Fetching transactions for user:", userId);
       
-      // Fetch transactions for current month
+      // Fetch transactions for current month with retry logic
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-      const { data: currentMonthTxns, error: currentError } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("user_id", userId)
-        .gte("created_at", firstDayOfMonth.toISOString())
-        .in("type", ["withdrawal", "transfer", "payment"]);
+      let currentMonthTxns = null;
+      let retries = 0;
+      const maxRetries = 2;
 
-      if (currentError) {
-        console.error("Error fetching current month transactions:", currentError);
-        setLoading(false);
-        return;
+      // Retry logic for flaky network
+      while (retries <= maxRetries && !currentMonthTxns) {
+        try {
+          const { data, error: currentError } = await supabase
+            .from("transactions")
+            .select("*")
+            .eq("user_id", userId)
+            .gte("created_at", firstDayOfMonth.toISOString())
+            .in("type", ["withdrawal", "transfer", "payment"]);
+
+          if (currentError) throw currentError;
+          currentMonthTxns = data;
+        } catch (err) {
+          retries++;
+          if (retries > maxRetries) {
+            console.error("Failed to fetch after retries:", err);
+            setLoading(false);
+            return;
+          }
+          await new Promise(resolve => setTimeout(resolve, 500 * retries));
+        }
       }
 
       console.log("Current month transactions:", currentMonthTxns?.length || 0);
 
+      // Fetch last month (without retry to keep it fast)
       const { data: lastMonthTxns } = await supabase
         .from("transactions")
         .select("*")
         .eq("user_id", userId)
         .gte("created_at", lastMonth.toISOString())
         .lte("created_at", lastMonthEnd.toISOString())
-        .in("type", ["withdrawal", "transfer", "payment"]);
+        .in("type", ["withdrawal", "transfer", "payment"])
+        .limit(100);
 
       // Categorize and sum up spending
       const categoryMap = new Map<string, number>();
