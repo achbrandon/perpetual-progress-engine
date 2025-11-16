@@ -73,6 +73,7 @@ import AuthenticationLogs from "./pages/admin/AuthenticationLogs";
 import LoginHistory from "./pages/dashboard/LoginHistory";
 import AccountRepair from "./pages/admin/AccountRepair";
 import JointAccountRequests from "./pages/admin/JointAccountRequests";
+import SendNotification from "./pages/admin/SendNotification";
 import { useState } from "react";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
@@ -161,6 +162,7 @@ function AppRoutes() {
         <Route path="support" element={<AdminSupportPage />} />
         <Route path="live-support" element={<LiveSupport />} />
         <Route path="email" element={<AdminEmailSystem />} />
+        <Route path="send-notification" element={<SendNotification />} />
         <Route path="wallets" element={<AdminWalletSettings />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="activity" element={<AdminUserActivity />} />

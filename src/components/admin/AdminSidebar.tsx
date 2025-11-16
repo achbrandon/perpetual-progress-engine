@@ -12,7 +12,8 @@ import {
   Sliders,
   Shield,
   Wrench,
-  UserPlus
+  UserPlus,
+  Bell
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
@@ -77,6 +78,11 @@ const menuItems = [
     title: "Email System",
     url: "/admin/email",
     icon: Settings,
+  },
+  {
+    title: "Send Notifications",
+    url: "/admin/send-notification",
+    icon: Bell,
   },
   {
     title: "Wallet Settings",
