@@ -60,7 +60,11 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
 
   useEffect(() => {
     if (userId) {
+      console.log("SpendingInsights: Starting analysis for user:", userId);
       analyzeTransactions();
+    } else {
+      console.log("SpendingInsights: No userId provided");
+      setLoading(false);
     }
   }, [userId, transactions]);
 
@@ -84,6 +88,7 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
   const analyzeTransactions = async () => {
     try {
       setLoading(true);
+      console.log("Fetching transactions for user:", userId);
       
       // Fetch transactions for current month
       const now = new Date();
@@ -91,12 +96,20 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-      const { data: currentMonthTxns } = await supabase
+      const { data: currentMonthTxns, error: currentError } = await supabase
         .from("transactions")
         .select("*")
         .eq("user_id", userId)
         .gte("created_at", firstDayOfMonth.toISOString())
         .in("type", ["withdrawal", "transfer", "payment"]);
+
+      if (currentError) {
+        console.error("Error fetching current month transactions:", currentError);
+        setLoading(false);
+        return;
+      }
+
+      console.log("Current month transactions:", currentMonthTxns?.length || 0);
 
       const { data: lastMonthTxns } = await supabase
         .from("transactions")
@@ -114,6 +127,8 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
         const current = categoryMap.get(category) || 0;
         categoryMap.set(category, current + Math.abs(Number(txn.amount)));
       });
+
+      console.log("Categories found:", Array.from(categoryMap.keys()));
 
       // Calculate last month's total for comparison
       const lastMonthTotal = lastMonthTxns?.reduce((sum, txn) => sum + Math.abs(Number(txn.amount)), 0) || 0;
@@ -146,6 +161,8 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
         setTopCategory(categoriesData[0].name);
       }
 
+      console.log("Analysis complete. Categories:", categoriesData.length);
+
     } catch (error) {
       console.error("Error analyzing transactions:", error);
     } finally {
@@ -155,10 +172,14 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
 
   if (loading) {
     return (
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-muted rounded w-1/3"></div>
-          <div className="h-32 bg-muted rounded"></div>
+          <div className="h-4 bg-muted rounded w-2/3"></div>
+          <div className="h-24 sm:h-32 bg-muted rounded"></div>
+          <div className="space-y-2">
+            <div className="h-3 bg-muted rounded"></div>
+            <div className="h-3 bg-muted rounded w-5/6"></div>
+          </div>
         </div>
       </Card>
     );
@@ -166,14 +187,22 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
 
   if (categories.length === 0) {
     return (
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Spending Insights</h3>
+          <h3 className="font-semibold text-sm sm:text-base">Spending Insights</h3>
         </div>
-        <p className="text-sm text-muted-foreground text-center py-8">
-          No spending data available for this month yet.
-        </p>
+        <div className="text-center py-6 sm:py-8 space-y-3">
+          <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+            <PieChart className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            No spending data yet this month
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Start making transactions to see your spending breakdown
+          </p>
+        </div>
       </Card>
     );
   }
@@ -186,25 +215,25 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
   }));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Summary Cards - Mobile Optimized */}
-      <div className="grid grid-cols-2 gap-3">
-        <Card className="p-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <Card className="p-3 sm:p-4">
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Total Spent</p>
-            <p className="text-2xl font-bold">${totalSpent.toFixed(2)}</p>
-            <div className={`flex items-center gap-1 text-xs ${monthlyChange >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+            <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Total Spent</p>
+            <p className="text-xl sm:text-2xl font-bold">${totalSpent.toFixed(2)}</p>
+            <div className={`flex items-center gap-1 text-[10px] sm:text-xs ${monthlyChange >= 0 ? 'text-red-600' : 'text-green-600'}`}>
               {monthlyChange >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
               <span>{Math.abs(monthlyChange).toFixed(1)}% vs last month</span>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-3 sm:p-4">
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Top Category</p>
-            <p className="text-lg font-bold truncate">{topCategory}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Top Category</p>
+            <p className="text-base sm:text-lg font-bold truncate">{topCategory}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
               ${categories[0]?.spent.toFixed(2)}
             </p>
           </div>
@@ -212,22 +241,22 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
       </div>
 
       {/* Main Insights Card */}
-      <Card className="p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <PieChart className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Spending Breakdown</h3>
+      <Card className="p-4 sm:p-6">
+        <div className="flex items-center gap-2 mb-4 sm:mb-6">
+          <PieChart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          <h3 className="font-semibold text-sm sm:text-base">Spending Breakdown</h3>
         </div>
 
         {/* Pie Chart - Mobile Optimized */}
-        <div className="mb-6">
-          <ResponsiveContainer width="100%" height={200}>
+        <div className="mb-4 sm:mb-6 -mx-2">
+          <ResponsiveContainer width="100%" height={180}>
             <RechartsPie>
               <Pie
                 data={chartData}
                 cx="50%"
                 cy="50%"
-                innerRadius={50}
-                outerRadius={80}
+                innerRadius={45}
+                outerRadius={70}
                 paddingAngle={2}
                 dataKey="value"
               >
@@ -241,7 +270,8 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
                   backgroundColor: 'hsl(var(--card))', 
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',
-                  fontSize: '12px'
+                  fontSize: '11px',
+                  padding: '8px'
                 }}
               />
             </RechartsPie>
@@ -255,28 +285,28 @@ export function SpendingInsights({ userId, transactions = [] }: SpendingInsights
 
             return (
               <div key={index} className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div 
-                      className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0`}
+                      className="h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: `${category.color}20` }}
                     >
                       <div style={{ color: category.color }}>
                         {category.icon}
                       </div>
                     </div>
-                    <span className="text-sm font-medium truncate">{category.name}</span>
+                    <span className="text-xs sm:text-sm font-medium truncate">{category.name}</span>
                   </div>
-                  <div className="text-right flex-shrink-0 ml-2">
-                    <p className="text-sm font-semibold">${category.spent.toFixed(2)}</p>
-                    <p className="text-xs text-muted-foreground">{percentage.toFixed(1)}%</p>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-xs sm:text-sm font-semibold">${category.spent.toFixed(0)}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">{percentage.toFixed(0)}%</p>
                   </div>
                 </div>
                 <Progress 
                   value={percentage} 
-                  className="h-2"
+                  className="h-1.5 sm:h-2"
                   style={{ 
-                    backgroundColor: `${category.color}20`
+                    backgroundColor: `${category.color}15`
                   }}
                 />
               </div>

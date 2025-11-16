@@ -306,12 +306,21 @@ const Dashboard = () => {
                   <BalanceHistoryChart />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                  <div className="lg:col-span-2 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                    <TransactionsList transactions={transactions} onRefresh={fetchData} />
-                  </div>
-                  <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                {/* Mobile: Stack vertically, Desktop: Side by side */}
+                <div className="space-y-4 sm:space-y-6">
+                  {/* Spending Insights - Show first on mobile */}
+                  <div className="animate-fade-in-up lg:hidden" style={{ animationDelay: '0.3s' }}>
                     <SpendingInsights userId={user?.id} />
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <div className="lg:col-span-2 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+                      <TransactionsList transactions={transactions} onRefresh={fetchData} />
+                    </div>
+                    {/* Spending Insights - Show in sidebar on desktop */}
+                    <div className="hidden lg:block animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                      <SpendingInsights userId={user?.id} />
+                    </div>
                   </div>
                 </div>
               </div>
