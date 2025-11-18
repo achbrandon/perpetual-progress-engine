@@ -101,6 +101,7 @@ export type Database = {
           iban: string | null
           id: string
           routing_number: string | null
+          routing_verified: boolean | null
           swift_code: string | null
           user_id: string
         }
@@ -112,6 +113,7 @@ export type Database = {
           iban?: string | null
           id?: string
           routing_number?: string | null
+          routing_verified?: boolean | null
           swift_code?: string | null
           user_id: string
         }
@@ -123,6 +125,7 @@ export type Database = {
           iban?: string | null
           id?: string
           routing_number?: string | null
+          routing_verified?: boolean | null
           swift_code?: string | null
           user_id?: string
         }

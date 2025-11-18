@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Copy, Building2, Globe, CreditCard, Shield, Send, ArrowRight, Lock } from "lucide-react";
+import { Copy, Building2, Globe, CreditCard, Shield, Send, ArrowRight, Lock, CheckCircle2, XCircle } from "lucide-react";
 
 export default function AccountDetails() {
   const navigate = useNavigate();
@@ -203,6 +204,7 @@ export default function AccountDetails() {
                   label="Routing Number (ABA)"
                   value={details.routing_number || "N/A"}
                   onCopy={() => copyToClipboard(details.routing_number || "", "Routing Number")}
+                  verified={details.routing_verified}
                 />
 
                 <DetailItem
@@ -210,6 +212,7 @@ export default function AccountDetails() {
                   label="Wire Routing Number"
                   value={details.routing_number || "N/A"}
                   onCopy={() => copyToClipboard(details.routing_number || "", "Wire Routing")}
+                  verified={details.routing_verified}
                 />
 
                 <DetailItem
@@ -357,19 +360,39 @@ function DetailItem({
   label, 
   value, 
   onCopy, 
-  fullWidth = false 
+  fullWidth = false,
+  verified 
 }: { 
   icon: React.ReactNode;
   label: string;
   value: string;
   onCopy: () => void;
   fullWidth?: boolean;
+  verified?: boolean;
 }) {
   return (
     <div className={fullWidth ? "md:col-span-2" : ""}>
       <div className="flex items-center gap-2 mb-2">
         {icon}
         <Label className="text-sm font-medium text-muted-foreground">{label}</Label>
+        {verified !== undefined && (
+          <Badge 
+            variant={verified ? "default" : "secondary"}
+            className="ml-auto gap-1 text-xs"
+          >
+            {verified ? (
+              <>
+                <CheckCircle2 className="h-3 w-3" />
+                Verified
+              </>
+            ) : (
+              <>
+                <XCircle className="h-3 w-3" />
+                Unverified
+              </>
+            )}
+          </Badge>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <div className="flex-1 p-3 bg-muted/50 rounded-lg font-mono text-sm break-all">
