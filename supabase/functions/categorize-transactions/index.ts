@@ -14,44 +14,44 @@ interface Transaction {
 
 // Small amount descriptions (< $100)
 const SMALL_AMOUNT_DESCRIPTIONS: string[] = [
-  'Netflix subscription',
-  'Spotify Premium',
-  'Coffee at Starbucks',
-  'McDonald\'s lunch',
-  'Uber ride',
+  'Coffee shop',
+  'Lunch',
+  'Dinner',
+  'Breakfast',
+  'Grocery store',
   'Gas station',
-  'Grocery shopping',
-  'Restaurant dining',
-  'Amazon Prime',
-  'Parking fee',
-  'Food delivery',
-  'Pharmacy purchase',
-  'Apple Music',
-  'YouTube Premium',
-  'Disney+ subscription',
+  'Parking',
+  'Ride share',
   'Fast food',
-  'Cafe breakfast'
+  'Pharmacy',
+  'Convenience store',
+  'Food delivery',
+  'Restaurant',
+  'Cafe',
+  'Bakery',
+  'Market',
+  'Snacks'
 ];
 
 // Large amount descriptions (>= $100)
 const LARGE_AMOUNT_DESCRIPTIONS: string[] = [
-  'Investment portfolio transfer',
-  'Property management payment',
-  'Business service payment',
-  'Professional services fee',
-  'Insurance premium payment',
-  'Investment account deposit',
-  'Real estate transaction',
-  'Business consulting fee',
-  'Legal services payment',
-  'Medical services payment',
+  'Investment transfer',
+  'Property payment',
+  'Insurance premium',
+  'Medical services',
+  'Legal fees',
+  'Consulting services',
+  'Business payment',
   'Equipment purchase',
   'Contractor payment',
-  'Wholesale purchase',
-  'Investment dividend',
-  'Business supplies order',
-  'Professional development course',
-  'Home improvement payment'
+  'Professional services',
+  'Real estate payment',
+  'Investment deposit',
+  'Business supplies',
+  'Home improvement',
+  'Vehicle maintenance',
+  'Electronics purchase',
+  'Furniture purchase'
 ];
 
 function generateDescription(type: string, amount: number): string {
