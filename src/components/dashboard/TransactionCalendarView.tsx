@@ -22,6 +22,8 @@ interface TransactionCalendarViewProps {
   onRefresh: () => void;
 }
 
+// Transaction calendar view component
+
 export function TransactionCalendarView({
   transactions,
   onRefresh,
