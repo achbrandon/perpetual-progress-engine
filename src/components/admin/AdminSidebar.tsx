@@ -14,7 +14,8 @@ import {
   Wrench,
   UserPlus,
   Bell,
-  CheckCircle
+  CheckCircle,
+  BarChart3
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
@@ -109,6 +110,11 @@ const menuItems = [
     title: "User Activity",
     url:"/admin/activity",
     icon: TrendingUp,
+  },
+  {
+    title: "Topic Analytics",
+    url: "/admin/topic-analytics",
+    icon: BarChart3,
   },
   {
     title: "Activity Logs",

@@ -1194,6 +1194,41 @@ export type Database = {
         }
         Relationships: []
       }
+      support_topic_analytics: {
+        Row: {
+          created_at: string | null
+          detected_topic: string
+          id: string
+          message_content: string | null
+          ticket_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          detected_topic: string
+          id?: string
+          message_content?: string | null
+          ticket_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          detected_topic?: string
+          id?: string
+          message_content?: string | null
+          ticket_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_topic_analytics_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           account_id: string | null

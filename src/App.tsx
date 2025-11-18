@@ -66,6 +66,7 @@ import AdminUserActivity from "./pages/admin/UserActivity";
 import AdminUserManagement from "./pages/admin/UserManagement";
 import AdminLiveMonitoring from "./pages/admin/LiveMonitoring";
 import AdminSettings from "./pages/admin/AdminSettings";
+import TopicAnalytics from "./pages/admin/TopicAnalytics";
 import ResendEmails from "./pages/ResendEmails";
 import CreateTestAccount from "./pages/CreateTestAccount";
 import CreateAdminAccount from "./pages/CreateAdminAccount";
@@ -180,6 +181,7 @@ function AppRoutes() {
         <Route path="activity-logs" element={<ActivityLogs />} />
         <Route path="authentication-logs" element={<AuthenticationLogs />} />
         <Route path="account-repair" element={<AccountRepair />} />
+        <Route path="topic-analytics" element={<TopicAnalytics />} />
       </Route>
       
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

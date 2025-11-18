@@ -114,10 +114,24 @@ serve(async (req) => {
       }
     }
 
+    // Log topic analytics
+    await supabase
+      .from('support_topic_analytics')
+      .insert({
+        ticket_id: ticketId,
+        user_id: ticket.user_id,
+        detected_topic: detectedTopic,
+        message_content: message.substring(0, 500) // Store first 500 chars for context
+      });
+
     // Step 2: Build focused knowledge base based on detected topic
     const knowledgeBases = {
       inheritance: `INHERITANCE TAX ADVISORY (annanbelle72@gmail.com):
-This inherited account has a tax advisory for external transfers. Last expenditure was 3 months ago. The advisory helps protect future beneficiaries from unexpected tax burdens on large external withdrawals and gives opportunity to consult with a tax advisor before proceeding. Keep responses natural and conversational. Do NOT mention joint accounts or other unrelated topics.`,
+This inherited account has a tax advisory for external transfers. Last expenditure was 3 months ago. The advisory helps protect future beneficiaries from unexpected tax burdens on large external withdrawals.
+
+When explaining: VaultBank has specialized tax professionals who are experts in inheritance tax matters. Offer to connect the user with one of our tax advisors who can provide personalized guidance on their specific situation. They can help understand potential taxes, ensure compliance, and make informed decisions to protect the inheritance.
+
+Keep responses natural and conversational. Do NOT mention joint accounts or other unrelated topics.`,
 
       joint_account: `JOINT ACCOUNT SYSTEM:
 Adding a joint holder requires a 1% deposit of current account balance. This is a one-time commitment fee for legal documentation, verification, and compliance showing serious intent from both parties. 
