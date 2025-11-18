@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { TrendingUp, TrendingDown, AlertCircle, CheckCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertCircle, CheckCircle, Calendar } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 
 export default function CreditScore() {
   const navigate = useNavigate();
@@ -57,6 +58,16 @@ export default function CreditScore() {
   const previousScore = creditScores[1];
   const scoreChange = latestScore && previousScore ? latestScore.score - previousScore.score : 0;
 
+  // Prepare chart data
+  const chartData = creditScores
+    .slice()
+    .reverse()
+    .map((score) => ({
+      date: new Date(score.report_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      score: score.score,
+      fullDate: score.report_date,
+    }));
+
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
@@ -107,9 +118,79 @@ export default function CreditScore() {
               <Progress value={(latestScore.score / 850) * 100} className="h-4" />
 
               <div className="mt-4 text-sm text-muted-foreground">
-                Last updated: {new Date(latestScore.score_date).toLocaleDateString()}
-                <br />
-                Powered by {latestScore.provider}
+                Last updated: {new Date(latestScore.report_date).toLocaleDateString()}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Credit Score History Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Credit Score History
+              </CardTitle>
+              <CardDescription>
+                Your credit score trend over time based on all account activity
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="date" 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis 
+                      domain={[300, 850]} 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                      }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="score" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={3}
+                      fill="url(#scoreGradient)" 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-6 grid grid-cols-3 gap-4 text-center border-t pt-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Starting Score</p>
+                  <p className="text-2xl font-bold">{chartData[0]?.score || 'N/A'}</p>
+                  <p className="text-xs text-muted-foreground">{chartData[0]?.date}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Current Score</p>
+                  <p className="text-2xl font-bold text-primary">{latestScore.score}</p>
+                  <p className="text-xs text-muted-foreground">{chartData[chartData.length - 1]?.date}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Total Improvement</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    +{latestScore.score - (chartData[0]?.score || latestScore.score)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">points gained</p>
+                </div>
               </div>
             </CardContent>
           </Card>
