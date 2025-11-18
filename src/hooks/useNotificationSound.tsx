@@ -31,16 +31,52 @@ export const getSoundFile = (type: NotificationSoundType, soundId: string): stri
   return option?.file || SOUND_OPTIONS[type][0].file;
 };
 
+let audioContext: AudioContext | null = null;
+let isAudioUnlocked = false;
+
+// Unlock audio on first user interaction
+const unlockAudio = () => {
+  if (isAudioUnlocked) return;
+  
+  try {
+    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioContext.resume();
+    isAudioUnlocked = true;
+    console.log('Audio unlocked successfully');
+  } catch (error) {
+    console.error('Failed to unlock audio:', error);
+  }
+};
+
+// Add event listeners to unlock audio on first interaction
+if (typeof window !== 'undefined') {
+  ['click', 'touchstart', 'keydown'].forEach(event => {
+    document.addEventListener(event, unlockAudio, { once: true });
+  });
+}
+
 export const useNotificationSound = () => {
   const playSound = useCallback(async (type: NotificationSoundType = 'general') => {
     // Check if sounds are enabled
     const soundEnabled = localStorage.getItem('notification_sound_enabled');
-    if (soundEnabled === 'false') return;
+    if (soundEnabled === 'false') {
+      console.log('Notification sounds are disabled');
+      return;
+    }
+
+    // Ensure audio is unlocked
+    if (!isAudioUnlocked) {
+      console.log('Audio not unlocked yet - waiting for user interaction');
+      unlockAudio();
+    }
 
     try {
       // Get user's selected sound from database
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.log('No user found for sound playback');
+        return;
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -56,10 +92,23 @@ export const useNotificationSound = () => {
       const savedVolume = localStorage.getItem(volumeKey);
       const volume = savedVolume ? parseFloat(savedVolume) : 0.5;
 
+      console.log(`Playing ${type} sound: ${soundFile} at volume ${volume}`);
+
       // Play the sound
       const audio = new Audio(soundFile);
       audio.volume = volume;
-      audio.play().catch(err => console.log(`Audio play failed for ${type}:`, err));
+      
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log(`Successfully played ${type} sound`);
+          })
+          .catch(err => {
+            console.error(`Audio play failed for ${type}:`, err);
+            console.log('Try interacting with the page first to enable sounds');
+          });
+      }
     } catch (error) {
       console.error('Error playing sound:', error);
     }
