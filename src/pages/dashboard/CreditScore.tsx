@@ -278,9 +278,13 @@ export default function CreditScore() {
                 {creditScores.map((score, index) => (
                   <div key={score.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
-                      <p className="font-medium">{score.provider} VantageScore</p>
+                      <p className="font-medium">VantageScore</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(score.score_date).toLocaleDateString()}
+                        {new Date(score.report_date).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
