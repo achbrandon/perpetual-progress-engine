@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ interface DomesticTransferModalProps {
 
 export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferModalProps) {
   const navigate = useNavigate();
+  const { playSound } = useNotificationSound();
   const [accounts, setAccounts] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [fromAccount, setFromAccount] = useState("");
@@ -342,14 +344,8 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
               setInheritanceOTPLoading(false);
               setShowInheritanceWarning(true);
               
-              // Play notification sound with user's volume preference
-              const soundEnabled = localStorage.getItem('notification_sound_enabled');
-              if (soundEnabled === null || soundEnabled === 'true') {
-                const volume = localStorage.getItem('notification_volume');
-                const audio = new Audio('/notification.mp3');
-                audio.volume = volume ? parseFloat(volume) : 0.5;
-                audio.play().catch(err => console.log('Audio play failed:', err));
-              }
+              // Play inheritance alert sound
+              playSound('inheritance');
               
               // Create notification
               const { data: { user } } = await supabase.auth.getUser();

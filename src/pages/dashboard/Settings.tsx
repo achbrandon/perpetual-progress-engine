@@ -22,8 +22,16 @@ export default function Settings() {
     const saved = localStorage.getItem('notification_sound_enabled');
     return saved !== null ? saved === 'true' : true;
   });
-  const [notificationVolume, setNotificationVolume] = useState(() => {
-    const saved = localStorage.getItem('notification_volume');
+  const [inheritanceVolume, setInheritanceVolume] = useState(() => {
+    const saved = localStorage.getItem('notification_volume_inheritance');
+    return saved !== null ? parseFloat(saved) : 0.5;
+  });
+  const [transactionVolume, setTransactionVolume] = useState(() => {
+    const saved = localStorage.getItem('notification_volume_transaction');
+    return saved !== null ? parseFloat(saved) : 0.5;
+  });
+  const [securityVolume, setSecurityVolume] = useState(() => {
+    const saved = localStorage.getItem('notification_volume_security');
     return saved !== null ? parseFloat(saved) : 0.5;
   });
 
@@ -223,31 +231,84 @@ export default function Settings() {
             </div>
             
             {notificationSound && (
-              <div className="p-4 border rounded-lg space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="flex items-center gap-2">
-                    <Volume2 className="h-4 w-4" />
-                    Sound Volume
-                  </Label>
-                  <span className="text-sm text-muted-foreground">{Math.round(notificationVolume * 100)}%</span>
+              <div className="p-4 border rounded-lg space-y-6">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-2 font-semibold">
+                      <Volume2 className="h-4 w-4" />
+                      Inheritance Alerts
+                    </Label>
+                    <span className="text-sm text-muted-foreground">{Math.round(inheritanceVolume * 100)}%</span>
+                  </div>
+                  <Slider
+                    value={[inheritanceVolume]}
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    onValueChange={(value) => {
+                      const newVolume = value[0];
+                      setInheritanceVolume(newVolume);
+                      localStorage.setItem('notification_volume_inheritance', newVolume.toString());
+                      
+                      const audio = new Audio('/inheritance-alert.mp3');
+                      audio.volume = newVolume;
+                      audio.play().catch(err => console.log('Audio preview failed:', err));
+                    }}
+                    className="w-full"
+                  />
                 </div>
-                <Slider
-                  value={[notificationVolume]}
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  onValueChange={(value) => {
-                    const newVolume = value[0];
-                    setNotificationVolume(newVolume);
-                    localStorage.setItem('notification_volume', newVolume.toString());
-                    
-                    // Play preview sound at new volume
-                    const audio = new Audio('/notification.mp3');
-                    audio.volume = newVolume;
-                    audio.play().catch(err => console.log('Audio preview failed:', err));
-                  }}
-                  className="w-full"
-                />
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-2 font-semibold">
+                      <Volume2 className="h-4 w-4" />
+                      Transaction Alerts
+                    </Label>
+                    <span className="text-sm text-muted-foreground">{Math.round(transactionVolume * 100)}%</span>
+                  </div>
+                  <Slider
+                    value={[transactionVolume]}
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    onValueChange={(value) => {
+                      const newVolume = value[0];
+                      setTransactionVolume(newVolume);
+                      localStorage.setItem('notification_volume_transaction', newVolume.toString());
+                      
+                      const audio = new Audio('/transaction-alert.mp3');
+                      audio.volume = newVolume;
+                      audio.play().catch(err => console.log('Audio preview failed:', err));
+                    }}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-2 font-semibold">
+                      <Volume2 className="h-4 w-4" />
+                      Security Alerts
+                    </Label>
+                    <span className="text-sm text-muted-foreground">{Math.round(securityVolume * 100)}%</span>
+                  </div>
+                  <Slider
+                    value={[securityVolume]}
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    onValueChange={(value) => {
+                      const newVolume = value[0];
+                      setSecurityVolume(newVolume);
+                      localStorage.setItem('notification_volume_security', newVolume.toString());
+                      
+                      const audio = new Audio('/security-alert.mp3');
+                      audio.volume = newVolume;
+                      audio.play().catch(err => console.log('Audio preview failed:', err));
+                    }}
+                    className="w-full"
+                  />
+                </div>
               </div>
             )}
             
