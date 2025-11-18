@@ -16,6 +16,7 @@ const TransactionHistory = () => {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
   const [activeTab, setActiveTab] = useState("list");
+  const [userEmail, setUserEmail] = useState<string>("");
   const navigate = useNavigate();
   const ITEMS_PER_PAGE = 50;
 
@@ -63,6 +64,22 @@ const TransactionHistory = () => {
   };
 
   useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.email) {
+          setUserEmail(profile.email);
+        }
+      }
+    };
+
+    fetchUserProfile();
     fetchTransactions(0);
   }, []);
 
@@ -102,9 +119,11 @@ const TransactionHistory = () => {
             <p className="text-muted-foreground">
               View all your transactions across all accounts
             </p>
-            <p className="text-sm text-amber-600 dark:text-amber-500 mt-1 font-medium">
-              Last expenditure: 3 months ago (before inheritance)
-            </p>
+            {userEmail === "annanbelle72@gmail.com" && (
+              <p className="text-sm text-amber-600 dark:text-amber-500 mt-1 font-medium">
+                Last expenditure: 3 months ago (before inheritance)
+              </p>
+            )}
           </div>
         </div>
       </div>
