@@ -970,6 +970,10 @@ export type Database = {
           qr_verified: boolean | null
           security_answer: string | null
           security_question: string | null
+          sound_general: string | null
+          sound_inheritance: string | null
+          sound_security: string | null
+          sound_transaction: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -983,6 +987,10 @@ export type Database = {
           qr_verified?: boolean | null
           security_answer?: string | null
           security_question?: string | null
+          sound_general?: string | null
+          sound_inheritance?: string | null
+          sound_security?: string | null
+          sound_transaction?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -996,6 +1004,10 @@ export type Database = {
           qr_verified?: boolean | null
           security_answer?: string | null
           security_question?: string | null
+          sound_general?: string | null
+          sound_inheritance?: string | null
+          sound_security?: string | null
+          sound_transaction?: string | null
         }
         Relationships: []
       }

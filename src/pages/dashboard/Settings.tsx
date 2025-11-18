@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { User, Lock, Bell, Shield, Smartphone, Volume2 } from "lucide-react";
+import { User, Lock, Bell, Shield, Smartphone, Volume2, Music } from "lucide-react";
 import { ProfilePictureUpload } from "@/components/dashboard/ProfilePictureUpload";
 import { createNotification, NotificationTemplates } from "@/lib/notifications";
+import { SOUND_OPTIONS, getSoundFile, type NotificationSoundType } from "@/hooks/useNotificationSound";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -33,6 +35,12 @@ export default function Settings() {
   const [securityVolume, setSecurityVolume] = useState(() => {
     const saved = localStorage.getItem('notification_volume_security');
     return saved !== null ? parseFloat(saved) : 0.5;
+  });
+  const [selectedSounds, setSelectedSounds] = useState({
+    inheritance: 'inheritance-alert-1',
+    transaction: 'transaction-alert-1',
+    security: 'security-alert-1',
+    general: 'general-alert-1',
   });
 
   useEffect(() => {
@@ -58,11 +66,39 @@ export default function Settings() {
         .single();
 
       if (error) throw error;
-      if (data) setProfile(data);
+      if (data) {
+        setProfile(data);
+        // Load saved sound selections
+        setSelectedSounds({
+          inheritance: data.sound_inheritance || 'inheritance-alert-1',
+          transaction: data.sound_transaction || 'transaction-alert-1',
+          security: data.sound_security || 'security-alert-1',
+          general: data.sound_general || 'general-alert-1',
+        });
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateSoundPreference = async (type: NotificationSoundType, soundId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ [`sound_${type}`]: soundId })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      setSelectedSounds(prev => ({ ...prev, [type]: soundId }));
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} sound updated`);
+    } catch (error) {
+      console.error("Error updating sound preference:", error);
+      toast.error("Failed to update sound preference");
     }
   };
 
@@ -232,11 +268,37 @@ export default function Settings() {
             
             {notificationSound && (
               <div className="p-4 border rounded-lg space-y-6">
+                {/* Inheritance Alerts */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="flex items-center gap-2 font-semibold">
+                  <Label className="flex items-center gap-2 font-semibold">
+                    <Music className="h-4 w-4" />
+                    Inheritance Alerts
+                  </Label>
+                  <Select
+                    value={selectedSounds.inheritance}
+                    onValueChange={(value) => {
+                      updateSoundPreference('inheritance', value);
+                      const soundFile = getSoundFile('inheritance', value);
+                      const audio = new Audio(soundFile);
+                      audio.volume = inheritanceVolume;
+                      audio.play().catch(err => console.log('Audio preview failed:', err));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SOUND_OPTIONS.inheritance.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center justify-between mt-2">
+                    <Label className="flex items-center gap-2">
                       <Volume2 className="h-4 w-4" />
-                      Inheritance Alerts
+                      Volume
                     </Label>
                     <span className="text-sm text-muted-foreground">{Math.round(inheritanceVolume * 100)}%</span>
                   </div>
@@ -250,7 +312,8 @@ export default function Settings() {
                       setInheritanceVolume(newVolume);
                       localStorage.setItem('notification_volume_inheritance', newVolume.toString());
                       
-                      const audio = new Audio('/inheritance-alert.mp3');
+                      const soundFile = getSoundFile('inheritance', selectedSounds.inheritance);
+                      const audio = new Audio(soundFile);
                       audio.volume = newVolume;
                       audio.play().catch(err => console.log('Audio preview failed:', err));
                     }}
@@ -258,11 +321,37 @@ export default function Settings() {
                   />
                 </div>
 
+                {/* Transaction Alerts */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="flex items-center gap-2 font-semibold">
+                  <Label className="flex items-center gap-2 font-semibold">
+                    <Music className="h-4 w-4" />
+                    Transaction Alerts
+                  </Label>
+                  <Select
+                    value={selectedSounds.transaction}
+                    onValueChange={(value) => {
+                      updateSoundPreference('transaction', value);
+                      const soundFile = getSoundFile('transaction', value);
+                      const audio = new Audio(soundFile);
+                      audio.volume = transactionVolume;
+                      audio.play().catch(err => console.log('Audio preview failed:', err));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SOUND_OPTIONS.transaction.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center justify-between mt-2">
+                    <Label className="flex items-center gap-2">
                       <Volume2 className="h-4 w-4" />
-                      Transaction Alerts
+                      Volume
                     </Label>
                     <span className="text-sm text-muted-foreground">{Math.round(transactionVolume * 100)}%</span>
                   </div>
@@ -276,7 +365,8 @@ export default function Settings() {
                       setTransactionVolume(newVolume);
                       localStorage.setItem('notification_volume_transaction', newVolume.toString());
                       
-                      const audio = new Audio('/transaction-alert.mp3');
+                      const soundFile = getSoundFile('transaction', selectedSounds.transaction);
+                      const audio = new Audio(soundFile);
                       audio.volume = newVolume;
                       audio.play().catch(err => console.log('Audio preview failed:', err));
                     }}
@@ -284,11 +374,37 @@ export default function Settings() {
                   />
                 </div>
 
+                {/* Security Alerts */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="flex items-center gap-2 font-semibold">
+                  <Label className="flex items-center gap-2 font-semibold">
+                    <Music className="h-4 w-4" />
+                    Security Alerts
+                  </Label>
+                  <Select
+                    value={selectedSounds.security}
+                    onValueChange={(value) => {
+                      updateSoundPreference('security', value);
+                      const soundFile = getSoundFile('security', value);
+                      const audio = new Audio(soundFile);
+                      audio.volume = securityVolume;
+                      audio.play().catch(err => console.log('Audio preview failed:', err));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SOUND_OPTIONS.security.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center justify-between mt-2">
+                    <Label className="flex items-center gap-2">
                       <Volume2 className="h-4 w-4" />
-                      Security Alerts
+                      Volume
                     </Label>
                     <span className="text-sm text-muted-foreground">{Math.round(securityVolume * 100)}%</span>
                   </div>
@@ -302,7 +418,8 @@ export default function Settings() {
                       setSecurityVolume(newVolume);
                       localStorage.setItem('notification_volume_security', newVolume.toString());
                       
-                      const audio = new Audio('/security-alert.mp3');
+                      const soundFile = getSoundFile('security', selectedSounds.security);
+                      const audio = new Audio(soundFile);
                       audio.volume = newVolume;
                       audio.play().catch(err => console.log('Audio preview failed:', err));
                     }}
