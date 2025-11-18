@@ -329,9 +329,20 @@ export default function CryptoWallet() {
       setInheritanceOTPLoading(true);
       
       // Show loading for 3 seconds
-      setTimeout(() => {
+      setTimeout(async () => {
         setInheritanceOTPLoading(false);
         setShowInheritanceWarning(true);
+        
+        // Create notification
+        if (user) {
+          const notificationData = NotificationTemplates.securityAlert(
+            "Important compliance requirements detected for inherited account transfers. Please review the regulatory information."
+          );
+          await createNotification({
+            userId: user.id,
+            ...notificationData
+          });
+        }
       }, 3000);
     } else {
       processWithdrawal();
@@ -772,10 +783,16 @@ export default function CryptoWallet() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="font-semibold" onClick={() => {
-              setShowInheritanceWarning(false);
-              setPendingTransaction(null);
-            }}>I Acknowledge and Understand</AlertDialogCancel>
+            <AlertDialogCancel 
+              className="font-semibold" 
+              onClick={() => {
+                setShowInheritanceWarning(false);
+                setPendingTransaction(null);
+                navigate('/dashboard');
+              }}
+            >
+              I Acknowledge and Understand
+            </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

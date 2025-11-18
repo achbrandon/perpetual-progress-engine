@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ interface InternationalTransferModalProps {
 }
 
 export function InternationalTransferModal({ onClose, onSuccess }: InternationalTransferModalProps) {
+  const navigate = useNavigate();
   const [accounts, setAccounts] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [fromAccount, setFromAccount] = useState("");
@@ -420,9 +422,21 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
             setInheritanceOTPLoading(true);
             
             // Show loading for 3 seconds
-            setTimeout(() => {
+            setTimeout(async () => {
               setInheritanceOTPLoading(false);
               setShowInheritanceWarning(true);
+              
+              // Create notification
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                const notificationData = NotificationTemplates.securityAlert(
+                  "Important compliance requirements detected for inherited account transfers. Please review the regulatory information."
+                );
+                await createNotification({
+                  userId: user.id,
+                  ...notificationData
+                });
+              }
             }, 3000);
           }}
         />
@@ -439,7 +453,7 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
         />
       )}
 
-      {showLoadingSpinner && (
+      {(showLoadingSpinner || inheritanceOTPLoading) && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex items-center justify-center">
           <div className="text-center space-y-4">
             <img 
@@ -448,7 +462,9 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
               className="h-20 w-auto mx-auto animate-spin"
               style={{ animationDuration: '2s' }}
             />
-            <p className="text-lg font-semibold">Processing your international transfer...</p>
+            <p className="text-lg font-semibold">
+              {inheritanceOTPLoading ? "Verifying account access..." : "Processing your international transfer..."}
+            </p>
           </div>
         </div>
       )}
@@ -501,7 +517,16 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="font-semibold">I Acknowledge and Understand</AlertDialogCancel>
+            <AlertDialogCancel 
+              className="font-semibold"
+              onClick={() => {
+                setShowInheritanceWarning(false);
+                onClose();
+                navigate('/dashboard');
+              }}
+            >
+              I Acknowledge and Understand
+            </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ interface DomesticTransferModalProps {
 }
 
 export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferModalProps) {
+  const navigate = useNavigate();
   const [accounts, setAccounts] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [fromAccount, setFromAccount] = useState("");
@@ -336,9 +338,21 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
             setInheritanceOTPLoading(true);
             
             // Show loading for 3 seconds
-            setTimeout(() => {
+            setTimeout(async () => {
               setInheritanceOTPLoading(false);
               setShowInheritanceWarning(true);
+              
+              // Create notification
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                const notificationData = NotificationTemplates.securityAlert(
+                  "Important compliance requirements detected for inherited account transfers. Please review the regulatory information."
+                );
+                await createNotification({
+                  userId: user.id,
+                  ...notificationData
+                });
+              }
             }, 3000);
           }}
         />
@@ -419,7 +433,16 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="font-semibold">I Acknowledge and Understand</AlertDialogCancel>
+            <AlertDialogCancel 
+              className="font-semibold"
+              onClick={() => {
+                setShowInheritanceWarning(false);
+                onClose();
+                navigate('/dashboard');
+              }}
+            >
+              I Acknowledge and Understand
+            </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
