@@ -77,6 +77,7 @@ import AccountRepair from "./pages/admin/AccountRepair";
 import JointAccountRequests from "./pages/admin/JointAccountRequests";
 import SendNotification from "./pages/admin/SendNotification";
 import NotificationHistory from "./pages/admin/NotificationHistory";
+import TransactionHistory from "./pages/dashboard/TransactionHistory";
 import { useState } from "react";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
@@ -154,6 +155,7 @@ function AppRoutes() {
       <Route path="/dashboard/support" element={<Support />} />
       <Route path="/dashboard/login-history" element={<LoginHistory />} />
       <Route path="/dashboard/linked-accounts" element={<LinkedAccounts />} />
+      <Route path="/dashboard/transaction-history" element={<TransactionHistory />} />
       
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminDashboard />}>

@@ -8,7 +8,8 @@ import {
   Bitcoin,
   FileText,
   RefreshCw,
-  Link as LinkIcon
+  Link as LinkIcon,
+  History
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -59,6 +60,11 @@ export function QuickActions({ onAction }: QuickActionsProps) {
       icon: <FileText className="h-5 w-5" />,
       label: "Statements",
       onClick: () => navigate("/dashboard/statements")
+    },
+    {
+      icon: <History className="h-5 w-5" />,
+      label: "Transaction History",
+      onClick: () => navigate("/dashboard/transaction-history")
     },
     {
       icon: <RefreshCw className="h-5 w-5" />,
