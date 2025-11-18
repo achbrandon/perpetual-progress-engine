@@ -71,19 +71,25 @@ export default function AccountDetails() {
         accountsQuery = accountsQuery.eq("id", accountId);
       }
 
-      const [profileRes, accountsRes, detailsRes] = await Promise.all([
+      const [profileRes, accountsRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
-        accountsQuery,
-        supabase.from("account_details").select("*").eq("user_id", userId)
+        accountsQuery
       ]);
 
       if (profileRes.data) setProfile(profileRes.data);
       if (accountsRes.data) {
         setAccounts(accountsRes.data);
-      }
-      
-      if (detailsRes.data) {
-        setAccountDetails(detailsRes.data);
+        
+        // Fetch account details for each account
+        const accountIds = accountsRes.data.map(acc => acc.id);
+        const { data: detailsData } = await supabase
+          .from("account_details")
+          .select("*")
+          .in("account_id", accountIds);
+        
+        if (detailsData) {
+          setAccountDetails(detailsData);
+        }
       }
     } catch (error) {
       console.error("Error fetching data:", error);
