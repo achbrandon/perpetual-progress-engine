@@ -20,6 +20,7 @@ interface Account {
   id: string;
   account_type: string;
   account_number: string;
+  balance?: number;
 }
 
 interface Transaction {
@@ -59,7 +60,7 @@ export const BalanceHistoryChart = () => {
 
     const { data } = await supabase
       .from("accounts")
-      .select("id, account_type, account_number")
+      .select("id, account_type, account_number, balance")
       .eq("user_id", user.id)
       .eq("status", "active");
 
@@ -97,30 +98,18 @@ export const BalanceHistoryChart = () => {
     try {
       const dateRangeStart = getDateRangeStart();
       
-      // First, get all transactions before the date range to calculate starting balance
-      const { data: previousTransactions } = await supabase
-        .from("transactions")
-        .select("amount, type, account_id, description")
-        .eq("user_id", user.id)
-        .eq("status", "completed")
-        .lt("created_at", dateRangeStart.toISOString());
-
-      // Calculate starting balance from previous transactions
-      let startingBalance = 0;
-      if (previousTransactions) {
-        previousTransactions.forEach((transaction) => {
-          // Only count if filtering by specific account or all accounts
-          if (selectedAccount === "all" || transaction.account_id === selectedAccount) {
-            if (transaction.type === "credit") {
-              startingBalance += parseFloat(String(transaction.amount));
-            } else {
-              startingBalance -= parseFloat(String(transaction.amount));
-            }
-          }
+      // Get current account balance(s) as the end point
+      let currentBalance = 0;
+      if (selectedAccount === "all") {
+        accounts.forEach(account => {
+          currentBalance += parseFloat(String(account.balance || 0));
         });
+      } else {
+        const account = accounts.find(a => a.id === selectedAccount);
+        currentBalance = parseFloat(String(account?.balance || 0));
       }
       
-      // Now get transactions in the selected date range
+      // Get all transactions in the date range
       let query = supabase
         .from("transactions")
         .select("amount, type, created_at, account_id, description")
@@ -134,11 +123,30 @@ export const BalanceHistoryChart = () => {
       }
 
       const { data: transactions } = await query;
+      
+      // Calculate starting balance by working backwards from current balance
+      let startingBalance = currentBalance;
+      if (transactions && transactions.length > 0) {
+        transactions.forEach((transaction) => {
+          // Subtract the effect of each transaction to get starting balance
+          if (transaction.type === "credit") {
+            startingBalance -= parseFloat(String(transaction.amount));
+          } else {
+            startingBalance += parseFloat(String(transaction.amount));
+          }
+        });
+      }
+
+      // Add starting balance data point
+      const balancePoints: BalanceDataPoint[] = [{
+        date: dateRangeStart.toLocaleDateString(),
+        balance: startingBalance,
+        timestamp: dateRangeStart.getTime(),
+      }];
 
       if (transactions && transactions.length > 0) {
         // Calculate running balance starting from the starting balance
         let runningBalance = startingBalance;
-        const balancePoints: BalanceDataPoint[] = [];
         const dailyTransactions: Record<string, { adminDeposit: boolean; adminWithdrawal: boolean; user: boolean }> = {};
 
         transactions.forEach((transaction) => {
@@ -185,18 +193,33 @@ export const BalanceHistoryChart = () => {
           return acc;
         }, {} as Record<string, BalanceDataPoint>);
 
-        setChartData(Object.values(groupedByDate));
+        // Add current balance data point at today
+        const today = new Date();
+        const todayKey = today.toLocaleDateString();
+        if (!groupedByDate[todayKey]) {
+          balancePoints.push({
+            date: todayKey,
+            balance: currentBalance,
+            timestamp: today.getTime(),
+          });
+        }
+
+        setChartData(Object.values(groupedByDate).concat(balancePoints.filter(p => p.date === todayKey)));
       } else {
-        // If no transactions in range, show starting balance if it exists
-        if (startingBalance !== 0) {
-          setChartData([{
+        // No transactions - show starting and ending balance
+        const today = new Date();
+        setChartData([
+          {
             date: dateRangeStart.toLocaleDateString(),
             balance: startingBalance,
             timestamp: dateRangeStart.getTime(),
-          }]);
-        } else {
-          setChartData([]);
-        }
+          },
+          {
+            date: today.toLocaleDateString(),
+            balance: currentBalance,
+            timestamp: today.getTime(),
+          }
+        ]);
       }
     } catch (error) {
       console.error("Error fetching balance history:", error);
