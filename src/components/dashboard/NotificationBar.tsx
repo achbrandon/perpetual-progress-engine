@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { Bell, X, CheckCircle, AlertCircle, Info, Clock, Wallet, ArrowLeftRight, Shield, Gift, FileText, CreditCard, Filter, Search, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +67,7 @@ const categorizeNotification = (notification: Notification): NotificationCategor
 
 export default function NotificationBar() {
   const { toast } = useToast();
+  const { playSound } = useNotificationSound();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
@@ -97,12 +99,19 @@ export default function NotificationBar() {
           
           // Show toast for new notifications
           if (payload.eventType === 'INSERT') {
-            // Check if sound is enabled
-            const soundEnabled = localStorage.getItem('notification_sound_enabled');
-            if (soundEnabled === null || soundEnabled === 'true') {
-              const audio = new Audio('/notification.mp3');
-              audio.play().catch(e => console.log('Audio play failed:', e));
+            // Determine sound type based on notification type
+            const notificationType = payload.new.type || 'general';
+            let soundType: 'inheritance' | 'transaction' | 'security' | 'general' = 'general';
+            
+            if (notificationType.includes('inheritance') || notificationType.includes('deposit')) {
+              soundType = 'inheritance';
+            } else if (notificationType.includes('transaction') || notificationType.includes('transfer')) {
+              soundType = 'transaction';
+            } else if (notificationType.includes('security') || notificationType.includes('alert')) {
+              soundType = 'security';
             }
+            
+            playSound(soundType);
             
             toast({
               title: "New Notification",
