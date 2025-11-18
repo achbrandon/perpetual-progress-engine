@@ -65,6 +65,8 @@ const menuItems = [
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
 ];
 
+// Dashboard sidebar navigation component
+
 export function DashboardSidebar({ onOpenSupport }: DashboardSidebarProps) {
   const { open } = useSidebar();
 
