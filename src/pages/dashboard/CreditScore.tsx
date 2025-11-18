@@ -33,7 +33,7 @@ export default function CreditScore() {
         .from("credit_scores")
         .select("*")
         .eq("user_id", userId)
-        .order("score_date", { ascending: false });
+        .order("report_date", { ascending: false });
 
       if (error) throw error;
       if (data) setCreditScores(data);
