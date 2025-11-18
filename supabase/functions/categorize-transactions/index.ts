@@ -15,22 +15,33 @@ interface Transaction {
 // Small amount descriptions (< $100)
 const SMALL_AMOUNT_DESCRIPTIONS: string[] = [
   'Coffee shop',
-  'Lunch',
+  'Lunch at local restaurant',
   'Dinner',
   'Breakfast',
-  'Grocery store',
+  'Market purchase',
   'Gas station',
   'Parking',
-  'Ride share',
+  'Dolmuş fare',
   'Fast food',
   'Pharmacy',
-  'Convenience store',
+  'Bakkal (convenience store)',
   'Food delivery',
-  'Restaurant',
+  'Kebab shop',
   'Cafe',
   'Bakery',
-  'Market',
-  'Snacks'
+  'Manav (greengrocer)',
+  'Pazar (market)',
+  'Tekel shop',
+  'Migros',
+  'A101',
+  'BIM',
+  'Şok Market',
+  'CarrefourSA',
+  'Lemar',
+  'Metro Market',
+  'Local grocery',
+  'Street vendor',
+  'Simit stand'
 ];
 
 // Large amount descriptions (>= $100)
