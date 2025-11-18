@@ -65,7 +65,10 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
 
   const fetchAccounts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      console.log("No user found in DomesticTransferModal");
+      return;
+    }
 
     const { data } = await supabase
       .from("accounts")
@@ -73,6 +76,7 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
       .eq("user_id", user.id)
       .eq("status", "active");
 
+    console.log("Accounts fetched in DomesticTransferModal:", data);
     setAccounts(data || []);
     // Calculate total balance for inheritance warning
     const total = (data || []).reduce((sum, acc) => sum + parseFloat(String(acc.balance || 0)), 0);
@@ -217,11 +221,17 @@ export function DomesticTransferModal({ onClose, onSuccess }: DomesticTransferMo
                   <SelectValue placeholder="Select account" />
                 </SelectTrigger>
                 <SelectContent>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.account_type} - ****{account.account_number.slice(-4)} - ${parseFloat(account.balance || 0).toFixed(2)}
-                    </SelectItem>
-                  ))}
+                <SelectContent>
+                  {accounts.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground">No accounts available</div>
+                  ) : (
+                    accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.account_type} - ****{account.account_number?.slice(-4) || '0000'} - ${parseFloat(account.balance || 0).toFixed(2)}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
                 </SelectContent>
               </Select>
             </div>

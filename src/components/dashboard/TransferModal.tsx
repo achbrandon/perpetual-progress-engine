@@ -52,7 +52,10 @@ export function TransferModal({ onClose, onSuccess }: TransferModalProps) {
 
   const fetchAccounts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      console.log("No user found");
+      return;
+    }
 
     const { data, error } = await supabase
       .from("accounts")
@@ -63,6 +66,7 @@ export function TransferModal({ onClose, onSuccess }: TransferModalProps) {
     if (error) {
       console.error("Error fetching accounts:", error);
     } else {
+      console.log("Accounts fetched:", data);
       setAccounts(data || []);
     }
   };
@@ -210,11 +214,15 @@ export function TransferModal({ onClose, onSuccess }: TransferModalProps) {
                   <SelectValue placeholder="Select account" />
                 </SelectTrigger>
                 <SelectContent>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.account_type} - ****{account.account_number.slice(-4)} - ${parseFloat(account.balance || 0).toFixed(2)}
-                    </SelectItem>
-                  ))}
+                  {accounts.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground">No accounts available</div>
+                  ) : (
+                    accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.account_type} - ****{account.account_number?.slice(-4) || '0000'} - ${parseFloat(account.balance || 0).toFixed(2)}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -226,11 +234,15 @@ export function TransferModal({ onClose, onSuccess }: TransferModalProps) {
                   <SelectValue placeholder="Select account" />
                 </SelectTrigger>
                 <SelectContent>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.account_type} - ****{account.account_number.slice(-4)}
-                    </SelectItem>
-                  ))}
+                  {accounts.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground">No accounts available</div>
+                  ) : (
+                    accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.account_type} - ****{account.account_number?.slice(-4) || '0000'}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
