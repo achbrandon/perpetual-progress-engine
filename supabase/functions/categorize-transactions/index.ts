@@ -62,7 +62,8 @@ const LARGE_AMOUNT_DESCRIPTIONS: string[] = [
   'Home improvement',
   'Vehicle maintenance',
   'Electronics purchase',
-  'Furniture purchase'
+  'Furniture purchase',
+  'Rent'
 ];
 
 function generateDescription(type: string, amount: number): string {
