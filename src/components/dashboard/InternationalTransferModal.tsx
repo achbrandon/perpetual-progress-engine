@@ -432,7 +432,7 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
       )}
 
       <AlertDialog open={showInheritanceWarning} onOpenChange={setShowInheritanceWarning}>
-        <AlertDialogContent className="max-w-2xl">
+        <AlertDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-amber-500/10 rounded-full">
