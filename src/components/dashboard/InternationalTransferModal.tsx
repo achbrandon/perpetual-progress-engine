@@ -239,7 +239,7 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
                 <SelectContent>
                   {accounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
-                      {account.account_type} - ${parseFloat(account.balance || 0).toFixed(2)}
+                      {account.account_type} - ****{account.account_number.slice(-4)} - ${parseFloat(account.balance || 0).toFixed(2)}
                     </SelectItem>
                   ))}
                 </SelectContent>
