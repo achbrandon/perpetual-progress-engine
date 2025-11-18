@@ -135,11 +135,9 @@ IMPORTANT CLASSIFICATION RULES:
     const knowledgeBases = {
       inheritance: `INHERITANCE TAX ADVISORY - 1% DEPOSIT REQUIREMENT:
 
-**Your Question:** "Why do I need to deposit 1% when withdrawing from my inherited account?"
+This inherited account has a special tax advisory that requires a 1% deposit of the withdrawal amount for any external transfers. This is a legitimate banking requirement.
 
-**The Answer:** This inherited account has a special tax advisory requiring a 1% deposit of the withdrawal amount for external transfers. This is a legitimate banking requirement, not a scam.
-
-**Why this requirement exists:**
+**Why the 1% deposit is required:**
 - Federal tax compliance for inherited accounts over certain thresholds
 - Required documentation and reporting to tax authorities
 - Protects you and future beneficiaries from tax penalties
