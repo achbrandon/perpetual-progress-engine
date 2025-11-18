@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { User, Lock, Bell, Shield, Smartphone, Volume2 } from "lucide-react";
 import { ProfilePictureUpload } from "@/components/dashboard/ProfilePictureUpload";
@@ -20,6 +21,10 @@ export default function Settings() {
   const [notificationSound, setNotificationSound] = useState(() => {
     const saved = localStorage.getItem('notification_sound_enabled');
     return saved !== null ? saved === 'true' : true;
+  });
+  const [notificationVolume, setNotificationVolume] = useState(() => {
+    const saved = localStorage.getItem('notification_volume');
+    return saved !== null ? parseFloat(saved) : 0.5;
   });
 
   useEffect(() => {
@@ -216,6 +221,36 @@ export default function Settings() {
                 }}
               />
             </div>
+            
+            {notificationSound && (
+              <div className="p-4 border rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2">
+                    <Volume2 className="h-4 w-4" />
+                    Sound Volume
+                  </Label>
+                  <span className="text-sm text-muted-foreground">{Math.round(notificationVolume * 100)}%</span>
+                </div>
+                <Slider
+                  value={[notificationVolume]}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  onValueChange={(value) => {
+                    const newVolume = value[0];
+                    setNotificationVolume(newVolume);
+                    localStorage.setItem('notification_volume', newVolume.toString());
+                    
+                    // Play preview sound at new volume
+                    const audio = new Audio('/notification.mp3');
+                    audio.volume = newVolume;
+                    audio.play().catch(err => console.log('Audio preview failed:', err));
+                  }}
+                  className="w-full"
+                />
+              </div>
+            )}
+            
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <Label htmlFor="emailNotif">Email Notifications</Label>
               <Switch id="emailNotif" defaultChecked />
