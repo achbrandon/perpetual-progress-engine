@@ -21,6 +21,7 @@ import logo from "@/assets/vaultbank-logo.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import NotificationBar from "@/components/dashboard/NotificationBar";
 import confetti from "canvas-confetti";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -37,6 +38,8 @@ const Dashboard = () => {
   useUserActivity();
   useSessionTracking();
   useLoginTracking();
+  
+  const { playSound } = useNotificationSound();
 
   const triggerCelebrationConfetti = () => {
     // Fire confetti from multiple angles
@@ -287,6 +290,34 @@ const Dashboard = () => {
                 <img src={logo} alt="VaultBank" className="h-8 sm:h-10 lg:h-12" />
               </div>
               <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-xs"
+                  onClick={async () => {
+                    console.log('Test notification button clicked');
+                    playSound('general');
+                    toast.success("Test sound played!");
+                    
+                    // Also create a test notification in the database
+                    try {
+                      const { data: { user } } = await supabase.auth.getUser();
+                      if (user) {
+                        await supabase.from('alerts').insert({
+                          user_id: user.id,
+                          title: "Test Notification",
+                          message: "This is a test notification to check sound playback",
+                          type: "general"
+                        });
+                        console.log('Test notification created in database');
+                      }
+                    } catch (error) {
+                      console.error('Error creating test notification:', error);
+                    }
+                  }}
+                >
+                  Test Sound
+                </Button>
                 <NotificationBar />
                 <ThemeToggle />
                 <Button variant="outline" size="sm" className="h-9 sm:h-10 text-xs sm:text-sm" onClick={handleSignOut}>
