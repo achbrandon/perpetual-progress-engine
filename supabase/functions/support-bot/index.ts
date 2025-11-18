@@ -77,22 +77,29 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a topic classifier for banking support. Analyze the user message and determine which specific banking topic they are asking about.'
+            content: `You are a topic classifier for banking support. Analyze the conversation context and user message to determine which specific banking topic they are asking about.
+
+IMPORTANT CLASSIFICATION RULES:
+- If the user mentions "inheritance", "inherited account", "tax advisory", or asks about a 1% deposit requirement for withdrawals, classify as 'inheritance'
+- Only classify as 'crypto' if the user explicitly mentions cryptocurrency, Bitcoin, Ethereum, crypto wallet, or crypto trading
+- Consider the full conversation context, not just individual keywords
+- The user email is ${profile?.full_name || 'Customer'} and their ticket context is: ${ticket?.subject || 'general inquiry'}`
           },
+          ...conversationHistory.slice(-3), // Include last 3 messages for context
           { role: 'user', content: message }
         ],
         tools: [{
           type: 'function',
           function: {
             name: 'classify_topic',
-            description: 'Classify the banking support topic',
+            description: 'Classify the banking support topic based on conversation context',
             parameters: {
               type: 'object',
               properties: {
                 topic: {
                   type: 'string',
                   enum: ['inheritance', 'joint_account', 'crypto', 'transactions', 'accounts', 'cards', 'loans', 'general'],
-                  description: 'The primary topic of the user question'
+                  description: 'The primary topic. Use "inheritance" for questions about inherited accounts, tax advisories, or 1% withdrawal deposits. Use "crypto" ONLY for cryptocurrency-specific questions about Bitcoin, Ethereum, crypto wallets, or crypto trading.'
                 }
               },
               required: ['topic']
@@ -128,22 +135,33 @@ serve(async (req) => {
     const knowledgeBases = {
       inheritance: `INHERITANCE TAX ADVISORY - 1% DEPOSIT REQUIREMENT:
 
-**Important:** This inherited account has a special tax advisory that requires a 1% deposit of the withdrawal amount for any external transfers. This is NOT a scam or error - it's a legitimate tax compliance measure.
+**Your Question:** "Why do I need to deposit 1% when withdrawing from my inherited account?"
 
-**Why the 1% deposit is required:**
-- Tax compliance and documentation for inherited accounts
-- Protects future beneficiaries from unexpected tax burdens
-- Required by banking regulations for inheritance accounts with large balances
-- One-time requirement per external withdrawal to verify tax readiness
+**The Answer:** This inherited account has a special tax advisory requiring a 1% deposit of the withdrawal amount for external transfers. This is a legitimate banking requirement, not a scam.
 
-**What happens with the 1% deposit:**
-- It goes toward tax processing and compliance documentation
-- Ensures proper reporting to tax authorities
-- Protects both you and VaultBank from tax complications
+**Why this requirement exists:**
+- Federal tax compliance for inherited accounts over certain thresholds
+- Required documentation and reporting to tax authorities
+- Protects you and future beneficiaries from tax penalties
+- One-time verification per external withdrawal transaction
+- Standard practice for inheritance accounts with large balances
 
-**Need help?** VaultBank has specialized tax professionals who are experts in inheritance tax matters. I can connect you with one of our tax advisors (they're agents here at VaultBank) who can provide personalized guidance on your specific situation, explain the process in detail, and help ensure everything is handled correctly.
+**What the 1% covers:**
+- Tax processing and compliance documentation
+- IRS reporting requirements for inherited assets
+- Legal protection for both you and VaultBank
+- Administrative costs for inheritance account management
 
-Keep responses natural and conversational. Do NOT mention joint accounts or other unrelated topics.`,
+**Need Expert Help?** VaultBank has specialized tax professionals who work as agents in our Tax Advisory department. They are experts in inheritance tax matters and can:
+- Explain your specific situation in detail
+- Help you understand all tax implications
+- Ensure proper compliance with federal regulations
+- Guide you through the withdrawal process step-by-step
+- Answer all your questions about the 1% deposit
+
+Would you like me to connect you with one of our tax advisory agents?
+
+Keep responses natural and conversational. Do NOT mention joint accounts, cryptocurrency, or other unrelated topics.`,
 
       joint_account: `JOINT ACCOUNT SYSTEM:
 Adding a joint holder requires a 1% deposit of current account balance. This is a one-time commitment fee for legal documentation, verification, and compliance showing serious intent from both parties. 
