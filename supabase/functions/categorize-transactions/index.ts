@@ -32,7 +32,7 @@ const SMALL_AMOUNT_DESCRIPTIONS: string[] = [
   'Manav (greengrocer)',
   'Pazar (market)',
   'Tekel shop',
-  'Migros',
+  'Macro',
   'A101',
   'BIM',
   'Şok Market',
