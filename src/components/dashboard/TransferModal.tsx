@@ -307,38 +307,54 @@ export function TransferModal({ onClose, onSuccess }: TransferModalProps) {
       )}
 
       <AlertDialog open={showInheritanceWarning} onOpenChange={setShowInheritanceWarning}>
-        <AlertDialogContent className="max-w-md">
+        <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-destructive/10 rounded-full">
-                <AlertTriangle className="h-6 w-6 text-destructive" />
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-amber-500/10 rounded-full">
+                <AlertTriangle className="h-7 w-7 text-amber-600" />
               </div>
-              <AlertDialogTitle className="text-xl">Inheritance Account - Deposit Required</AlertDialogTitle>
+              <AlertDialogTitle className="text-2xl font-semibold">Inherited Account Transfer Notice</AlertDialogTitle>
             </div>
-            <AlertDialogDescription className="space-y-4 text-base">
-              <div className="p-4 bg-muted rounded-lg space-y-2">
-                <p className="font-semibold text-foreground">📋 Document Status: Verified ✓</p>
-                <p className="text-sm">All inheritance documents have been submitted and verified by our compliance team.</p>
+            <AlertDialogDescription className="space-y-5 text-base">
+              <div className="p-5 bg-green-500/5 border border-green-500/20 rounded-lg space-y-2">
+                <p className="font-semibold text-green-700 text-base">Estate Documentation Status</p>
+                <p className="text-sm text-foreground">All required inheritance documentation has been received, verified, and approved by our Estate Services Department in accordance with federal banking regulations.</p>
               </div>
 
-              <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg space-y-2">
-                <p className="font-semibold text-destructive">⚠️ Required Deposit:</p>
-                <p className="text-sm">Before you can transfer funds from this inherited account, you must deposit <span className="font-bold">1% of the total account balance</span> to comply with regulatory requirements.</p>
-                <p className="text-lg font-bold text-foreground mt-2">
-                  Required Deposit: ${(totalBalance * 0.01).toFixed(2)}
+              <div className="p-5 bg-amber-500/5 border border-amber-500/30 rounded-lg space-y-3">
+                <p className="font-semibold text-amber-700 text-lg">Regulatory Compliance Requirement</p>
+                <p className="text-sm text-foreground leading-relaxed">
+                  In accordance with the Bank Secrecy Act (BSA) and Anti-Money Laundering (AML) regulations, a mandatory compliance deposit of <span className="font-bold">one percent (1%) of the total inherited account balance</span> must be received before any transfer, withdrawal, or disbursement of inherited funds can be processed.
+                </p>
+                <div className="mt-3 p-4 bg-background rounded border border-border">
+                  <p className="text-xs text-muted-foreground mb-1">Total Inherited Account Balance:</p>
+                  <p className="text-2xl font-bold text-foreground">${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <div className="h-px bg-border my-2"></div>
+                  <p className="text-xs text-muted-foreground mb-1">Required Compliance Deposit (1%):</p>
+                  <p className="text-xl font-bold text-amber-700">${(totalBalance * 0.01).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                </div>
+              </div>
+
+              <div className="p-5 bg-blue-500/5 border border-blue-500/20 rounded-lg space-y-2">
+                <p className="font-semibold text-blue-700 text-base">Internal Revenue Service (IRS) Reporting</p>
+                <p className="text-sm text-foreground leading-relaxed">
+                  Large-value inherited fund transfers are subject to mandatory reporting to the Internal Revenue Service under Form 8300 requirements. Failure to comply with federal tax reporting obligations may result in transaction delays, additional scrutiny, substantial penalties, or legal action. Please ensure all tax compliance measures are satisfied before initiating transfers.
                 </p>
               </div>
 
-              <div className="p-4 bg-muted rounded-lg space-y-2">
-                <p className="font-semibold text-foreground">⚠️ Tax Compliance Notice:</p>
-                <p className="text-sm">Attempting to transfer large inherited funds may trigger automatic reporting to tax authorities. Ensure compliance to avoid delays or penalties.</p>
+              <div className="p-5 bg-muted/50 rounded-lg border border-border">
+                <p className="text-sm text-foreground leading-relaxed">
+                  <span className="font-semibold">Next Steps:</span> To complete the compliance deposit and proceed with your transfer, please contact our Estate Services Department through the secure support channel within your account dashboard. Our specialists are available to guide you through the deposit process and answer any questions regarding this requirement.
+                </p>
               </div>
 
-              <p className="text-sm text-muted-foreground">Please contact our support team to arrange the required deposit or for more information about this requirement.</p>
+              <p className="text-xs text-muted-foreground italic pt-2">
+                VaultBank is committed to maintaining the highest standards of regulatory compliance and protecting our clients' interests in accordance with all applicable federal and state banking laws.
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>I Understand</AlertDialogCancel>
+            <AlertDialogCancel className="font-semibold">I Acknowledge and Understand</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
