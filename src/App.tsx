@@ -106,6 +106,7 @@ function AppRoutes() {
       <AdminAccessDialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen} />
       <Routes>
       <Route path="/" element={<Index />} />
+      <Route path="/bank" element={<Index />} />
       <Route path="/checking" element={<Checking />} />
       <Route path="/savings" element={<Savings />} />
       <Route path="/cds" element={<CDs />} />
