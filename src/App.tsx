@@ -2,10 +2,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { useKeyboardShortcut } from "./hooks/useKeyboardShortcut";
 import { AdminAccessDialog } from "./components/AdminAccessDialog";
 import Index from "./pages/Index";
+import { ROUTES } from "@/lib/routes";
 import NotFound from "./pages/NotFound";
 import Checking from "./pages/Checking";
 import Savings from "./pages/Savings";
@@ -105,7 +106,7 @@ function AppRoutes() {
     <>
       <AdminAccessDialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen} />
       <Routes>
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={<Navigate to={ROUTES.BANK_HOME} replace />} />
       <Route path="/bank" element={<Index />} />
       <Route path="/bank/checking" element={<Checking />} />
       <Route path="/bank/savings" element={<Savings />} />
