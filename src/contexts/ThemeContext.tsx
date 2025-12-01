@@ -8,7 +8,6 @@ interface ThemeContextType {
   actualTheme: 'light' | 'dark';
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
-  isAdminRoute: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -17,16 +16,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [theme, setThemeState] = useState<Theme>(() => {
     // Get saved theme from localStorage or default to 'dark'
-    const savedTheme = localStorage.getItem('vaultbank-admin-theme') as Theme;
+    const savedTheme = localStorage.getItem('vaultbank-dashboard-theme') as Theme;
     return savedTheme || 'dark';
   });
 
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('dark');
 
-  // Route checks
-  const isAdminRoute = location.pathname.startsWith('/admin');
-  const isDashboardRoute = location.pathname.startsWith('/dashboard');
-  const isPublicRoute = !isAdminRoute && !isDashboardRoute;
+  // Check if current route is a dashboard or admin route
+  const isDashboardRoute = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -34,46 +31,37 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Remove previous theme classes
     root.classList.remove('light', 'dark');
 
-    if (isPublicRoute) {
-      // Public/front pages - always light theme (original design)
+    if (!isDashboardRoute) {
+      // For non-dashboard routes, remove theme and reset to default
       root.style.removeProperty('color-scheme');
       setActualTheme('light');
       return;
     }
 
-    if (isDashboardRoute) {
-      // Dashboard user pages - always dark theme
-      root.style.setProperty('color-scheme', 'dark');
-      root.classList.add('dark');
-      setActualTheme('dark');
-      return;
+    let effectiveTheme: 'light' | 'dark';
+
+    if (theme === 'system') {
+      // Check system preference
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+      effectiveTheme = systemTheme;
+    } else {
+      effectiveTheme = theme;
     }
 
-    // Admin routes - respect theme selection
-    if (isAdminRoute) {
-      let effectiveTheme: 'light' | 'dark';
+    // Apply theme with smooth transition (only for dashboard routes)
+    root.style.setProperty('color-scheme', effectiveTheme);
+    root.classList.add(effectiveTheme);
+    setActualTheme(effectiveTheme);
 
-      if (theme === 'system') {
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark'
-          : 'light';
-        effectiveTheme = systemTheme;
-      } else {
-        effectiveTheme = theme;
-      }
+    // Save to localStorage
+    localStorage.setItem('vaultbank-dashboard-theme', theme);
+  }, [theme, isDashboardRoute]);
 
-      root.style.setProperty('color-scheme', effectiveTheme);
-      root.classList.add(effectiveTheme);
-      setActualTheme(effectiveTheme);
-
-      // Save to localStorage (only for admin)
-      localStorage.setItem('vaultbank-admin-theme', theme);
-    }
-  }, [theme, isAdminRoute, isDashboardRoute, isPublicRoute]);
-
-  // Listen for system theme changes when in system mode (admin only)
+  // Listen for system theme changes when in system mode
   useEffect(() => {
-    if (theme !== 'system' || !isAdminRoute) return;
+    if (theme !== 'system' || !isDashboardRoute) return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {
@@ -87,28 +75,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme, isAdminRoute]);
+  }, [theme, isDashboardRoute]);
 
   const setTheme = (newTheme: Theme) => {
-    // Only allow theme changes on admin routes
-    if (isAdminRoute) {
-      setThemeState(newTheme);
-    }
+    setThemeState(newTheme);
   };
 
   const toggleTheme = () => {
-    // Only allow theme toggle on admin routes
-    if (isAdminRoute) {
-      setThemeState((prev) => {
-        if (prev === 'light') return 'dark';
-        if (prev === 'dark') return 'light';
-        return actualTheme === 'dark' ? 'light' : 'dark';
-      });
-    }
+    setThemeState((prev) => {
+      if (prev === 'light') return 'dark';
+      if (prev === 'dark') return 'light';
+      // If system, toggle to opposite of current actual theme
+      return actualTheme === 'dark' ? 'light' : 'dark';
+    });
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, actualTheme, setTheme, toggleTheme, isAdminRoute }}>
+    <ThemeContext.Provider value={{ theme, actualTheme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
