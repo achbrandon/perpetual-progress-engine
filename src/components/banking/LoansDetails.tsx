@@ -19,10 +19,10 @@ export const LoansDetails = () => {
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Button variant="premium" size="lg" asChild>
-                <Link to="/open-account">Start Online Application</Link>
+                <Link to="/bank/open-account">Start Online Application</Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <Link to="/mortgage-calculator">
+                <Link to="/bank/mortgage-calculator">
                   <Calculator className="mr-2 h-5 w-5" />
                   Estimate Your Payment
                 </Link>
@@ -49,10 +49,10 @@ export const LoansDetails = () => {
               </p>
               <div className="space-y-3">
                 <Button variant="default" className="w-full" asChild>
-                  <Link to="/open-account">Get Started</Link>
+                  <Link to="/bank/open-account">Get Started</Link>
                 </Button>
                 <Button variant="outline" className="w-full" asChild>
-                  <Link to="/mortgage-calculator">Estimate Your Rate</Link>
+                  <Link to="/bank/mortgage-calculator">Estimate Your Rate</Link>
                 </Button>
               </div>
             </Card>
@@ -71,10 +71,10 @@ export const LoansDetails = () => {
               </p>
               <div className="space-y-3">
                 <Button variant="premium" className="w-full" asChild>
-                  <Link to="/open-account">Refinance Now</Link>
+                  <Link to="/bank/open-account">Refinance Now</Link>
                 </Button>
                 <Button variant="outline" className="w-full" asChild>
-                  <Link to="/mortgage-calculator">Calculate New Payment</Link>
+                  <Link to="/bank/mortgage-calculator">Calculate New Payment</Link>
                 </Button>
               </div>
             </Card>
@@ -90,10 +90,10 @@ export const LoansDetails = () => {
               </p>
               <div className="space-y-3">
                 <Button variant="default" className="w-full" asChild>
-                  <Link to="/open-account">Get Started</Link>
+                  <Link to="/bank/open-account">Get Started</Link>
                 </Button>
                 <Button variant="outline" className="w-full" asChild>
-                  <Link to="/mortgage-calculator">Check Home Value</Link>
+                  <Link to="/bank/mortgage-calculator">Check Home Value</Link>
                 </Button>
               </div>
             </Card>
@@ -249,7 +249,7 @@ export const LoansDetails = () => {
                 <h4 className="font-semibold mb-2">Mortgage Calculator</h4>
                 <p className="text-white/80 text-sm mb-4">Estimate your monthly payment and see how much you can afford</p>
                 <Button variant="secondary" asChild>
-                  <Link to="/mortgage-calculator">Calculate Now</Link>
+                  <Link to="/bank/mortgage-calculator">Calculate Now</Link>
                 </Button>
               </div>
               <div className="text-center">
@@ -257,7 +257,7 @@ export const LoansDetails = () => {
                 <h4 className="font-semibold mb-2">Get Pre-Approved</h4>
                 <p className="text-white/80 text-sm mb-4">Quick and easy pre-approval to strengthen your offer</p>
                 <Button variant="secondary" asChild>
-                  <Link to="/open-account">Start Application</Link>
+                  <Link to="/bank/open-account">Start Application</Link>
                 </Button>
               </div>
             </div>

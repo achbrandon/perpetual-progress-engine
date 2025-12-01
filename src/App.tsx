@@ -92,7 +92,7 @@ function AppRoutes() {
   // Keyboard shortcut: Ctrl+Shift+4 to open test account page
   useKeyboardShortcut(
     { key: "4", ctrlKey: true, shiftKey: true },
-    () => navigate("/create-test-account")
+    () => navigate("/bank/create-test-account")
   );
 
   // Keyboard shortcut: Ctrl+Shift+A to open admin access dialog

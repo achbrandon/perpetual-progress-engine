@@ -28,37 +28,37 @@ export function BottomNav() {
     {
       label: "Home",
       icon: Home,
-      path: "/dashboard"
+      path: "/bank/dashboard"
     },
     {
       label: "Accounts",
       icon: Wallet,
-      path: "/dashboard/accounts"
+      path: "/bank/dashboard/accounts"
     },
     {
       label: "Transfer",
       icon: ArrowLeftRight,
-      path: "/dashboard/transfers"
+      path: "/bank/dashboard/transfers"
     },
     {
       label: "Cards",
       icon: CreditCard,
-      path: "/dashboard/cards"
+      path: "/bank/dashboard/cards"
     }
   ];
 
   const moreMenuItems = [
-    { label: "Crypto Wallet", path: "/dashboard/crypto" },
-    { label: "Bill Pay", path: "/dashboard/bill-pay" },
-    { label: "Statements", path: "/dashboard/statements" },
-    { label: "Analytics", path: "/dashboard/analytics" },
-    { label: "Support", path: "/dashboard/support" },
-    { label: "Settings", path: "/dashboard/settings" },
+    { label: "Crypto Wallet", path: "/bank/dashboard/crypto" },
+    { label: "Bill Pay", path: "/bank/dashboard/bill-pay" },
+    { label: "Statements", path: "/bank/dashboard/statements" },
+    { label: "Analytics", path: "/bank/dashboard/analytics" },
+    { label: "Support", path: "/bank/dashboard/support" },
+    { label: "Settings", path: "/bank/dashboard/settings" },
   ];
 
   const isActive = (path: string) => {
-    if (path === "/dashboard") {
-      return location.pathname === "/dashboard";
+    if (path === "/bank/dashboard") {
+      return location.pathname === "/bank/dashboard";
     }
     return location.pathname.startsWith(path);
   };

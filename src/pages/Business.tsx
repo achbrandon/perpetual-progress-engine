@@ -15,12 +15,12 @@ const Business = () => {
       <header className="border-b border-border bg-background sticky top-0 z-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center">
+            <Link to="/bank" className="flex items-center">
               <img src={vaultBankLogo} alt="VaultBank" className="h-16" />
             </Link>
             <div className="flex items-center gap-4">
               <Button variant="ghost" asChild>
-                <Link to="/">Back to Home</Link>
+                <Link to="/bank">Back to Home</Link>
               </Button>
               <Button onClick={() => setAuthDialogOpen(true)}>
                 Sign In
@@ -48,7 +48,7 @@ const Business = () => {
                 Open Business Account
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link to="/locations">Find a Branch</Link>
+                <Link to="/bank/locations">Find a Branch</Link>
               </Button>
             </div>
           </div>
@@ -106,7 +106,7 @@ const Business = () => {
                 </li>
               </ul>
               <Button asChild>
-                <Link to="/credit-cards">Apply Now</Link>
+                <Link to="/bank/credit-cards">Apply Now</Link>
               </Button>
             </Card>
 
@@ -131,7 +131,7 @@ const Business = () => {
                 </li>
               </ul>
               <Button asChild>
-                <Link to="/loans">Learn More</Link>
+                <Link to="/bank/loans">Learn More</Link>
               </Button>
             </Card>
 
@@ -221,7 +221,7 @@ const Business = () => {
               Open Business Account
             </Button>
             <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
-              <Link to="/locations">Schedule a Meeting</Link>
+              <Link to="/bank/locations">Schedule a Meeting</Link>
             </Button>
           </div>
         </div>
@@ -233,9 +233,9 @@ const Business = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <img src={vaultBankLogo} alt="VaultBank" className="h-12" />
             <div className="flex gap-6">
-              <Link to="/" className="text-sm hover:text-primary">Home</Link>
-              <Link to="/business" className="text-sm hover:text-primary">Business</Link>
-              <Link to="/locations" className="text-sm hover:text-primary">Locations</Link>
+              <Link to="/bank" className="text-sm hover:text-primary">Home</Link>
+              <Link to="/bank/business" className="text-sm hover:text-primary">Business</Link>
+              <Link to="/bank/locations" className="text-sm hover:text-primary">Locations</Link>
               <button onClick={() => setAuthDialogOpen(true)} className="text-sm hover:text-primary">Sign In</button>
             </div>
           </div>

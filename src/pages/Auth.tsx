@@ -402,7 +402,7 @@ const Auth = () => {
           data: {
             full_name: signUpFullName,
           },
-          emailRedirectTo: `${window.location.origin}/auth`,
+          emailRedirectTo: `${window.location.origin}/bank/login`,
         },
       });
 

@@ -33,102 +33,102 @@ import {
 const menuItems = [
   {
     title: "Overview",
-    url: "/admin",
+    url: "/bank/admin",
     icon: LayoutDashboard,
   },
   {
     title: "Users",
-    url: "/admin/users",
+    url: "/bank/admin/users",
     icon: Users,
   },
   {
     title: "User Management",
-    url: "/admin/user-management",
+    url: "/bank/admin/user-management",
     icon: UserCog,
   },
   {
     title: "Live Monitoring",
-    url: "/admin/live-monitoring",
+    url: "/bank/admin/live-monitoring",
     icon: Activity,
   },
   {
     title: "Applications",
-    url: "/admin/applications",
+    url: "/bank/admin/applications",
     icon: FileText,
   },
   {
     title: "Joint Account Requests",
-    url: "/admin/joint-accounts",
+    url: "/bank/admin/joint-accounts",
     icon: UserPlus,
   },
   {
     title: "Documents & Verification",
-    url: "/admin/documents",
+    url: "/bank/admin/documents",
     icon: FileText,
   },
   {
     title: "Transactions",
-    url: "/admin/transactions",
+    url: "/bank/admin/transactions",
     icon: CreditCard,
   },
   {
     title: "Transaction Approvals",
-    url: "/admin/transaction-approvals",
+    url: "/bank/admin/transaction-approvals",
     icon: CheckCircle,
   },
   {
     title: "Live Support",
-    url: "/admin/live-support",
+    url: "/bank/admin/live-support",
     icon: MessageSquare,
   },
   {
     title: "Email System",
-    url: "/admin/email",
+    url: "/bank/admin/email",
     icon: Settings,
   },
   {
     title: "Send Notifications",
-    url: "/admin/send-notification",
+    url: "/bank/admin/send-notification",
     icon: Bell,
   },
   {
     title: "Notification History",
-    url: "/admin/notification-history",
+    url: "/bank/admin/notification-history",
     icon: Bell,
   },
   {
     title: "Wallet Settings",
-    url: "/admin/wallets",
+    url: "/bank/admin/wallets",
     icon: Wallet,
   },
   {
     title: "Admin Settings",
-    url: "/admin/settings",
+    url: "/bank/admin/settings",
     icon: Sliders,
   },
   {
     title: "User Activity",
-    url:"/admin/activity",
+    url:"/bank/admin/activity",
     icon: TrendingUp,
   },
   {
     title: "Topic Analytics",
-    url: "/admin/topic-analytics",
+    url: "/bank/admin/topic-analytics",
     icon: BarChart3,
   },
   {
     title: "Activity Logs",
-    url: "/admin/activity-logs",
+    url: "/bank/admin/activity-logs",
     icon: FileText,
   },
   {
     title: "Authentication Logs",
-    url: "/admin/authentication-logs",
+    url: "/bank/admin/authentication-logs",
     icon: Shield,
   },
   {
     title: "Account Repair",
-    url: "/admin/account-repair",
+    url: "/bank/admin/account-repair",
     icon: Wrench,
   },
 ];
@@ -149,7 +149,7 @@ export function AdminSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      end={item.url === "/admin"}
+                      end={item.url === "/bank/admin"}
                       className={({ isActive }) =>
                         isActive
                           ? "bg-primary text-primary-foreground font-medium"

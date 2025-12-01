@@ -164,7 +164,7 @@ const ForgotPassword = () => {
 
       // Send password reset email through Supabase Auth
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${window.location.origin}/bank/login`,
       });
 
       if (resetError) throw resetError;
@@ -177,7 +177,7 @@ const ForgotPassword = () => {
         .delete()
         .eq("reset_token", resetToken);
 
-      setTimeout(() => navigate("/auth"), 2000);
+      setTimeout(() => navigate("/bank/login"), 2000);
     } catch (error) {
       console.error("Error:", error);
       toast.error("An error occurred. Please try again.");
@@ -274,7 +274,7 @@ const ForgotPassword = () => {
 
         <div className="mt-6 text-center">
           <Link
-            to="/auth"
+            to="/bank/login"
             className="text-primary font-medium text-sm hover:underline flex items-center justify-center gap-1"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -285,7 +285,7 @@ const ForgotPassword = () => {
         <div className="mt-6 text-center text-xs text-muted-foreground">
           <p>
             Need help? Contact{" "}
-            <Link to="/dashboard/support" className="text-primary hover:underline">
+            <Link to="/bank/dashboard/support" className="text-primary hover:underline">
               Support
             </Link>
           </p>
