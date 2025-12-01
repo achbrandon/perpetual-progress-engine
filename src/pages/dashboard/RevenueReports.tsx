@@ -30,7 +30,7 @@ const RevenueReports = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        navigate("/auth");
+        navigate("/bank/login");
         return;
       }
 
@@ -115,7 +115,7 @@ const RevenueReports = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/bank/dashboard")}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>

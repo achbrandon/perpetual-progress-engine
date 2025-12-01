@@ -21,7 +21,7 @@ export default function Loans() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      navigate("/auth");
+      navigate("/bank/login");
       return;
     }
     setUser(user);
@@ -105,7 +105,7 @@ export default function Loans() {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <DollarSign className="h-16 w-16 text-muted-foreground mb-4" />
               <p className="text-muted-foreground mb-4">No loans found</p>
-              <Button onClick={() => navigate("/dashboard/loan-application")}>Apply for a Loan</Button>
+              <Button onClick={() => navigate("/bank/dashboard/loan-application")}>Apply for a Loan</Button>
             </CardContent>
           </Card>
         ) : (

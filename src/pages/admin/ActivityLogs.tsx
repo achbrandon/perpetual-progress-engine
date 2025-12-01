@@ -65,7 +65,7 @@ export default function ActivityLogs() {
     
     if (!user) {
       toast.error("Please sign in");
-      navigate("/auth");
+      navigate("/bank/login");
       return;
     }
 

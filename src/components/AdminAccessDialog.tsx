@@ -51,7 +51,7 @@ export function AdminAccessDialog({ open, onOpenChange }: AdminAccessDialogProps
       toast.success("Admin access granted!");
       onOpenChange(false);
       setPassword("");
-      navigate("/admin");
+      navigate("/bank/admin");
     } catch (error) {
       console.error("Error:", error);
       toast.error("An error occurred. Please try again.");

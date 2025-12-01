@@ -24,7 +24,7 @@ const VerifyQR = () => {
     
     if (!user) {
       toast.error("Please sign in first");
-      navigate("/auth");
+      navigate("/bank/login");
       return;
     }
 
@@ -88,7 +88,7 @@ const VerifyQR = () => {
         }
 
         toast.success("QR code verified successfully! You can now access all features.");
-        navigate("/dashboard");
+        navigate("/bank/dashboard");
         return;
       }
 
@@ -160,7 +160,7 @@ const VerifyQR = () => {
       await supabase.auth.signOut();
       
       // Redirect to sign in page
-      navigate("/auth");
+      navigate("/bank/login");
     } catch (error) {
       console.error("Error verifying QR:", error);
       toast.error("An error occurred during verification");

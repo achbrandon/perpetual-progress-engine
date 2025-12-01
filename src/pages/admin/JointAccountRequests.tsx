@@ -84,7 +84,7 @@ export default function JointAccountRequests() {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      navigate("/auth");
+      navigate("/bank/login");
       return;
     }
 
@@ -101,7 +101,7 @@ export default function JointAccountRequests() {
         description: "You don't have permission to access this page",
         variant: "destructive",
       });
-      navigate("/dashboard");
+      navigate("/bank/dashboard");
     }
   };
 

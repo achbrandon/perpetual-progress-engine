@@ -55,7 +55,7 @@ export default function CheckAdmin() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Admin Account Status</h1>
-          <Button variant="outline" onClick={() => navigate("/auth")}>
+          <Button variant="outline" onClick={() => navigate("/bank/login")}>
             Back to Login
           </Button>
         </div>
@@ -75,7 +75,7 @@ export default function CheckAdmin() {
               <p className="text-muted-foreground mb-6 text-center">
                 No admin accounts have been created yet. Create one to get started.
               </p>
-              <Button onClick={() => navigate("/create-admin-account")}>
+              <Button onClick={() => navigate("/bank/create-admin-account")}>
                 Create Admin Account
               </Button>
             </CardContent>
@@ -137,7 +137,7 @@ export default function CheckAdmin() {
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => navigate("/auth")}
+                  onClick={() => navigate("/bank/login")}
                 >
                   Go to Login Page
                 </Button>

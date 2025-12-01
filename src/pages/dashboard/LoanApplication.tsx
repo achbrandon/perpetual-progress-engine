@@ -69,7 +69,7 @@ export default function LoanApplication() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("You must be logged in");
-        navigate("/auth");
+        navigate("/bank/login");
         return;
       }
 
@@ -111,7 +111,7 @@ export default function LoanApplication() {
 
       toast.success("Loan application submitted successfully!");
       setShowTerms(false);
-      navigate("/dashboard/loans");
+      navigate("/bank/dashboard/loans");
     } catch (error: any) {
       console.error("Error submitting loan application:", error);
       toast.error("Failed to submit application");

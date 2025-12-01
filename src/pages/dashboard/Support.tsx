@@ -15,7 +15,7 @@ export default function Support() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      navigate("/auth");
+      navigate("/bank/login");
       return;
     }
     setUser(user);
@@ -28,7 +28,7 @@ export default function Support() {
 
   return (
     <div className="container mx-auto p-6">
-      <EnhancedSupportChat userId={user.id} onClose={() => navigate("/dashboard")} />
+      <EnhancedSupportChat userId={user.id} onClose={() => navigate("/bank/dashboard")} />
     </div>
   );
 }

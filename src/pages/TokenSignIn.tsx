@@ -90,7 +90,7 @@ const TokenSignIn = () => {
   const handleOTPVerified = async () => {
     setShowOTPModal(false);
     toast.success("Signed in successfully!");
-    navigate("/dashboard");
+    navigate("/bank/dashboard");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -304,7 +304,7 @@ const TokenSignIn = () => {
           </Button>
 
           <Link 
-            to="/auth" 
+            to="/bank/login" 
             className="text-[hsl(210,100%,50%)] font-semibold text-base hover:underline flex items-center gap-1 justify-center mt-6"
           >
             <ChevronLeft className="w-4 h-4" />

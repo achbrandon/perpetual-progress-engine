@@ -384,7 +384,7 @@ const OpenAccount = () => {
               <p className="text-sm text-muted-foreground">Open New Account</p>
             </div>
           </div>
-          <Link to="/auth">
+          <Link to="/bank/login">
             <Button variant="ghost" size="sm">
               <ChevronLeft className="w-4 h-4 mr-1" />
               Back to Sign In

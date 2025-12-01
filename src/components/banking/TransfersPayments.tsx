@@ -53,7 +53,7 @@ export const TransfersPayments = () => {
             <Wallet className="h-12 w-12 text-primary mb-4" />
             <h3 className="text-xl font-bold mb-2">Bill Pay</h3>
             <p className="text-sm text-muted-foreground mb-4">Schedule and manage recurring payments</p>
-            <Button className="w-full" onClick={() => navigate("/dashboard/bill-pay")}>Pay Bills</Button>
+            <Button className="w-full" onClick={() => navigate("/bank/dashboard/bill-pay")}>Pay Bills</Button>
           </Card>
         </div>
       </div>

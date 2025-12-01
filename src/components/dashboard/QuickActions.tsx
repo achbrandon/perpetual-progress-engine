@@ -37,56 +37,56 @@ export function QuickActions({ onAction }: QuickActionsProps) {
     {
       icon: <Receipt className="h-5 w-5" />,
       label: "Pay Bills",
-      onClick: () => navigate("/dashboard/bill-pay"),
+      onClick: () => navigate("/bank/dashboard/bill-pay"),
       gradient: "from-green-500 via-emerald-600 to-teal-600",
       iconColor: "text-white"
     },
     {
       icon: <Download className="h-5 w-5" />,
       label: "Mobile Deposit",
-      onClick: () => navigate("/dashboard/mobile-deposit"),
+      onClick: () => navigate("/bank/dashboard/mobile-deposit"),
       gradient: "from-purple-500 via-violet-600 to-purple-700",
       iconColor: "text-white"
     },
     {
       icon: <CreditCard className="h-5 w-5" />,
       label: "Apply for Card",
-      onClick: () => navigate("/dashboard/card-application"),
+      onClick: () => navigate("/bank/dashboard/card-application"),
       gradient: "from-orange-500 via-red-500 to-pink-600",
       iconColor: "text-white"
     },
     {
       icon: <Bitcoin className="h-5 w-5" />,
       label: "Crypto",
-      onClick: () => navigate("/dashboard/crypto"),
+      onClick: () => navigate("/bank/dashboard/crypto"),
       gradient: "from-amber-500 via-yellow-500 to-orange-500",
       iconColor: "text-white"
     },
     {
       icon: <LinkIcon className="h-5 w-5" />,
       label: "Link Account (ACH)",
-      onClick: () => navigate("/dashboard/ach-accounts"),
+      onClick: () => navigate("/bank/dashboard/ach-accounts"),
       gradient: "from-cyan-500 via-sky-600 to-blue-600",
       iconColor: "text-white"
     },
     {
       icon: <FileText className="h-5 w-5" />,
       label: "Statements",
-      onClick: () => navigate("/dashboard/statements"),
+      onClick: () => navigate("/bank/dashboard/statements"),
       gradient: "from-slate-600 via-gray-700 to-slate-800",
       iconColor: "text-white"
     },
     {
       icon: <History className="h-5 w-5" />,
       label: "Transaction History",
-      onClick: () => navigate("/dashboard/transaction-history"),
+      onClick: () => navigate("/bank/dashboard/transaction-history"),
       gradient: "from-rose-500 via-pink-600 to-fuchsia-600",
       iconColor: "text-white"
     },
     {
       icon: <TrendingUp className="h-5 w-5" />,
       label: "Revenue Reports",
-      onClick: () => navigate("/dashboard/revenue-reports"),
+      onClick: () => navigate("/bank/dashboard/revenue-reports"),
       gradient: "from-lime-500 via-green-600 to-emerald-600",
       iconColor: "text-white"
     },

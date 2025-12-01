@@ -50,7 +50,7 @@ export default function JointAccountStatus() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      navigate("/auth");
+      navigate("/bank/login");
     }
   };
 

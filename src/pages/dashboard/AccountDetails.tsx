@@ -27,7 +27,7 @@ export default function AccountDetails() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      navigate("/auth");
+      navigate("/bank/login");
       return;
     }
     setUser(user);

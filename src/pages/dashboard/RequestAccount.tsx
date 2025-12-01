@@ -21,7 +21,7 @@ export default function RequestAccount() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("You must be logged in");
-        navigate("/auth");
+        navigate("/bank/login");
         return;
       }
 
@@ -40,7 +40,7 @@ export default function RequestAccount() {
       });
 
       toast.success("Pending request - Your account will be automatically created within 30 minutes");
-      setTimeout(() => navigate("/dashboard/accounts"), 2000);
+      setTimeout(() => navigate("/bank/dashboard/accounts"), 2000);
     } catch (error: any) {
       console.error("Error submitting request:", error);
       toast.error("Failed to submit request");

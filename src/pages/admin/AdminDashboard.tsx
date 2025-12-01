@@ -33,7 +33,7 @@ const AdminDashboard = () => {
     
     if (!user) {
       toast.error("Please sign in to access admin panel");
-      navigate("/auth");
+      navigate("/bank/login");
       return;
     }
 
@@ -47,7 +47,7 @@ const AdminDashboard = () => {
 
     if (!roles) {
       toast.error("Access denied. Admin privileges required.");
-      navigate("/dashboard");
+      navigate("/bank/dashboard");
       return;
     }
 
@@ -81,14 +81,14 @@ const AdminDashboard = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate("/auth");
+    navigate("/bank/login");
   };
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
-  const isAdminHome = location.pathname === '/admin';
+  const isAdminHome = location.pathname === '/bank/admin';
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -188,7 +188,7 @@ const AdminDashboard = () => {
                     <Button 
                       className="h-24 text-lg bg-slate-700 hover:bg-slate-600 border-slate-600" 
                       variant="outline"
-                      onClick={() => navigate("/admin/applications")}
+                      onClick={() => navigate("/bank/admin/applications")}
                     >
                       <FileText className="mr-2 h-5 w-5" />
                       Review Applications
@@ -196,7 +196,7 @@ const AdminDashboard = () => {
                     <Button 
                       className="h-24 text-lg bg-slate-700 hover:bg-slate-600 border-slate-600" 
                       variant="outline"
-                      onClick={() => navigate("/admin/support")}
+                      onClick={() => navigate("/bank/admin/support")}
                     >
                       <FileText className="mr-2 h-5 w-5" />
                       Support Tickets
@@ -204,7 +204,7 @@ const AdminDashboard = () => {
                     <Button 
                       className="h-24 text-lg bg-slate-700 hover:bg-slate-600 border-slate-600" 
                       variant="outline"
-                      onClick={() => navigate("/admin/users")}
+                      onClick={() => navigate("/bank/admin/users")}
                     >
                       <Users className="mr-2 h-5 w-5" />
                       Manage Users

@@ -13,7 +13,7 @@ const VerificationSuccess = () => {
   useEffect(() => {
     // Auto redirect to login after 10 seconds
     const timer = setTimeout(() => {
-      navigate("/auth");
+      navigate("/bank/login");
     }, 10000);
 
     return () => clearTimeout(timer);
@@ -169,13 +169,13 @@ const VerificationSuccess = () => {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Button 
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/bank/login")}
               className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/20 transition-all"
             >
               Go to Login
             </Button>
             <Button 
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/bank")}
               variant="outline"
               className="flex-1 h-12 text-base font-semibold border-primary/20 hover:bg-primary/5"
             >
