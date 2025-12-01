@@ -23,7 +23,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('dark');
 
   // Check if current route is a dashboard or admin route
-  const isDashboardRoute = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
+  const isDashboardRoute = location.pathname.startsWith('/bank/dashboard') || location.pathname.startsWith('/admin');
 
   useEffect(() => {
     const root = window.document.documentElement;
