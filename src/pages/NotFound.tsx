@@ -9,9 +9,14 @@ const NotFound = () => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 
-  // If user lands on root, redirect to /bank
+  // Redirect common paths to correct routes
   if (location.pathname === "/") {
     return <Navigate to={ROUTES.BANK_HOME} replace />;
+  }
+  
+  // Redirect /dashboard to /bank/dashboard
+  if (location.pathname === "/dashboard" || location.pathname === "/dashboard/") {
+    return <Navigate to={ROUTES.DASHBOARD.ROOT} replace />;
   }
 
   return (
