@@ -48,7 +48,7 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
   const [totalBalance, setTotalBalance] = useState(0);
   const [showInheritanceOTP, setShowInheritanceOTP] = useState(false);
   const [inheritanceOTPLoading, setInheritanceOTPLoading] = useState(false);
-  const [showAccountRestricted, setShowAccountRestricted] = useState(false);
+  const [isAccountRestricted, setIsAccountRestricted] = useState(false);
 
   useEffect(() => {
     fetchAccounts();
@@ -95,12 +95,28 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
       if (user) {
         await createNotification({
           userId: user.id,
-          title: "Transfer Blocked - Account Restricted",
-          message: "Your account has been restricted and transfers cannot be made until further notice. Please contact our support center for assistance.",
+          title: "Account Restricted",
+          message: "Your account has been restricted and transfer can't be made on this account until further notice, kindly visit support center for further assistance.",
           type: "error"
         });
       }
-      setShowAccountRestricted(true);
+      // Show receipt with restricted message
+      const selectedAccount = accounts.find(a => a.id === fromAccount) || accounts[0];
+      setReceiptData({
+        type: 'international' as const,
+        fromAccount: selectedAccount?.account_type || 'Account',
+        toAccount: recipientName || 'Recipient',
+        recipientName: recipientName || 'N/A',
+        recipientBank: recipientBank || 'N/A',
+        amount: amount || '0.00',
+        currency: currency || '$',
+        reference: `INT${Date.now()}${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+        date: new Date(),
+        swiftCode: swiftCode,
+        accountNumber: iban
+      });
+      setIsAccountRestricted(true);
+      setShowReceipt(true);
       return;
     }
 
@@ -476,9 +492,11 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
           open={showReceipt}
           onClose={() => {
             setShowReceipt(false);
+            setIsAccountRestricted(false);
             onClose();
           }}
           transferData={receiptData}
+          isRestricted={isAccountRestricted}
         />
       )}
 
@@ -560,62 +578,6 @@ export function InternationalTransferModal({ onClose, onSuccess }: International
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Account Restricted Alert */}
-      <AlertDialog open={showAccountRestricted} onOpenChange={setShowAccountRestricted}>
-        <AlertDialogContent className="max-w-lg">
-          <AlertDialogHeader>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-destructive/10 rounded-full">
-                <ShieldAlert className="h-7 w-7 text-destructive" />
-              </div>
-              <AlertDialogTitle className="text-xl font-semibold">Account Restricted</AlertDialogTitle>
-            </div>
-            <AlertDialogDescription className="space-y-4 text-base">
-              <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
-                <p className="text-foreground leading-relaxed">
-                  Your account has been temporarily restricted and outgoing transfers cannot be processed at this time. This restriction has been placed pending further review.
-                </p>
-              </div>
-
-              <div className="p-4 bg-muted rounded-lg space-y-3">
-                <p className="font-semibold text-foreground">What You Can Do:</p>
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  <li className="flex items-start gap-2">
-                    <MessageSquare className="h-4 w-4 mt-0.5 text-primary" />
-                    <span>Contact our Support Center through your dashboard for immediate assistance</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Phone className="h-4 w-4 mt-0.5 text-primary" />
-                    <span>Call our dedicated support line: 1-800-VAULTBK (1-800-828-5825)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Mail className="h-4 w-4 mt-0.5 text-primary" />
-                    <span>Email us at support@vaultbank.com</span>
-                  </li>
-                </ul>
-              </div>
-
-              <p className="text-xs text-muted-foreground">
-                Our team is available 24/7 to assist you in resolving this matter as quickly as possible. We apologize for any inconvenience this may cause.
-              </p>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-0">
-            <Button 
-              variant="outline"
-              onClick={() => {
-                setShowAccountRestricted(false);
-                navigate('/bank/dashboard/support');
-              }}
-            >
-              Contact Support
-            </Button>
-            <AlertDialogCancel onClick={() => setShowAccountRestricted(false)}>
-              Close
-            </AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
