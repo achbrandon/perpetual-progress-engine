@@ -22,9 +22,10 @@ interface TransferReceiptProps {
     routingNumber?: string;
     accountNumber?: string;
   };
+  isRestricted?: boolean;
 }
 
-export function TransferReceipt({ open, onClose, transferData }: TransferReceiptProps) {
+export function TransferReceipt({ open, onClose, transferData, isRestricted = false }: TransferReceiptProps) {
   const handleDownload = () => {
     window.print();
   };
@@ -34,7 +35,12 @@ export function TransferReceipt({ open, onClose, transferData }: TransferReceipt
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
-            {transferData.type === 'internal' ? (
+            {isRestricted ? (
+              <>
+                <AlertCircle className="h-6 w-6 text-red-500" />
+                Account Restricted
+              </>
+            ) : transferData.type === 'internal' ? (
               <>
                 <CheckCircle2 className="h-6 w-6 text-green-500" />
                 Transfer Successful
@@ -54,7 +60,17 @@ export function TransferReceipt({ open, onClose, transferData }: TransferReceipt
             <p className="text-muted-foreground">Transaction Receipt</p>
           </div>
 
-          {(transferData.type === 'domestic' || transferData.type === 'international') && (
+          {isRestricted ? (
+            <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-lg p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-500" />
+                <h3 className="font-bold text-red-800 dark:text-red-500">Account Restricted</h3>
+              </div>
+              <p className="text-sm text-red-700 dark:text-red-400">
+                Your account has been restricted and transfer can't be made on this account until further notice, kindly visit support center for further assistance.
+              </p>
+            </div>
+          ) : (transferData.type === 'domestic' || transferData.type === 'international') && (
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 rounded-lg p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
