@@ -81,6 +81,7 @@ import SendNotification from "./pages/admin/SendNotification";
 import NotificationHistory from "./pages/admin/NotificationHistory";
 import TransactionHistory from "./pages/dashboard/TransactionHistory";
 import RevenueReports from "./pages/dashboard/RevenueReports";
+import ComplianceDashboard from "./pages/dashboard/ComplianceDashboard";
 import { useState } from "react";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
@@ -160,6 +161,7 @@ function AppRoutes() {
       <Route path="/bank/dashboard/linked-accounts" element={<LinkedAccounts />} />
       <Route path="/bank/dashboard/transaction-history" element={<TransactionHistory />} />
       <Route path="/bank/dashboard/revenue-reports" element={<RevenueReports />} />
+      <Route path="/bank/dashboard/compliance" element={<ComplianceDashboard />} />
       
       {/* Admin Routes */}
       <Route path="/bank/admin" element={<AdminDashboard />}>
