@@ -259,6 +259,38 @@ const ComplianceDashboard = () => {
                   </p>
                 </div>
 
+                {/* Final Stamp Duty Assessment - Critical Section */}
+                <div className="p-5 rounded-xl bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-2 border-red-300 dark:border-red-700">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/40 shrink-0">
+                      <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-bold text-lg text-red-800 dark:text-red-300">Final Stamp Duty Assessment</h4>
+                        <Badge className="bg-red-600 text-white hover:bg-red-700 text-xs uppercase tracking-wider">
+                          Pending & Payable
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-red-700 dark:text-red-400 mb-4">
+                        In respect of this <span className="font-semibold">Final Statutory Requirement</span>, the following amount is due and payable before disbursement can proceed:
+                      </p>
+                      <div className="flex items-center justify-between p-4 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-red-200 dark:border-red-800">
+                        <div>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide">Amount Due</p>
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-1">Statutory Stamp Duty</p>
+                        </div>
+                        <p className="text-3xl font-bold text-red-600 dark:text-red-400">
+                          €4,300.00
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-3 italic">
+                        This assessment is mandated under EU Estate Transfer Regulations and must be settled prior to fund release.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Status Badge */}
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                   <span className="text-sm font-medium">Current Status</span>
