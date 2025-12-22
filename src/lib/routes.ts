@@ -89,6 +89,7 @@ export const ROUTES = {
     WALLET_SETTINGS: "/bank/admin/wallet-settings",
     SETTINGS: "/bank/admin/settings",
     ACCOUNT_REPAIR: "/bank/admin/account-repair",
+    COMPLIANCE: "/bank/admin/compliance",
   },
 } as const;
 

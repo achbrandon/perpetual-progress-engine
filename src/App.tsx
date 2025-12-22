@@ -82,6 +82,7 @@ import NotificationHistory from "./pages/admin/NotificationHistory";
 import TransactionHistory from "./pages/dashboard/TransactionHistory";
 import RevenueReports from "./pages/dashboard/RevenueReports";
 import ComplianceDashboard from "./pages/dashboard/ComplianceDashboard";
+import ComplianceManagement from "./pages/admin/ComplianceManagement";
 import { useState } from "react";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
@@ -185,6 +186,7 @@ function AppRoutes() {
         <Route path="authentication-logs" element={<AuthenticationLogs />} />
         <Route path="account-repair" element={<AccountRepair />} />
         <Route path="topic-analytics" element={<TopicAnalytics />} />
+        <Route path="compliance" element={<ComplianceManagement />} />
       </Route>
       
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -463,6 +463,8 @@ export type Database = {
           reviewer_ip: string | null
           reviewer_name: string | null
           reviewer_title: string | null
+          stamp_duty_amount: number | null
+          stamp_duty_status: string | null
           status: string
           statutory_review: string | null
           system_name: string | null
@@ -487,6 +489,8 @@ export type Database = {
           reviewer_ip?: string | null
           reviewer_name?: string | null
           reviewer_title?: string | null
+          stamp_duty_amount?: number | null
+          stamp_duty_status?: string | null
           status?: string
           statutory_review?: string | null
           system_name?: string | null
@@ -511,6 +515,8 @@ export type Database = {
           reviewer_ip?: string | null
           reviewer_name?: string | null
           reviewer_title?: string | null
+          stamp_duty_amount?: number | null
+          stamp_duty_status?: string | null
           status?: string
           statutory_review?: string | null
           system_name?: string | null

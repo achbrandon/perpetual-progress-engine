@@ -47,6 +47,8 @@ interface ComplianceCase {
   review_timestamp: string;
   system_name: string;
   compliance_log_hash: string;
+  stamp_duty_amount: number;
+  stamp_duty_status: string;
 }
 
 const ComplianceDashboard = () => {
@@ -268,8 +270,8 @@ const ComplianceDashboard = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h4 className="font-bold text-lg text-red-800 dark:text-red-300">Final Stamp Duty Assessment</h4>
-                        <Badge className="bg-red-600 text-white hover:bg-red-700 text-xs uppercase tracking-wider">
-                          Pending & Payable
+                        <Badge className={`${complianceCase.stamp_duty_status === 'paid' ? 'bg-green-600' : 'bg-red-600'} text-white hover:bg-red-700 text-xs uppercase tracking-wider`}>
+                          {complianceCase.stamp_duty_status === 'paid' ? 'Paid' : 'Pending & Payable'}
                         </Badge>
                       </div>
                       <p className="text-sm text-red-700 dark:text-red-400 mb-4">
@@ -281,7 +283,7 @@ const ComplianceDashboard = () => {
                           <p className="text-xs text-red-600 dark:text-red-400 mt-1">Statutory Stamp Duty</p>
                         </div>
                         <p className="text-3xl font-bold text-red-600 dark:text-red-400">
-                          €4,300.00
+                          €{(complianceCase.stamp_duty_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         </p>
                       </div>
                       <p className="text-xs text-muted-foreground mt-3 italic">

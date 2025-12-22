@@ -15,7 +15,8 @@ import {
   UserPlus,
   Bell,
   CheckCircle,
-  BarChart3
+  BarChart3,
+  Scale
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
@@ -125,6 +126,11 @@ const menuItems = [
     title: "Authentication Logs",
     url: "/bank/admin/authentication-logs",
     icon: Shield,
+  },
+  {
+    title: "Compliance Management",
+    url: "/bank/admin/compliance",
+    icon: Scale,
   },
   {
     title: "Account Repair",
