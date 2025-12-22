@@ -29,6 +29,7 @@ interface ComplianceCase {
   account_documentation: string;
   beneficiary_confirmation: string;
   aml_screening: string;
+  account_reference_number: string;
   reviewer_name: string;
   reviewer_title: string;
   employee_id: string;
@@ -179,6 +180,10 @@ const ComplianceDashboard = () => {
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground font-medium">ACCOUNT TYPE:</span>
                 <span className="font-medium">{complianceCase.account_type}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground font-medium">ACCOUNT REF:</span>
+                <span className="font-bold">{complianceCase.account_reference_number}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground font-medium">STATUS:</span>
