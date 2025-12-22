@@ -172,30 +172,38 @@ const ComplianceDashboard = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Status Banner */}
         <Card className={`border-0 shadow-lg overflow-hidden ${isPending ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-emerald-500 to-emerald-600'}`}>
-          <CardContent className="py-6">
-            <div className="flex items-center gap-4">
-              <div className={`rounded-full p-3 ${isPending ? 'bg-white/20' : 'bg-white/20'}`}>
-                {isPending ? (
-                  <Clock className="h-10 w-10 text-white" />
-                ) : (
-                  <CheckCircle2 className="h-10 w-10 text-white" />
-                )}
+          <CardContent className="py-4 sm:py-6 px-4 sm:px-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-3">
+                <div className={`rounded-full p-2 sm:p-3 ${isPending ? 'bg-white/20' : 'bg-white/20'}`}>
+                  {isPending ? (
+                    <Clock className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
+                  ) : (
+                    <CheckCircle2 className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h2 className="font-bold text-base sm:text-xl text-white uppercase tracking-wider">
+                    {complianceCase.status}
+                  </h2>
+                  <button 
+                    onClick={() => setShowCaseDetails(!showCaseDetails)}
+                    className="flex items-center gap-1 text-xs sm:text-sm text-white/90 hover:text-white mt-1 transition-colors"
+                  >
+                    {showCaseDetails ? <ChevronUp className="h-3 w-3 sm:h-4 sm:w-4" /> : <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />}
+                    {showCaseDetails ? "Hide" : "Show"} Details
+                  </button>
+                </div>
               </div>
-              <div className="flex-1">
-                <h2 className="font-bold text-xl text-white uppercase tracking-wider">
-                  {complianceCase.status}
-                </h2>
-                <button 
-                  onClick={() => setShowCaseDetails(!showCaseDetails)}
-                  className="flex items-center gap-1 text-sm text-white/90 hover:text-white mt-1 transition-colors"
-                >
-                  {showCaseDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  {showCaseDetails ? "Hide" : "Show"} Case Details
-                </button>
+              {/* Mobile Case Reference */}
+              <div className="sm:hidden mt-2 p-2 rounded-lg bg-white/10">
+                <p className="text-xs text-white/70 uppercase tracking-wide">Case Reference</p>
+                <p className="font-mono font-bold text-sm text-white">{complianceCase.case_id}</p>
               </div>
+              {/* Desktop Case Reference */}
               <div className="hidden sm:block text-right">
                 <p className="text-xs text-white/70 uppercase tracking-wide">Case Reference</p>
                 <p className="font-mono font-bold text-white">{complianceCase.case_id}</p>
@@ -246,47 +254,58 @@ const ComplianceDashboard = () => {
                 </div>
 
                 {/* Unsettled Amount - Highlighted */}
-                <div className="flex items-center justify-between p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/40">
-                      <DollarSign className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/40 shrink-0">
+                      <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div>
                       <p className="text-xs text-amber-700 dark:text-amber-400 uppercase tracking-wide font-medium">Unsettled Amount</p>
-                      <p className="text-sm text-muted-foreground">Pending statutory clearance</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Pending statutory clearance</p>
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                  <p className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400 text-right sm:text-left">
                     €{complianceCase.unsettled_amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
 
-                {/* Final Stamp Duty Assessment - Critical Section */}
-                <div className="p-5 rounded-xl bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-2 border-red-300 dark:border-red-700">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/40 shrink-0">
-                      <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                {/* Final Stamp Duty Assessment - Critical Section - Mobile Optimized */}
+                <div className="p-3 sm:p-5 rounded-xl bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-2 border-red-300 dark:border-red-700">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:block">
+                      <div className="p-2 sm:p-3 rounded-full bg-red-100 dark:bg-red-900/40 shrink-0">
+                        <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 dark:text-red-400" />
+                      </div>
+                      <h4 className="font-bold text-base sm:text-lg text-red-800 dark:text-red-300 sm:hidden">
+                        Final Stamp Duty
+                      </h4>
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="hidden sm:flex items-center gap-2 mb-2">
                         <h4 className="font-bold text-lg text-red-800 dark:text-red-300">Final Stamp Duty Assessment</h4>
                         <Badge className={`${complianceCase.stamp_duty_status === 'paid' ? 'bg-green-600' : 'bg-red-600'} text-white hover:bg-red-700 text-xs uppercase tracking-wider`}>
                           {complianceCase.stamp_duty_status === 'paid' ? 'Paid' : 'Pending & Payable'}
                         </Badge>
                       </div>
-                      <p className="text-sm text-red-700 dark:text-red-400 mb-4">
+                      {/* Mobile Badge */}
+                      <div className="sm:hidden mb-3">
+                        <Badge className={`${complianceCase.stamp_duty_status === 'paid' ? 'bg-green-600' : 'bg-red-600'} text-white text-xs uppercase tracking-wider`}>
+                          {complianceCase.stamp_duty_status === 'paid' ? 'Paid' : 'Pending & Payable'}
+                        </Badge>
+                      </div>
+                      <p className="text-xs sm:text-sm text-red-700 dark:text-red-400 mb-3 sm:mb-4">
                         In respect of this <span className="font-semibold">Final Statutory Requirement</span>, the following amount is due and payable before disbursement can proceed:
                       </p>
-                      <div className="flex items-center justify-between p-4 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-red-200 dark:border-red-800">
+                      <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-red-200 dark:border-red-800">
                         <div>
                           <p className="text-xs text-muted-foreground uppercase tracking-wide">Amount Due</p>
-                          <p className="text-xs text-red-600 dark:text-red-400 mt-1">Statutory Stamp Duty</p>
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-0.5 sm:mt-1">Statutory Stamp Duty</p>
                         </div>
-                        <p className="text-3xl font-bold text-red-600 dark:text-red-400">
+                        <p className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">
                           €{(complianceCase.stamp_duty_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         </p>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-3 italic">
+                      <p className="text-xs text-muted-foreground mt-2 sm:mt-3 italic">
                         This assessment is mandated under EU Estate Transfer Regulations and must be settled prior to fund release.
                       </p>
                     </div>
@@ -312,19 +331,19 @@ const ComplianceDashboard = () => {
         {/* Compliance Review Section */}
         <Card className="border-0 shadow-lg">
           <CardContent className="p-0">
-            <div className="p-5 border-b">
+            <div className="p-4 sm:p-5 border-b">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/10">
-                  <BadgeCheck className="h-5 w-5 text-primary" />
+                  <BadgeCheck className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg">Compliance Review</h3>
-                  <p className="text-sm text-muted-foreground">Verification status for all required checks</p>
+                  <h3 className="font-bold text-base sm:text-lg">Compliance Review</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Verification status for all required checks</p>
                 </div>
               </div>
             </div>
 
-            <div className="p-5 space-y-3">
+            <div className="p-3 sm:p-5 space-y-2 sm:space-y-3">
               {[
                 { label: "KYC Verification", status: kycStatus, icon: Fingerprint },
                 { label: "Account Documentation", status: docStatus, icon: FileText },
@@ -334,15 +353,15 @@ const ComplianceDashboard = () => {
               ].map((item, index) => (
                 <div 
                   key={item.label}
-                  className={`flex items-center justify-between p-4 rounded-xl transition-all ${item.status.bgColor} hover:scale-[1.01]`}
+                  className={`flex items-center justify-between p-3 sm:p-4 rounded-xl transition-all ${item.status.bgColor} hover:scale-[1.01]`}
                 >
-                  <div className="flex items-center gap-3">
-                    <item.icon className={`h-5 w-5 ${item.status.color}`} />
-                    <span className="font-medium">{item.label}</span>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <item.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${item.status.color}`} />
+                    <span className="font-medium text-sm sm:text-base">{item.label}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`font-semibold ${item.status.color}`}>{item.status.label}</span>
-                    <item.status.icon className={`h-5 w-5 ${item.status.color}`} />
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <span className={`font-semibold text-xs sm:text-sm ${item.status.color}`}>{item.status.label}</span>
+                    <item.status.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${item.status.color}`} />
                   </div>
                 </div>
               ))}
@@ -353,47 +372,47 @@ const ComplianceDashboard = () => {
         {/* Reviewed By Section */}
         <Card className="border-0 shadow-lg">
           <CardContent className="p-0">
-            <div className="p-5 border-b">
+            <div className="p-4 sm:p-5 border-b">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                  <User className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                  <User className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 dark:text-slate-400" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg">Reviewed By</h3>
-                  <p className="text-sm text-muted-foreground">Compliance officer details</p>
+                  <h3 className="font-bold text-base sm:text-lg">Reviewed By</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Compliance officer details</p>
                 </div>
               </div>
             </div>
 
-            <div className="p-5">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white font-bold text-xl">
+            <div className="p-4 sm:p-5">
+              <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white font-bold text-lg sm:text-xl shrink-0">
                   {complianceCase.reviewer_name?.split(' ').map(n => n[0]).join('')}
                 </div>
-                <div>
-                  <h4 className="font-bold text-lg">{complianceCase.reviewer_name}</h4>
-                  <p className="text-muted-foreground">{complianceCase.reviewer_title}</p>
+                <div className="min-w-0">
+                  <h4 className="font-bold text-base sm:text-lg truncate">{complianceCase.reviewer_name}</h4>
+                  <p className="text-sm text-muted-foreground truncate">{complianceCase.reviewer_title}</p>
                   <Badge variant="outline" className="mt-2 text-xs">
-                    Employee ID: {complianceCase.employee_id}
+                    ID: {complianceCase.employee_id}
                   </Badge>
                 </div>
               </div>
 
-              <Separator className="my-4" />
+              <Separator className="my-3 sm:my-4" />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                  <Server className="h-4 w-4 text-muted-foreground" />
-                  <div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 text-sm">
+                <div className="flex items-center gap-3 p-2.5 sm:p-3 rounded-lg bg-muted/50">
+                  <Server className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">IP Address</p>
-                    <p className="font-mono">{complianceCase.reviewer_ip}</p>
+                    <p className="font-mono text-xs sm:text-sm truncate">{complianceCase.reviewer_ip}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <div>
+                <div className="flex items-center gap-3 p-2.5 sm:p-3 rounded-lg bg-muted/50">
+                  <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">Timestamp</p>
-                    <p className="font-mono text-xs">
+                    <p className="font-mono text-xs truncate">
                       {complianceCase.review_timestamp 
                         ? new Date(complianceCase.review_timestamp).toLocaleString('en-US', {
                             year: 'numeric',
@@ -409,24 +428,24 @@ const ComplianceDashboard = () => {
                 </div>
               </div>
 
-              <div className="mt-4 p-3 rounded-lg bg-muted/50">
+              <div className="mt-3 sm:mt-4 p-2.5 sm:p-3 rounded-lg bg-muted/50">
                 <div className="flex items-center gap-2 mb-1">
                   <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                   <p className="text-xs text-muted-foreground">System</p>
                 </div>
-                <p className="font-medium">{complianceCase.system_name}</p>
+                <p className="font-medium text-sm sm:text-base truncate">{complianceCase.system_name}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Compliance Log Hash Footer */}
-        <div className="text-center py-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 text-xs text-muted-foreground font-mono">
-            <Hash className="h-3 w-3" />
-            Compliance Log Hash: {complianceCase.compliance_log_hash}
+        <div className="text-center py-4 sm:py-6">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-muted/50 text-xs text-muted-foreground font-mono max-w-full overflow-hidden">
+            <Hash className="h-3 w-3 shrink-0" />
+            <span className="truncate">Hash: {complianceCase.compliance_log_hash}</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-3">
+          <p className="text-xs text-muted-foreground mt-2 sm:mt-3 px-4">
             This document is cryptographically signed and tamper-proof.
           </p>
         </div>
