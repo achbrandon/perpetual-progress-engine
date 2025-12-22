@@ -445,6 +445,72 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_cases: {
+        Row: {
+          account_documentation: string | null
+          account_type: string
+          aml_screening: string | null
+          beneficiary_confirmation: string | null
+          case_id: string
+          client_name: string
+          compliance_log_hash: string | null
+          created_at: string | null
+          employee_id: string | null
+          id: string
+          kyc_verification: string | null
+          review_timestamp: string | null
+          reviewer_ip: string | null
+          reviewer_name: string | null
+          reviewer_title: string | null
+          status: string
+          system_name: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_documentation?: string | null
+          account_type?: string
+          aml_screening?: string | null
+          beneficiary_confirmation?: string | null
+          case_id: string
+          client_name: string
+          compliance_log_hash?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          kyc_verification?: string | null
+          review_timestamp?: string | null
+          reviewer_ip?: string | null
+          reviewer_name?: string | null
+          reviewer_title?: string | null
+          status?: string
+          system_name?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_documentation?: string | null
+          account_type?: string
+          aml_screening?: string | null
+          beneficiary_confirmation?: string | null
+          case_id?: string
+          client_name?: string
+          compliance_log_hash?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          kyc_verification?: string | null
+          review_timestamp?: string | null
+          reviewer_ip?: string | null
+          reviewer_name?: string | null
+          reviewer_title?: string | null
+          status?: string
+          system_name?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       credit_scores: {
         Row: {
           created_at: string | null
