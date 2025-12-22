@@ -448,6 +448,7 @@ export type Database = {
       compliance_cases: {
         Row: {
           account_documentation: string | null
+          account_reference_number: string | null
           account_type: string
           aml_screening: string | null
           beneficiary_confirmation: string | null
@@ -469,6 +470,7 @@ export type Database = {
         }
         Insert: {
           account_documentation?: string | null
+          account_reference_number?: string | null
           account_type?: string
           aml_screening?: string | null
           beneficiary_confirmation?: string | null
@@ -490,6 +492,7 @@ export type Database = {
         }
         Update: {
           account_documentation?: string | null
+          account_reference_number?: string | null
           account_type?: string
           aml_screening?: string | null
           beneficiary_confirmation?: string | null
