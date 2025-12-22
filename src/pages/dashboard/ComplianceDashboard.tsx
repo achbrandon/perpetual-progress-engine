@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -15,9 +15,17 @@ import {
   Server,
   Hash,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Building2,
+  AlertCircle,
+  BadgeCheck,
+  Fingerprint,
+  Globe,
+  Calendar,
+  DollarSign
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import logo from "@/assets/vaultbank-logo.png";
 
 interface ComplianceCase {
   id: string;
@@ -56,7 +64,7 @@ const ComplianceDashboard = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        navigate("/auth");
+        navigate("/bank/login");
         return;
       }
 
@@ -80,48 +88,43 @@ const ComplianceDashboard = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower.includes("cleared") || statusLower.includes("approved")) {
-      return "bg-green-600 text-white";
-    } else if (statusLower.includes("pending")) {
-      return "bg-yellow-500 text-white";
-    } else if (statusLower.includes("rejected") || statusLower.includes("failed")) {
-      return "bg-red-600 text-white";
-    }
-    return "bg-primary text-primary-foreground";
-  };
-
   const getCheckStatus = (status: string) => {
     const statusLower = status?.toLowerCase() || "";
     if (["completed", "verified", "validated", "passed"].includes(statusLower)) {
-      return { icon: CheckCircle2, color: "text-green-600", label: status.charAt(0).toUpperCase() + status.slice(1) };
+      return { icon: CheckCircle2, color: "text-emerald-500", bgColor: "bg-emerald-500/10", label: status.charAt(0).toUpperCase() + status.slice(1) };
     }
-    return { icon: Clock, color: "text-yellow-500", label: "Pending" };
+    return { icon: Clock, color: "text-amber-500", bgColor: "bg-amber-500/10", label: "Pending" };
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+          <p className="text-muted-foreground">Loading compliance data...</p>
+        </div>
       </div>
     );
   }
 
   if (!complianceCase) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <Button variant="ghost" onClick={() => navigate("/dashboard")} className="mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Shield className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">No Compliance Cases</h2>
-            <p className="text-muted-foreground">You don't have any active compliance cases.</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
+        <div className="max-w-2xl mx-auto">
+          <Button variant="ghost" onClick={() => navigate("/bank/dashboard")} className="mb-6">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <Card className="border-0 shadow-xl">
+            <CardContent className="py-16 text-center">
+              <div className="w-20 h-20 rounded-full bg-muted mx-auto mb-6 flex items-center justify-center">
+                <Shield className="h-10 w-10 text-muted-foreground" />
+              </div>
+              <h2 className="text-2xl font-bold mb-3">No Active Compliance Cases</h2>
+              <p className="text-muted-foreground max-w-sm mx-auto">You currently do not have any compliance cases associated with your account.</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -132,155 +135,266 @@ const ComplianceDashboard = () => {
   const amlStatus = getCheckStatus(complianceCase.aml_screening);
   const statutoryStatus = getCheckStatus(complianceCase.statutory_review);
 
+  const isPending = complianceCase.status.toLowerCase().includes("pending");
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="font-bold text-lg">Compliance Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+      {/* Professional Header */}
+      <div className="bg-[#1a2744] text-white">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate("/bank/dashboard")}
+                className="text-white hover:bg-white/10"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center gap-3">
+                <img src={logo} alt="VaultBank" className="h-8" />
+                <div className="hidden sm:block">
+                  <h1 className="font-semibold text-lg">Compliance Dashboard</h1>
+                  <p className="text-xs text-white/70">Estate & Inheritance Division</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="border-white/30 text-white text-xs">
+                <Globe className="h-3 w-3 mr-1" />
+                Secure Portal
+              </Badge>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-4 max-w-2xl mx-auto">
-        {/* Compliance Approved Banner */}
-        <Card className={`${getStatusColor(complianceCase.status)} border-0`}>
-          <CardContent className="py-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 rounded-full p-2">
-                {complianceCase.status.toLowerCase().includes("pending") ? (
-                  <Clock className="h-8 w-8" />
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        {/* Status Banner */}
+        <Card className={`border-0 shadow-lg overflow-hidden ${isPending ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-emerald-500 to-emerald-600'}`}>
+          <CardContent className="py-6">
+            <div className="flex items-center gap-4">
+              <div className={`rounded-full p-3 ${isPending ? 'bg-white/20' : 'bg-white/20'}`}>
+                {isPending ? (
+                  <Clock className="h-10 w-10 text-white" />
                 ) : (
-                  <CheckCircle2 className="h-8 w-8" />
+                  <CheckCircle2 className="h-10 w-10 text-white" />
                 )}
               </div>
               <div className="flex-1">
-                <h2 className="font-bold text-lg uppercase tracking-wide">
-                  {complianceCase.status.toUpperCase()}
+                <h2 className="font-bold text-xl text-white uppercase tracking-wider">
+                  {complianceCase.status}
                 </h2>
                 <button 
                   onClick={() => setShowCaseDetails(!showCaseDetails)}
-                  className="flex items-center gap-1 text-sm opacity-90 hover:opacity-100"
+                  className="flex items-center gap-1 text-sm text-white/90 hover:text-white mt-1 transition-colors"
                 >
                   {showCaseDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  CASE DETAILS
+                  {showCaseDetails ? "Hide" : "Show"} Case Details
                 </button>
+              </div>
+              <div className="hidden sm:block text-right">
+                <p className="text-xs text-white/70 uppercase tracking-wide">Case Reference</p>
+                <p className="font-mono font-bold text-white">{complianceCase.case_id}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Case Details */}
+        {/* Case Details Card */}
         {showCaseDetails && (
-          <Card>
-            <CardContent className="py-4 space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">CASE ID:</span>
-                <span className="font-bold">{complianceCase.case_id}</span>
+          <Card className="border-0 shadow-lg animate-in slide-in-from-top-2 duration-300">
+            <CardContent className="p-0">
+              {/* Case Header */}
+              <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white p-5 rounded-t-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <Building2 className="h-5 w-5 text-slate-300" />
+                  <span className="font-medium">Case Information</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Case ID</p>
+                    <p className="font-mono font-bold text-lg">{complianceCase.case_id}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Client Name</p>
+                    <p className="font-semibold text-lg">{complianceCase.client_name}</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">CLIENT:</span>
-                <span className="font-medium">{complianceCase.client_name}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">ACCOUNT TYPE:</span>
-                <span className="font-medium">{complianceCase.account_type}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">ACCOUNT REF:</span>
-                <span className="font-bold">{complianceCase.account_reference_number}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">STATUS:</span>
-                <Badge 
-                  variant="outline" 
-                  className={complianceCase.status.toLowerCase().includes("pending") 
-                    ? "text-amber-600 border-amber-600" 
-                    : "text-green-600 border-green-600"}
-                >
-                  {complianceCase.status}
-                </Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">UNSETTLED AMOUNT:</span>
-                <span className="font-bold text-amber-600">€{complianceCase.unsettled_amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+
+              {/* Case Details Grid */}
+              <div className="p-5 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Account Type</p>
+                      <p className="font-semibold">{complianceCase.account_type}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                    <Hash className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Account Reference</p>
+                      <p className="font-semibold font-mono text-sm">{complianceCase.account_reference_number}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Unsettled Amount - Highlighted */}
+                <div className="flex items-center justify-between p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/40">
+                      <DollarSign className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-amber-700 dark:text-amber-400 uppercase tracking-wide font-medium">Unsettled Amount</p>
+                      <p className="text-sm text-muted-foreground">Pending statutory clearance</p>
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                    €{complianceCase.unsettled_amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+
+                {/* Status Badge */}
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <span className="text-sm font-medium">Current Status</span>
+                  <Badge 
+                    className={isPending 
+                      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-300" 
+                      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-300"}
+                  >
+                    {complianceCase.status}
+                  </Badge>
+                </div>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Compliance Review */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-bold uppercase tracking-wide">Compliance Review</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-3">
-              <kycStatus.icon className={`h-5 w-5 ${kycStatus.color}`} />
-              <span className="flex-1">KYC Verification:</span>
-              <span className={`font-medium ${kycStatus.color}`}>{kycStatus.label}</span>
+        {/* Compliance Review Section */}
+        <Card className="border-0 shadow-lg">
+          <CardContent className="p-0">
+            <div className="p-5 border-b">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <BadgeCheck className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">Compliance Review</h3>
+                  <p className="text-sm text-muted-foreground">Verification status for all required checks</p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <docStatus.icon className={`h-5 w-5 ${docStatus.color}`} />
-              <span className="flex-1">Account Documentation:</span>
-              <span className={`font-medium ${docStatus.color}`}>{docStatus.label}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <beneficiaryStatus.icon className={`h-5 w-5 ${beneficiaryStatus.color}`} />
-              <span className="flex-1">Beneficiary Confirmation:</span>
-              <span className={`font-medium ${beneficiaryStatus.color}`}>{beneficiaryStatus.label}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <amlStatus.icon className={`h-5 w-5 ${amlStatus.color}`} />
-              <span className="flex-1">AML Screening:</span>
-              <span className={`font-medium ${amlStatus.color}`}>{amlStatus.label}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <statutoryStatus.icon className={`h-5 w-5 ${statutoryStatus.color}`} />
-              <span className="flex-1">Statutory Review:</span>
-              <span className={`font-medium ${statutoryStatus.color}`}>{statutoryStatus.label}</span>
+
+            <div className="p-5 space-y-3">
+              {[
+                { label: "KYC Verification", status: kycStatus, icon: Fingerprint },
+                { label: "Account Documentation", status: docStatus, icon: FileText },
+                { label: "Beneficiary Confirmation", status: beneficiaryStatus, icon: User },
+                { label: "AML Screening", status: amlStatus, icon: Shield },
+                { label: "Statutory Review", status: statutoryStatus, icon: AlertCircle },
+              ].map((item, index) => (
+                <div 
+                  key={item.label}
+                  className={`flex items-center justify-between p-4 rounded-xl transition-all ${item.status.bgColor} hover:scale-[1.01]`}
+                >
+                  <div className="flex items-center gap-3">
+                    <item.icon className={`h-5 w-5 ${item.status.color}`} />
+                    <span className="font-medium">{item.label}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-semibold ${item.status.color}`}>{item.status.label}</span>
+                    <item.status.icon className={`h-5 w-5 ${item.status.color}`} />
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
         {/* Reviewed By Section */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-bold uppercase tracking-wide">Reviewed By:</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-3">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span>{complianceCase.reviewer_name}</span>
-              <span className="text-muted-foreground">- {complianceCase.reviewer_title}</span>
+        <Card className="border-0 shadow-lg">
+          <CardContent className="p-0">
+            <div className="p-5 border-b">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
+                  <User className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">Reviewed By</h3>
+                  <p className="text-sm text-muted-foreground">Compliance officer details</p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <span>Employee ID: {complianceCase.employee_id}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Server className="h-4 w-4 text-muted-foreground" />
-              <span>IP: {complianceCase.reviewer_ip}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>Timestamp: {complianceCase.review_timestamp ? new Date(complianceCase.review_timestamp).toISOString().replace('T', ' ').slice(0, 19) + ' UTC' : 'N/A'}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-              <span>System: {complianceCase.system_name}</span>
+
+            <div className="p-5">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white font-bold text-xl">
+                  {complianceCase.reviewer_name?.split(' ').map(n => n[0]).join('')}
+                </div>
+                <div>
+                  <h4 className="font-bold text-lg">{complianceCase.reviewer_name}</h4>
+                  <p className="text-muted-foreground">{complianceCase.reviewer_title}</p>
+                  <Badge variant="outline" className="mt-2 text-xs">
+                    Employee ID: {complianceCase.employee_id}
+                  </Badge>
+                </div>
+              </div>
+
+              <Separator className="my-4" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <Server className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">IP Address</p>
+                    <p className="font-mono">{complianceCase.reviewer_ip}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Timestamp</p>
+                    <p className="font-mono text-xs">
+                      {complianceCase.review_timestamp 
+                        ? new Date(complianceCase.review_timestamp).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            timeZoneName: 'short'
+                          })
+                        : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2 mb-1">
+                  <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">System</p>
+                </div>
+                <p className="font-medium">{complianceCase.system_name}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Compliance Log Hash */}
-        <div className="text-center text-xs text-muted-foreground py-2">
-          <div className="flex items-center justify-center gap-1">
+        {/* Compliance Log Hash Footer */}
+        <div className="text-center py-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 text-xs text-muted-foreground font-mono">
             <Hash className="h-3 w-3" />
-            <span>Compliance Log Hash: {complianceCase.compliance_log_hash}</span>
+            Compliance Log Hash: {complianceCase.compliance_log_hash}
           </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            This document is cryptographically signed and tamper-proof.
+          </p>
         </div>
       </div>
     </div>
