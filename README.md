@@ -1,4 +1,6 @@
-# Welcome to your Lovable project
+# VaultBank - Banking Application
+
+<!-- MARKER: This is your VaultBank project - Clone this repo! Updated: 2026-01-04 -->
 
 ## Project info
 
